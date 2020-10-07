@@ -46,17 +46,8 @@ class Black:
         self.moveCaptureFactory = movemodule.blackMoveCaptureFactory
         self.myking = blackKing
         self.enemyking = whiteKing
-        self.minenemyindex = 0
-        self.maxenemyindex = 8
-
-    def isthereallypiece(self, coordinate):
-        for piece in pieces[self.maxenemyindex:]:
-            if not isinstance(piece, NullPiece) and piece.coordinate == coordinate:
-                return piece
-        for piece in pawns[self.maxenemyindex:]:
-            if not isinstance(piece, NullPiece) and piece.coordinate == coordinate:
-                return piece
-        return None
+        self.enemyindex = 0
+        self.allyindex = 1
 
 
 class Piece:
@@ -78,10 +69,9 @@ class RealPiece(Piece):
         self.moveCaptureFactory = movemodule.whiteMoveCaptureFactory
         self.myking = None
         self.enemyking = None
-        self.minenemyindex = 8
-        self.maxenemyindex = 16
+        self.enemyindex = 1
+        self.allyindex = 0
 
-    # forse questo metodo è meglio farlo astratto
     def generatemoves(self):
         pass
 
@@ -92,31 +82,32 @@ class RealPiece(Piece):
         pass
 
     def isthereenemypiece(self, coordinate):
-        for piece in pieces[self.minenemyindex: self.maxenemyindex]:
-            if not isinstance(piece, NullPiece) and piece.coordinate == coordinate:
+        pieces = piecesingame[self.enemyindex]
+        pawns = pawnsingame[self.enemyindex]
+        for piece in pieces:
+            if piece.coordinate == coordinate:
                 return piece
-        for pawn in pawns[self.minenemyindex: self.maxenemyindex]:
+        for pawn in pawns:
             if pawn.coordinate == coordinate:
                 return pawn
         return None
 
     def isthereallypiece(self, coordinate):
-        for piece in pieces[0: self.minenemyindex]:
-            if not isinstance(piece, NullPiece) and piece.coordinate == coordinate:
+        pieces = piecesingame[self.allyindex]
+        pawns = pawnsingame[self.allyindex]
+        for piece in pieces:
+            if piece.coordinate == coordinate:
                 return piece
-        for piece in pawns[0: self.minenemyindex]:
-            if not isinstance(piece, NullPiece) and piece.coordinate == coordinate:
-                return piece
+        for pawn in pawns:
+            if pawn.coordinate == coordinate:
+                return pawn
         return None
 
     def isempty(self, coordinate):
-        for piece in pieces:
-            if not isinstance(piece, NullPiece):
-                if piece.coordinate == coordinate:
-                    return False
-        for pawn in pawns:
-            if pawn.coordinate == coordinate:
-                return False
+        if self.isthereenemypiece(coordinate) is not None:
+            return False
+        if self.isthereallypiece(coordinate) is not None:
+            return False
         return True
 
     def __str__(self):
@@ -164,15 +155,6 @@ class Pawn(RealPiece):
             return None
         return self.moveFactory(self, self.coordinate, tocell, False)
 
-    def isthereenemypiece(self, coordinate):
-        for piece in pieces[self.minenemyindex: self.maxenemyindex]:
-            if not isinstance(piece, NullPiece) and piece.coordinate == coordinate:
-                return piece
-        for pawn in pawns[self.minenemyindex: self.maxenemyindex]:
-            if pawn.coordinate == coordinate:
-                return pawn
-        return None
-
     def capture(self, sx=True):
         rank = -1
         if sx == False:
@@ -185,7 +167,7 @@ class Pawn(RealPiece):
         if self.myking.imincheckonthismove(self, tocell) == True:
             return None
         capturedpiece = self.isthereenemypiece(tocell)
-        if capturedpiece == None:
+        if capturedpiece is None:
             return None
         move = None
         if tocell.fileint == self.finalfile:
@@ -196,8 +178,9 @@ class Pawn(RealPiece):
                 self, self.coordinate, tocell, capturedpiece, False)
         return move
 
-    def istherepawn(self, coordinate):
-        for pawn in pawns[self.minenemyindex: self.maxenemyindex]:
+    def isthereenemypawn(self, coordinate):
+        pawns = pawnsingame[self.enemyindex]
+        for pawn in pawns:
             if pawn.coordinate == coordinate:
                 return pawn
         return None
@@ -218,9 +201,9 @@ class Pawn(RealPiece):
         targetpawnsx = None
         targetpawndx = None
         if targetcellsx != None:
-            targetpawnsx = self.istherepawn(targetcellsx)
+            targetpawnsx = self.isthereenemypawn(targetcellsx)
         if targetcelldx != None:
-            targetpawndx = self.istherepawn(targetcelldx)
+            targetpawndx = self.isthereenemypawn(targetcelldx)
         if targetpawnsx != None and targetpawnsx.enpassantthreat == True:
             tocell = self.coordinate.sumcoordinate(-1, self.filestep)
             movesx = self.moveEnpassantFactory(
@@ -297,6 +280,7 @@ class Rook(RealPiece):
 
     def generatemoves(self):
         return self.rookgeneratemoves()
+
 
 class WhiteRook(Rook):
     def __init__(self, coordinate):
@@ -392,7 +376,7 @@ class Bishop(RealPiece):
                 for i in range(1, 8):
                     move = self.bishopgeneratemove(delta, i)
                     moves.append(move)
-                    if move.capturedpiece != None:
+                    if move.capturedpiece is not None:
                         break
             except(CoordinateException, AllyOccupationException, TakenKingException):
                 pass
@@ -522,14 +506,17 @@ class King(RealPiece):
                     imincheck = self.delta_1_3_5_7(self.deltas[i])
                 elif i in (4, 6):
                     imincheck = self.delta_4_6(self.deltas[i])
-                if imincheck == True:
+                if imincheck:
                     return True
             except(CoordinateException, AllyOccupationException):
                 pass
         for delta in self.knightdeltas:
-            imincheck = self.knight_delta(delta)
-            if imincheck == True:
-                return True
+            try:
+                imincheck = self.knight_delta(delta)
+                if imincheck:
+                    return True
+            except(CoordinateException, AllyOccupationException):
+                pass
         piece.coordinate = self.piececoordinate
         return imincheck
 
@@ -619,21 +606,12 @@ class BlackKing(King):
         self.moveQueenCastlingFactory = movemodule.blackQueensideCastlingFactory
         self.kingcastlingcoordinate = g8
         self.queencastlingcoordinate = c8
-        self.minenemyindex = 0
-        self.maxenemyindex = 8
+        self.enemyindex = 0
+        self.allyindex = 1
 
     def imincheckonthismove(self, piece, tocell):
         self.enemyking = whiteKing
         return super().imincheckonthismove(piece, tocell)
-
-    def isthereallypiece(self, coordinate):
-        for piece in pieces[self.maxenemyindex:]:
-            if not isinstance(piece, NullPiece) and piece.coordinate == coordinate:
-                return piece
-        for piece in pawns[self.maxenemyindex:]:
-            if not isinstance(piece, NullPiece) and piece.coordinate == coordinate:
-                return piece
-        return None
 
     def issafekingsideline(self):
         if self.imincheckonthismove(self, f8) == True:
@@ -661,39 +639,41 @@ class BlackKing(King):
             return False
         return True
 
+class ListPiece:
+    def __init__(self, whitepieces, whitepawns, blackpieces, blackpawns):
+        self.whitepieces = whitepieces
+        self.whitepawns = whitepawns
+        self.blackpieces = blackpieces
+        self.blackpawns = blackpawns
+        self.piecesingame = [self.whitepieces, self.blackpieces]
+        self.pawnsingame = [self.whitepawns, self.blackpawns]
+        
 
 whiteKing = WhiteKing(e1)
 blackKing = BlackKing(e8)
-pieces = [WhiteRook(a1), WhiteKnight(b1), WhiteBishop(c1), WhiteQueen(d1),
-          whiteKing, WhiteBishop(f1), WhiteKnight(g1), WhiteRook(h1),
-          BlackRook(a8), BlackKnight(b8), BlackBishop(c8), BlackQueen(d8),
-          blackKing, BlackBishop(f8), BlackKnight(g8), BlackRook(h8)]
-pawns = [WhitePawn(a2), WhitePawn(b2), WhitePawn(c2), WhitePawn(d2),
-         WhitePawn(e2), WhitePawn(f2), WhitePawn(g2), WhitePawn(h2),
-         BlackPawn(a7), BlackPawn(b7), BlackPawn(c7), BlackPawn(d7),
-         BlackPawn(e7), BlackPawn(f7), BlackPawn(g7), BlackPawn(h7)]
+whitepieces = [WhiteRook(a1), WhiteKnight(b1), WhiteBishop(c1), WhiteQueen(d1),
+               whiteKing, WhiteBishop(f1), WhiteKnight(g1), WhiteRook(h1)]
+whitepawns = [WhitePawn(a2), WhitePawn(b2), WhitePawn(c2), WhitePawn(d2),
+              WhitePawn(e2), WhitePawn(f2), WhitePawn(g2), WhitePawn(h2)]
+blackpieces = [BlackRook(a8), BlackKnight(b8), BlackBishop(c8), BlackQueen(d8),
+               blackKing, BlackBishop(f8), BlackKnight(g8), BlackRook(h8)]
+blackpawns = [BlackPawn(a7), BlackPawn(b7), BlackPawn(c7), BlackPawn(d7),
+              BlackPawn(e7), BlackPawn(f7), BlackPawn(g7), BlackPawn(h7)]
+piecesingame = [whitepieces, blackpieces]
+pawnsingame = [whitepawns, blackpawns]
 
 # DEBUG
-whiteKing = WhiteKing(f1)
-blackKing = BlackKing(e7)
-null = NullAlgebricNotation()
-pieces = [WhiteRook(a1), WhiteKnight(null), WhiteBishop(null), WhiteQueen(null),
-          whiteKing, WhiteBishop(null), WhiteKnight(g1), WhiteRook(null),
-          BlackRook(null), BlackKnight(b8), BlackBishop(null), BlackQueen(null),
-          blackKing, BlackBishop(null), BlackKnight(null), BlackRook(null)]
-pawns = [WhitePawn(e2), WhitePawn(null), WhitePawn(null), WhitePawn(null),
-         WhitePawn(null), WhitePawn(null), WhitePawn(null), WhitePawn(null),
-         BlackPawn(null), BlackPawn(null), BlackPawn(null), BlackPawn(null),
-         BlackPawn(e7), BlackPawn(null), BlackPawn(null), BlackPawn(null)]
+
 
 if __name__ == '__main__':
-    for p in pieces:
+    whitepieces = [WhiteRook(f2), whiteKing]
+    whitepawns = [WhitePawn(f2)]
+    blackpawns = [BlackPawn(e6)]
+    blackpieces = [BlackKnight(e3), BlackQueen(f5), blackKing]
+
+    for p in whitepieces:
         moves = p.generatemoves()
-        print("----------------  ", p, "  ----------")
+        print("---------- ", p, " -----------")
         for move in moves:
             print(move)
-    for p in pawns:
-        moves = p.generatemoves()
-        print("----------------  ", p, "  ----------")
-        for move in moves:
-            print(move)
+
