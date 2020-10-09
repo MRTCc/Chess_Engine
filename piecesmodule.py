@@ -728,6 +728,36 @@ class ListPiece:
         self.pawnsingame = [self.whitepawns, self.blackpawns]
 
 
+class MovesGenerator:
+    def __init__(self, listpiece):
+        self.listpiece = listpiece
+
+    def generatewhitemoves(self):
+        moves = []
+        l = self.listpiece
+        for piece in l.whitepieces:
+            moves += piece.generatemoves(l)
+        for pawn in l.whitepawns:
+            moves += pawn.generatemoves(l)
+        return moves
+
+    def generateblackmoves(self):
+        moves = []
+        l = self.listpiece
+        for piece in l.blackpieces:
+            moves += piece.generatemoves(l)
+        for pawn in l.blackpawns:
+            moves += pawn.generatemoves(l)
+        return moves
+
+    def generatemoves(self, iswhiteturn=True):
+        if iswhiteturn:
+            return self.generatewhitemoves()
+        else:
+            return self.generateblackmoves()
+
+
+
 if __name__ == '__main__':
     import movemodule
     wc = movemodule.CastlingRights(False)
@@ -739,23 +769,7 @@ if __name__ == '__main__':
     blackpawns = []
     blackpieces = [blackKing, BlackRook(f5, blackKing, whiteKing), BlackKnight(b4, blackKing, whiteKing)]
     l = ListPiece(whitepieces, whitepawns, blackpieces, blackpawns)
-    for p in whitepieces:
-        moves = p.generatemoves(l)
-        print("---------- ", p, " -----------")
-        for move in moves:
-            print(move)
-    for p in whitepawns:
-        moves = p.generatemoves(l)
-        print("---------- ", p, " -----------")
-        for move in moves:
-            print(move)
-    for p in blackpieces:
-        moves = p.generatemoves(l)
-        print("---------- ", p, " -----------")
-        for move in moves:
-            print(move)
-    for p in blackpawns:
-        moves = p.generatemoves(l)
-        print("---------- ", p, " -----------")
-        for move in moves:
-            print(move)
+    g = MovesGenerator(l)
+    moves = g.generatemoves()
+    for move in moves:
+        print(move)
