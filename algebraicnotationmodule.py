@@ -24,33 +24,6 @@ class AlgebraicNotation(str):
             raise CoordinateException("Invalid: " + self.coordinate + " sum rank:" +
                                       str(self.rankint) + " and file:" + str(self.fileint))
 
-    def sumcoordinatedatogliere(self, rank=0, file=0):
-        if rank < 0 or file < 0:
-            raise AttributeError("rank and file must be positive")
-        rankvalue = self.rankint
-        rankvalue += rank
-        filevalue = self.fileint
-        filevalue += file
-        if rankvalue > 8 or filevalue > 8:
-            raise CoordinateException("Invalid: " + self.coordinate + " sum rank:" +
-                                      str(rank) + " and file:" + str(file))
-
-        return self.lettervalues[rankvalue] + str(filevalue)
-
-    def subcoordinatedatogliere(self, rank=0, file=0):
-        if rank < 0 or file < 0:
-            raise AttributeError("rank and file must be positive")
-        rankvalue = 0
-        rankvalue = self.rankint
-        rankvalue -= rank
-        filevalue = self.fileint
-        filevalue -= file
-        if rankvalue < 1 or filevalue < 1:
-            raise CoordinateException("Invalid: " + self.coordinate + " sum rank:" +
-                                      str(rank) + " and file:" + str(file))
-
-        return self.lettervalues[rankvalue] + str(filevalue)
-
     def sumcoordinate(self, rank=0, file=0):
         rankvalue = self.rankint
         rankvalue += rank
@@ -70,12 +43,6 @@ class AlgebraicNotation(str):
     def __str__(self):
         return self.coordinate
 
-class NullAlgebricNotation(AlgebraicNotation):
-    def __init__(self):
-        self.coordinate = "00"
-
-    def sumcoordinate(self, rank=0, file=0):
-        return self
 
 a1 = AlgebraicNotation("a1")
 a2 = AlgebraicNotation("a2")
@@ -141,8 +108,6 @@ h5 = AlgebraicNotation("h5")
 h6 = AlgebraicNotation("h6")
 h7 = AlgebraicNotation("h7")
 h8 = AlgebraicNotation("h8")
-
-null = NullAlgebricNotation()
 
 # board from white's point of view
 celllist = (a8, b8, c8, d8, e8, f8, g8, h8,

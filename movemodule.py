@@ -22,9 +22,6 @@ class Move:
         self.isenpassant = isenpassant
         self.ischeck = ischeck  # per ora lo metto, forse può servire a qualche ottimizzazione
 
-    def AlgebraicNotation(self):
-        pass
-
     def __str__(self):
         result = "Move: \n"
         result += "\t piece = " + str(self.piece) + '\n'
