@@ -206,18 +206,19 @@ blackQueensideCastlingFactory = BlackQueensideCastlingFactory()
 
 
 class CastlingRights:
-    def __init__(self):
-        self.kinginstartpos = True
-        self.rooksxinstartpos = True
-        self.rookdxinstartpos = True
-        self.safekindsideline = True
-        self.safequeensideline = True
-        self.kingincheck = False
+    def __init__(self, kinginstartpos=True, rooksxinstartpos=True, rookdxinstartpos=True, safekingsideline=True,
+                 safequeensideline=True, kingincheck=False):
+        self.kinginstartpos = kinginstartpos
+        self.rooksxinstartpos = rooksxinstartpos
+        self.rookdxinstartpos = rookdxinstartpos
+        self.safekingsideline = safekingsideline
+        self.safequeensideline = safequeensideline
+        self.kingincheck = kingincheck
 
     def ispossiblekingcastling(self):
         result = False
         if (self.kinginstartpos == True and self.rookdxinstartpos == True and
-                self.safekindsideline == True and self.kingincheck == False):
+                self.safekingsideline == True and self.kingincheck == False):
             result = True
         return result
 
