@@ -127,6 +127,7 @@ class BlackMoveCapturePromotionFactory(MoveCapturePromotionFactory):
 
 class MoveEnpassantFactory(MoveCaptureFactory):
     def __call__(self, piece, fromcell, tocell, capturedpawn, ischeck):
+        self.isenpassant = True
         return super().__call__(piece, fromcell, tocell, capturedpawn, ischeck)
 
 
@@ -195,8 +196,8 @@ blackMoveCapturePromotionFactory = BlackMoveCapturePromotionFactory()
 whiteMoveEnpassantFactory = WhiteMoveEnpassantFactory()
 blackMoveEnpassantFactory = BlackMoveEnpassantFactory()
 
-whiteKindsideCastlingFactory = WhiteKingsideCastlingFactory()
-blackKindsideCastlingFactory = BlackKingsideCastlingFactory()
+whiteKingsideCastlingFactory = WhiteKingsideCastlingFactory()
+blackKingsideCastlingFactory = BlackKingsideCastlingFactory()
 
 whiteQueensideCastlingFactory = WhiteQueensideCastlingFactory()
 blackQueensideCastlingFactory = BlackQueensideCastlingFactory()
@@ -228,6 +229,7 @@ class CastlingRights:
 
 
 if __name__ == '__main__':
+    print(whiteKindsideCastlingFactory)
     c = CastlingRights()
     a = c.ispossiblekingcastling()
     print(a)

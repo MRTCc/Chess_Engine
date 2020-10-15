@@ -25,7 +25,15 @@ coordinatelist = (a8, b8, c8, d8, e8, f8, g8, h8,
                   a1, b1, c1, d1, e1, f1, g1, h1)
 
 
-class AllyOccupationException(Exception):
+class NotLegalMoveException(Exception):
+    pass
+
+
+class OccupationException(Exception):
+    pass
+
+
+class AllyOccupationException(OccupationException):
     pass
 
 
@@ -95,6 +103,14 @@ class RealPiece(Piece):
             return False
         return True
 
+    def __eq__(self, other):
+        if not isinstance(other, Piece):
+            raise AttributeError
+        if type(self) == type(other) and self.coordinate == other.coordinate:
+            return True
+        else:
+            return False
+
     def __str__(self):
         return self.letters
 
@@ -106,62 +122,98 @@ class Pawn(RealPiece):
         self.allyking = allyking
         self.enemyking = enemyking
         self.filestep = +1
-        self.finalfile = 8
+        self.promotionfile = 8
         self.mypromotionto = WhiteQueen
+        self.movePromotionFactory = movemodule.whiteMovePromotionFactory
         self.moveCapturePromotionFactory = movemodule.whiteMoveCapturePromotionFactory
         self.moveEnpassantFactory = movemodule.whiteMoveEnpassantFactory
 
     def generatemoves(self, listpiece):
         super().generatemoves(listpiece)
         moves = []
-        tmpmoves = (self.twostepsmove(), self.onestepmove(), self.capture(),
-                    self.capture(False), self.captureenpassant())
-        for move in tmpmoves:
-            if move is not None:
-                moves.append(move)
+        try:
+            moves.append(self._twostepsmove())
+        except(TakenKingException, CoordinateException, NotLegalMoveException, OccupationException,
+               AllyOccupationException):
+            pass
+        try:
+            moves.append(self._onestepmove())
+        except(TakenKingException, CoordinateException, NotLegalMoveException, OccupationException,
+               AllyOccupationException):
+            pass
+        try:
+            moves.append(self._capture(True))
+        except(TakenKingException, CoordinateException, NotLegalMoveException, OccupationException,
+               AllyOccupationException):
+            pass
+        try:
+            moves.append(self._capture(False))
+        except(TakenKingException, CoordinateException, NotLegalMoveException, OccupationException,
+               AllyOccupationException):
+            pass
+
         return moves
 
-    def twostepsmove(self):
+    def _twostepsmove(self):
         if not self.isstartpos:
-            return None
+            raise NotLegalMoveException
         tocell = self.coordinate.sumcoordinate(0, self.filestep * 2)
-        tmp = self.coordinate.sumcoordinate(0, self.filestep)
-        if self.isempty(tmp) == False or self.isempty(tocell) == False:
-            return None
+        tmpcell = self.coordinate.sumcoordinate(0, self.filestep)
+        if self.isempty(tmpcell) is False or self.isempty(tocell) is False:
+            raise OccupationException
         if self.allyking.imincheckonthismove(self, tocell):
-            return None
-        self.enpassantthreat = True
+            raise TakenKingException
         return self.moveFactory(self, self.coordinate, tocell, False)
 
-    def onestepmove(self):
+    def _onestepmove(self):
         tocell = self.coordinate.sumcoordinate(0, self.filestep)
         if not self.isempty(tocell):
-            return None
+            raise OccupationException
         if self.allyking.imincheckonthismove(self, tocell):
-            return None
+            raise TakenKingException
+        if tocell.fileint == self.promotionfile:
+            promotionto = self.mypromotionto(tocell, self.allyking, self.enemyking)
+            return self.movePromotionFactory(self, self.coordinate, tocell, promotionto, False)
         return self.moveFactory(self, self.coordinate, tocell, False)
 
-    def capture(self, sx=True):
-        rank = -1
-        if sx == False:
-            rank = +1
-        tocell = None
-        try:
-            tocell = self.coordinate.sumcoordinate(rank, self.filestep)
-        except CoordinateException:
-            return None
-        if self.allyking.imincheckonthismove(self, tocell):
-            return None
-        capturedpiece = self.isthereenemypiece(tocell)
-        if capturedpiece is None:
-            return None
-        move = None
-        if tocell.fileint == self.finalfile:
-            promotionto = self.mypromotionto(tocell)
-            move = self.moveCapturePromotionFactory(self, self.coordinate, tocell, capturedpiece, promotionto, False)
+    def _capture(self, sx=True):
+        if sx:
+            rank = -1
         else:
-            move = self.moveCaptureFactory(
-                self, self.coordinate, tocell, capturedpiece, False)
+            rank = 1
+        tocell = self.coordinate.sumcoordinate(rank, self.filestep)
+        sidecell = self.coordinate.sumcoordinate(rank, 0)
+        enpiece = self.isthereenemypiece(sidecell)
+        if enpiece is None:
+            capturedpiece = self.isthereenemypiece(tocell)
+            if capturedpiece is None:
+                raise NotLegalMoveException
+            fromcell = self.coordinate
+            self.coordinate = tocell
+            self.listpiece.removepiece(capturedpiece)
+            iskingtaken = self.allyking.imincheck()
+            self.listpiece.addpiece(capturedpiece)
+            self.coordinate = fromcell
+            if iskingtaken:
+                raise TakenKingException
+            if tocell.fileint == self.promotionfile:
+                promotionto = self.mypromotionto(tocell, self.allyking, self.enemyking)
+                move = self.moveCapturePromotionFactory(self, self.coordinate, tocell, capturedpiece, promotionto, False)
+            else:
+                move = self.moveCaptureFactory(self, self.coordinate, tocell, capturedpiece, False)
+        else:
+            if enpiece.enpassantthreat:
+                fromcell = self.coordinate
+                self.coordinate = tocell
+                self.listpiece.removepiece(enpiece)
+                iskingtaken = self.allyking.imincheck()
+                self.listpiece.addpiece(enpiece)
+                self.coordinate = fromcell
+                if iskingtaken:
+                    raise TakenKingException
+                move = self.moveEnpassantFactory(self, self.coordinate, tocell, enpiece, False)
+            else:
+                raise NotLegalMoveException
         return move
 
     def isthereenemypawn(self, coordinate):
@@ -171,40 +223,6 @@ class Pawn(RealPiece):
                 return pawn
         return None
 
-    def captureenpassant(self):
-        movesx = None
-        movedx = None
-        targetcellsx = None
-        targetcelldx = None
-        try:
-            targetcellsx = self.coordinate.sumcoordinate(-1, self.filestep)
-        except CoordinateException:
-            pass
-        try:
-            targetcelldx = self.coordinate.sumcoordinate(+1, self.filestep)
-        except CoordinateException:
-            pass
-        targetpawnsx = None
-        targetpawndx = None
-        if targetcellsx is not None:
-            targetpawnsx = self.isthereenemypawn(targetcellsx)
-        if targetcelldx is not None:
-            targetpawndx = self.isthereenemypawn(targetcelldx)
-        if targetpawnsx is not None and targetpawnsx.enpassantthreat == True:
-            tocell = self.coordinate.sumcoordinate(-1, self.filestep)
-            movesx = self.moveEnpassantFactory(
-                self, self.coordinate, tocell, targetpawnsx, False)
-        if targetpawndx is not None and targetpawndx.enpassantthreat == True:
-            tocell = self.coordinate.sumcoordinate(+1, self.filestep)
-            movedx = self.moveEnpassantFactory(
-                self, self.coordinate, tocell, targetpawndx, False)
-        move = None
-        if movesx is None:
-            move = movedx
-        else:
-            move = movesx
-        return move
-
 
 class BlackPawn(Pawn, Black):
     def __init__(self, coordinate, allyking, enemyking):
@@ -212,10 +230,11 @@ class BlackPawn(Pawn, Black):
         super().setblackparameters()
         self.letters = "bp"
         self.filestep = -1
-        self.finalfile = 1
+        self.promotionfile = 1
         self.mypromotionto = BlackQueen
         self.moveCapturePromotionFactory = movemodule.blackMoveCapturePromotionFactory
         self.moveEnpassantFactory = movemodule.blackMoveEnpassantFactory
+        self.movePromotionFactory = movemodule.blackMovePromotionFactory
 
 
 class WhitePawn(Pawn):
@@ -230,6 +249,8 @@ class Rook(RealPiece):
         self.allyking = allyking
         self.enemyking = enemyking
         self.rookdeltas = ((0, 1), (1, 0), (0, -1), (-1, 0))
+        self.kingcastlingcoordinate = f1
+        self.queencastlingcoordinate = d1
 
     def rookgeneratemove(self, delta, factor):
         """
@@ -281,6 +302,8 @@ class BlackRook(Black, Rook):
     def __init__(self, coordinate, allyking, enemyking):
         super().__init__(coordinate, allyking, enemyking)
         super().setblackparameters()
+        self.kingcastlingcoordinate = f8
+        self.queencastlingcoordinate = d8
         self.letters = "bR"
 
 
@@ -498,14 +521,17 @@ class King(RealPiece):
     def __init__(self, coordinate, castlingrights):
         super().__init__(coordinate)
         self.letter = 'K'
+        self.startpos = e1
         self.deltas = ((-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0))
         self.knightdeltas = ((-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2),
                              (-2, 1), (-2, -1))
         self.castlingrights = castlingrights
-        self.moveKingCastlingFactory = movemodule.whiteKindsideCastlingFactory
+        self.moveKingCastlingFactory = movemodule.whiteKingsideCastlingFactory
         self.moveQueenCastlingFactory = movemodule.whiteQueensideCastlingFactory
         self.kingcastlingcoordinate = g1
         self.queencastlingcoordinate = c1
+        self.enemyindex = 1
+        self.allyindex = 0
 
     def delta_0_2(self, delta):
         for i in range(1, 8):
@@ -600,27 +626,50 @@ class King(RealPiece):
         piece.coordinate = self.piececoordinate
         return imincheck
 
+    def imincheck(self):
+        for i in range(0, 8):
+            try:
+                incheck = False
+                if i in (0, 2):
+                    incheck = self.delta_0_2(self.deltas[i])
+                elif i in (1, 3, 5, 7):
+                    incheck = self.delta_1_3_5_7(self.deltas[i])
+                elif i in (4, 6):
+                    incheck = self.delta_4_6(self.deltas[i])
+                if incheck:
+                    return incheck
+            except(CoordinateException, AllyOccupationException):
+                pass
+        for delta in self.knightdeltas:
+            try:
+                incheck = self.knight_delta(delta)
+                if incheck:
+                    break
+            except(CoordinateException, AllyOccupationException):
+                pass
+        return incheck
+
     def issafekingsideline(self):
-        if self.imincheckonthismove(self, f1) == True:
+        if self.imincheckonthismove(self, f1):
             return False
         if self.isthereallypiece(f1) or self.isthereenemypiece(f1):
             return False
-        if self.imincheckonthismove(self, g1) == True:
+        if self.imincheckonthismove(self, g1):
             return False
         if self.isthereallypiece(g1) or self.isthereenemypiece(g1):
             return False
         return True
 
     def issafequeensideline(self):
-        if self.imincheckonthismove(self, d1) == True:
+        if self.imincheckonthismove(self, d1):
             return False
         if self.isthereallypiece(d1) or self.isthereenemypiece(d1):
             return False
-        if self.imincheckonthismove(self, c1) == True:
+        if self.imincheckonthismove(self, c1):
             return False
         if self.isthereallypiece(c1) or self.isthereenemypiece(c1):
             return False
-        if self.imincheckonthismove(self, b1) == True:
+        if self.imincheckonthismove(self, b1):
             return False
         if self.isthereallypiece(b1) or self.isthereenemypiece(b1):
             return False
@@ -629,13 +678,13 @@ class King(RealPiece):
     def generatemove(self, rankstep, filestep):
         tocell = self.coordinate.sumcoordinate(rankstep, filestep)
         allypiece = self.isthereallypiece(tocell)
-        if allypiece != None:
+        if allypiece is not None:
             raise AllyOccupationException
-        if self.imincheckonthismove(self, tocell) == True:
+        if self.imincheckonthismove(self, tocell):
             raise TakenKingException
         move = None
         capturedpiece = self.isthereenemypiece(tocell)
-        if capturedpiece != None:
+        if capturedpiece is not None:
             move = self.moveCaptureFactory(self, self.coordinate, tocell, capturedpiece, False)
         else:
             move = self.moveFactory(self, self.coordinate, tocell, False)
@@ -651,12 +700,12 @@ class King(RealPiece):
             except(CoordinateException, AllyOccupationException, TakenKingException):
                 pass
         self.castlingrights.safekindsideline = self.issafekingsideline()
-        if self.castlingrights.ispossiblekingcastling() == True:
+        if self.castlingrights.ispossiblekingcastling():
             ischeck = self.imincheckonthismove(self, self.kingcastlingcoordinate)
             move = self.moveKingCastlingFactory(ischeck)
             moves.append(move)
         self.castlingrights.safequeensideline = self.issafequeensideline()
-        if self.castlingrights.ispossiblequeencastling() == True:
+        if self.castlingrights.ispossiblequeencastling():
             ischeck = self.imincheckonthismove(self, self.queencastlingcoordinate)
             move = self.moveQueenCastlingFactory(ischeck)
             moves.append(move)
@@ -679,9 +728,10 @@ class BlackKing(King):
     def __init__(self, coordinate, castlingrights):
         super().__init__(coordinate, castlingrights)
         self.letters = "bK"
+        self.startpos = e8
         self.moveFactory = movemodule.blackMoveFactory
         self.moveCaptureFactory = movemodule.blackMoveCaptureFactory
-        self.moveKingCastlingFactory = movemodule.blackKindsideCastlingFactory
+        self.moveKingCastlingFactory = movemodule.blackKingsideCastlingFactory
         self.moveQueenCastlingFactory = movemodule.blackQueensideCastlingFactory
         self.kingcastlingcoordinate = g8
         self.queencastlingcoordinate = c8
@@ -718,6 +768,11 @@ class BlackKing(King):
         return True
 
 
+class NullPiece(RealPiece):
+    def __init__(self):
+        self.letters = "--"
+
+
 class ListPiece:
     def __init__(self, whitepieces, whitepawns, blackpieces, blackpawns):
         self.whitepieces = whitepieces
@@ -726,6 +781,181 @@ class ListPiece:
         self.blackpawns = blackpawns
         self.piecesingame = [self.whitepieces, self.blackpieces]
         self.pawnsingame = [self.whitepawns, self.blackpawns]
+        self.nullpiece = NullPiece()
+        self.board = self._builtboard()
+
+    def addpiece(self, piece):
+        if isinstance(piece.allyking, WhiteKing):
+            if isinstance(piece, Pawn):
+                lst = self.whitepawns
+            else:
+                lst = self.whitepieces
+        else:
+            if isinstance(piece, Pawn):
+                lst = self.blackpawns
+            else:
+                lst = self.blackpieces
+        lst.append(piece)
+        self.board[piece.coordinate] = piece
+
+    def removepiece(self, piece):
+        if piece in self.whitepieces:
+            lst = self.whitepieces
+        elif piece in self.whitepawns:
+            lst = self.whitepawns
+        elif piece in self.blackpieces:
+            lst = self.blackpieces
+        elif piece in self.blackpawns:
+            lst = self.blackpawns
+        else:
+            raise Exception("ListPiece --> removepiece function --> lst not assigned")
+        lst.remove(piece)
+        self.board[piece.coordinate] = self.nullpiece
+
+    def _builtboard(self, ):
+        board = {}
+        for pieces in (self.whitepieces, self.whitepawns, self.blackpieces, self.blackpawns):
+            for piece in pieces:
+                board[piece.coordinate] = piece
+        keys = board.keys()
+        for coordinate in coordinatelist:
+            if coordinate not in keys:
+                board[coordinate] = self.nullpiece
+        return board
+
+    def _movepiece(self, piece, targetcoordinate):
+        self.board[piece.coordinate] = self.nullpiece
+        self.board[targetcoordinate] = piece
+        piece.coordinate = targetcoordinate
+
+    def _capturepiece(self, move):
+        self.removepiece(move.piece)
+        self._movepiece(move.piece, move.tocell)
+
+    def _captureandpromotion(self, move):
+        self.removepiece(move.capturedpiece)
+        self._promotepawn(move)
+
+    def _promotepawn(self, move):
+        self.removepiece(move.piece)
+        self.addpiece(move.promotionto)
+
+    def _applykingcastling(self, move):
+        if move.iswhiteturn:
+            king = self.board[e1]
+            rook = self.board[h1]
+        else:
+            king = self.board[e8]
+            rook = self.board[h8]
+        self._movepiece(king, king.kingcastlingcoordinate)
+        self._movepiece(rook, rook.kingcastlingcoordinate)
+
+    def _applyqueencastling(self, move):
+        if move.iswhiteturn:
+            king = self.board[e1]
+            rook = self.board[a1]
+        else:
+            king = self.board[e8]
+            rook = self.board[a8]
+        self._movepiece(king, king.queencastlingcoordinate)
+        self._movepiece(rook, rook.queencastlingcoordinate)
+
+    def _applyenpassant(self, move):
+        self.removepiece(move.capturedpiece)
+        self._movepiece(move.piece, move.tocell)
+
+    def applymove(self, move):
+        if move.iskingcastling:
+            self._applykingcastling(move)
+        elif move.isqueencastling:
+            self._applyqueencastling(move)
+        elif move.isenpassant:
+            self._applyenpassant(move)
+        elif move.capturedpiece is not None:
+            if move.promotionto is not None:
+                self._captureandpromotion(move)
+                pass
+            else:
+                self._capturepiece(move)
+                pass
+        elif move.promotionto is not None:
+            self._promotepawn(move)
+            pass
+        else:
+            self._movepiece(move.piece, move.tocell)
+            pass
+
+    def _undokingcastling(self, move):
+        if move.iswhiteturn:
+            king = self.board[g1]
+            rook = self.board[f1]
+            rookstartpos = h1
+        else:
+            king = self.board[g8]
+            rook = self.board[f8]
+            rookstartpos = h8
+        self._movepiece(king, king.startpos)
+        self._movepiece(rook, rookstartpos)
+
+    def _undoqueencastling(self, move):
+        if move.iswhiteturn:
+            king = self.board[c1]
+            rook = self.board[d1]
+            rookstartpos = a1
+        else:
+            king = self.board[c8]
+            rook = self.board[d8]
+            rookstartpos = a8
+        self._movepiece(king, king.startpos)
+        self._movepiece(rook, rookstartpos)
+
+    def _undoenpassant(self, move):
+        self._movepiece(move.piece, move.fromcell)
+        self.addpiece(move.capturedpiece)
+
+    def _undocaptureandpromotion(self, move):
+        self.addpiece(move.piece)
+        self.removepiece(move.promotionto)
+        self.addpiece(move.capturedpiece)
+
+    def _undocapturepiece(self, move):
+        self._movepiece(move.piece, move.fromcell)
+        self.addpiece(move.capturedpiece)
+
+    def _undopromotepawn(self, move):
+        self.removepiece(move.promotionto)
+        self.addpiece(move.piece)
+
+    def undomove(self, move):
+        if move.iskingcastling:
+            self._undokingcastling(move)
+        elif move.isqueencastling:
+            self._undoqueencastling(move)
+        elif move.isenpassant:
+            self._undoenpassant(move)
+        elif move.capturedpiece is not None:
+            if move.promotionto is not None:
+                self._undocaptureandpromotion(move)
+            else:
+                self._undocapturepiece(move)
+        elif move.promotionto is not None:
+            self._undopromotepawn(move)
+        else:
+            self._movepiece(move.piece, move.fromcell)
+
+    def __str__(self):
+        keys = self.board.keys()
+        strlist = [str(self.board[coordinate]) for coordinate in coordinatelist]
+        result = ("|%s|%s|%s|%s|%s|%s|%s|%s|\n" +
+                  "|%s|%s|%s|%s|%s|%s|%s|%s|\n" +
+                  "|%s|%s|%s|%s|%s|%s|%s|%s|\n" +
+                  "|%s|%s|%s|%s|%s|%s|%s|%s|\n" +
+                  "|%s|%s|%s|%s|%s|%s|%s|%s|\n" +
+                  "|%s|%s|%s|%s|%s|%s|%s|%s|\n" +
+                  "|%s|%s|%s|%s|%s|%s|%s|%s|\n" +
+                  "|%s|%s|%s|%s|%s|%s|%s|%s|\n") % tuple(strlist)
+
+        return result
 
 
 class MovesGenerator:
@@ -757,19 +987,21 @@ class MovesGenerator:
             return self.generateblackmoves()
 
 
-
 if __name__ == '__main__':
     import movemodule
-    wc = movemodule.CastlingRights(False)
-    bc = movemodule.CastlingRights(False)
-    whiteKing = WhiteKing(d2, wc)
-    blackKing = BlackKing(e7, bc)
-    whitepieces = [whiteKing, WhiteQueen(a3, whiteKing, blackKing), WhiteKnight(e3, whiteKing, blackKing)]
+
+    wc = movemodule.CastlingRights()
+    bc = movemodule.CastlingRights()
+    whiteKing = WhiteKing(g1, wc)
+    blackKing = BlackKing(c8, bc)
+    whitepieces = [whiteKing, WhiteRook(f1, whiteKing, blackKing), WhiteQueen(h8, whiteKing, blackKing)]
     whitepawns = []
-    blackpawns = []
-    blackpieces = [blackKing, BlackRook(f5, blackKing, whiteKing), BlackKnight(b4, blackKing, whiteKing)]
+    blackpawns = [BlackPawn(d3, blackKing, whiteKing)]
+    blackpieces = [blackKing, BlackRook(d8, blackKing, whiteKing), BlackQueen(g2, blackKing, whiteKing)]
     l = ListPiece(whitepieces, whitepawns, blackpieces, blackpawns)
-    g = MovesGenerator(l)
-    moves = g.generatemoves()
+    whiteKing.listpiece = l
+    blackKing.listpiece = l
+    print(l)
+    moves = whiteKing.generatemoves(l)
     for move in moves:
         print(move)
