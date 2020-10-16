@@ -626,7 +626,20 @@ class King(RealPiece):
         piece.coordinate = self.piececoordinate
         return imincheck
 
-    def imincheck(self):
+    def iminchecksetup(self, listpiece=None, piece=None, targetcoordinate=None, capturedpiece=None):
+        if piece:
+            fromcell = piece.coordinate
+            piece.coordinate = targetcoordinate
+        if capturedpiece:
+            listpiece.removepiece(capturedpiece)
+        result = self._imincheck()
+        if capturedpiece:
+            listpiece.addpiece(capturedpiece)
+        if piece:
+            piece.coordinate = fromcell
+        return result
+
+    def _imincheck(self):
         for i in range(0, 8):
             try:
                 incheck = False
