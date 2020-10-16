@@ -560,7 +560,7 @@ class King(RealPiece):
                 raise AllyOccupationException
             enemypiece = self.isthereenemypiece(targetcell)
             if i == 1:
-                if isinstance(enemypiece, (Pawn, Rook, Queen, King)):
+                if isinstance(enemypiece, (Rook, Queen, King)):
                     return True
                 elif isinstance(enemypiece, (Pawn, Knight, Bishop)):
                     break
@@ -783,6 +783,18 @@ class ListPiece:
         self.pawnsingame = [self.whitepawns, self.blackpawns]
         self.nullpiece = NullPiece()
         self.board = self._builtboard()
+        for piece in self.whitepieces:
+            if isinstance(piece, WhiteKing):
+                self.whiteking = piece
+                break
+        else:
+            raise Exception("No White King on the board")
+        for piece in self.blackpieces:
+            if isinstance(piece, BlackKing):
+                self.blackking = piece
+                break
+        else:
+            raise Exception("No Black King on the board")
 
     def addpiece(self, piece):
         if isinstance(piece.allyking, WhiteKing):
@@ -943,6 +955,12 @@ class ListPiece:
         else:
             self._movepiece(move.piece, move.fromcell)
 
+    def iswhitekingincheck(self):
+        return self.whiteking.imincheck()
+
+    def isblackkingincheck(self):
+        return self.blackking.imincheck()
+
     def __str__(self):
         keys = self.board.keys()
         strlist = [str(self.board[coordinate]) for coordinate in coordinatelist]
@@ -956,35 +974,6 @@ class ListPiece:
                   "|%s|%s|%s|%s|%s|%s|%s|%s|\n") % tuple(strlist)
 
         return result
-
-
-class MovesGenerator:
-    def __init__(self, listpiece):
-        self.listpiece = listpiece
-
-    def generatewhitemoves(self):
-        moves = []
-        l = self.listpiece
-        for piece in l.whitepieces:
-            moves += piece.generatemoves(l)
-        for pawn in l.whitepawns:
-            moves += pawn.generatemoves(l)
-        return moves
-
-    def generateblackmoves(self):
-        moves = []
-        l = self.listpiece
-        for piece in l.blackpieces:
-            moves += piece.generatemoves(l)
-        for pawn in l.blackpawns:
-            moves += pawn.generatemoves(l)
-        return moves
-
-    def generatemoves(self, iswhiteturn=True):
-        if iswhiteturn:
-            return self.generatewhitemoves()
-        else:
-            return self.generateblackmoves()
 
 
 if __name__ == '__main__':

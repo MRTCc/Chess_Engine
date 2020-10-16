@@ -1,0 +1,1234 @@
+ply: 0 root position
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wK d4c5
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF1132E08>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wK|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wK d4d5
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF1132D88>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF1132F88>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF1132D88>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wK d4e5
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF1132E48>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|wK|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C2208>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF1132E48>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|--|wK|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wK d4e4
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF1132F08>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|wK|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C22C8>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF1132F08>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|--|wK|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wK d4e3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10C2108>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|wQ|--|wK|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C2488>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C2108>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|wK|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wK d4d3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10C2148>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|wQ|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C2608>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C2148>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wK d4c4
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10C2348>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|wK|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3c4
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF1123D08>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|wQ|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C81C8>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF1123D08>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|wQ|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a3
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C80C8>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF1123D08>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|wK|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3c5
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF1132F48>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b3
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C82C8>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF1132F48>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3c6
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10C2048>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C8608>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C2048>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b4
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C8808>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C2048>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b3
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C88C8>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C2048>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a3
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C8A08>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C2048>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3c7
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10C8448>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C8B88>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C8448>
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b4
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C8F48>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C8448>
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b3
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C7088>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C8448>
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a3
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C7188>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C8448>
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3c8
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10C8B48>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C7388>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C8B48>
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C7708>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C8B48>
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b4
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C7808>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C8B48>
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b3
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C7908>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C8B48>
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a3
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C7A48>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C8B48>
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3d3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10C8F08>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|wQ|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C7DC8>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C8F08>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|wQ|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b4
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10C7E08>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C8F08>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|wK|--|--|--|--|
+|--|--|--|wQ|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3e3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10C7B88>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|wQ|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10CF2C8>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C7B88>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|wQ|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10CF248>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C7B88>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|wQ|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b4
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10CF408>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C7B88>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|wK|--|--|--|--|
+|--|--|--|--|wQ|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3f3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10C7F88>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|wQ|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10CF588>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C7F88>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|wQ|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10CF648>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C7F88>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|wQ|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b4
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10CF988>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10C7F88>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|wK|--|--|--|--|
+|--|--|--|--|--|wQ|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3g3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10CF548>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|wQ|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10CFB48>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10CF548>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|wQ|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10CFE08>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10CF548>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|wQ|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b4
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10CFF48>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10CF548>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|wK|--|--|--|--|
+|--|--|--|--|--|--|wQ|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3h3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10CFB08>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|wQ|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D1388>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10CFB08>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|wQ|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D1308>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10CFB08>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|wQ|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b4
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D14C8>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10CFB08>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|wQ|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3c2
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10D1088>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D1908>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10D1088>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D19C8>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10D1088>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b4
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D1AC8>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10D1088>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a3
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D1BC8>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10D1088>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3c1
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10D1608>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D1F88>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10D1608>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D8108>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10D1608>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b4
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D81C8>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10D1608>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|bK|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b3
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D8308>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10D1608>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3b3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10D1D08>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|wQ|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4a5
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D8488>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10D1D08>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|wQ|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 2
+	 last move: bK a4b3
+	 class: WhiteGamePosition
+	 position: <__main__.WhiteGamePosition object at 0x0000024CF10D8748>
+	 parent: <__main__.BlackGamePosition object at 0x0000024CF10D1D08>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|wK|--|--|--|--|
+|--|bK|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+ply: 1
+	 last move: wQ c3a3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10D8448>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|wQ|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ CHECKMATE - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3b4
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10D8888>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|wQ|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ CHECKMATE - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3a5
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10D8988>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|wQ|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ CHECKMATE - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3d2
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10D8A88>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|wQ|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3e1
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10D8B88>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|wQ|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3b2
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10D8C88>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|wQ|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3a1
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10D8D88>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|wQ|--|--|--|--|--|--|--|
+************************ CHECKMATE - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3c4
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DB908>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|wQ|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ CHECKMATE - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3c5
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DB5C8>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3c6
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DBAC8>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ CHECKMATE - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3c7
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DBBC8>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3c8
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DBCC8>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3d3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DBDC8>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|wQ|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3e3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DBEC8>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|wQ|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3f3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DBF88>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|wQ|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3g3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DE148>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|wQ|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3h3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DBFC8>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|wQ|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3c2
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DE308>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ CHECKMATE - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3c1
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DE408>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|wQ|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3b3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DE508>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|wQ|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ CHECKMATE - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3a3
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DE5C8>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|wQ|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ CHECKMATE - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3b4
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DE6C8>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|wQ|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ CHECKMATE - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3a5
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DE808>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|wQ|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ CHECKMATE - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3d2
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DE908>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|wQ|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3e1
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DEA08>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|wQ|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3b2
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DEB08>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|wQ|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+************************ DRAW - GAME ENDED ***********************
+ply: 1
+	 last move: wQ c3a1
+	 class: BlackGamePosition
+	 position: <__main__.BlackGamePosition object at 0x0000024CF10DEC08>
+	 parent: <__main__.WhiteGamePosition object at 0x0000024CF1123948>
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|bK|--|--|wK|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|--|--|--|--|--|--|--|--|
+|wQ|--|--|--|--|--|--|--|
+************************ CHECKMATE - GAME ENDED ***********************
