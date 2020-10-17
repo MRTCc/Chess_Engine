@@ -4,6 +4,7 @@ import algebraicnotationmodule
 
 nposition = 0
 
+
 def white_generator_moves(listpiece):
     for piece in listpiece.whitepieces:
         moves = piece.generatemoves(l)
@@ -58,6 +59,7 @@ class GamePosition:
         # DEBUG
         global nposition
         nposition += 1
+
         if self.parent is None:
             msg = "ply: " + str(curply) + " root position"
         else:
@@ -65,6 +67,7 @@ class GamePosition:
                    self.originmove.fromcell + self.originmove.tocell + "\n\t class: " + self.__class__.__name__ +
                     "\n\t position: " + str(self) + "\n\t parent: " + str(self.parent))
         testfile.write(msg + '\n' + str(self.listpiece))
+
 
         for move in self.movegeneratorfunc(self.listpiece):
             self.moves.append(move)
@@ -118,20 +121,22 @@ if __name__ == '__main__':
                                          a1, b1, c1, d1, e1, f1, g1, h1)
     wc = movemodule.CastlingRights(False)
     bc = movemodule.CastlingRights(False)
-    whiteKing = pi.WhiteKing(d4, wc)
-    blackKing = pi.BlackKing(a4, bc)
-    whitepieces = [whiteKing, pi.WhiteQueen(c3, whiteKing, blackKing)]
+    whiteKing = pi.WhiteKing(b6, wc)
+    blackKing = pi.BlackKing(b8, bc)
+    whitepieces = [whiteKing, pi.WhiteKnight(a6, whiteKing, blackKing)]
     whitepawns = []
     blackpawns = []
     blackpieces = [blackKing]
     l = pi.ListPiece(whitepieces, whitepawns, blackpieces, blackpawns)
     whiteKing.listpiece = l
     blackKing.listpiece = l
-    # print(l)
-
-    root = WhiteGamePosition(l)
-
-    root.builtplytree(maxply=2, curply=0)
-
+    print(l)
+    import time
+    root = BlackGamePosition(l)
+    start_time = time.time()
+    root.builtplytree(maxply=3, curply=0)
+    finish_time = time.time()
+    delta_time = finish_time - start_time
     print(nposition)
+    print("number of nodes in a second: ", nposition / delta_time)
 
