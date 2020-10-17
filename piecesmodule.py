@@ -161,7 +161,7 @@ class Pawn(RealPiece):
         tmpcell = self.coordinate.sumcoordinate(0, self.filestep)
         if self.isempty(tmpcell) is False or self.isempty(tocell) is False:
             raise OccupationException
-        if self.allyking.imincheckonthismove(self, tocell):
+        if self.allyking.iminchecksetup(self.listpiece, self, tocell):
             raise TakenKingException
         return self.moveFactory(self, self.coordinate, tocell, False)
 
@@ -169,7 +169,7 @@ class Pawn(RealPiece):
         tocell = self.coordinate.sumcoordinate(0, self.filestep)
         if not self.isempty(tocell):
             raise OccupationException
-        if self.allyking.imincheckonthismove(self, tocell):
+        if self.allyking.iminchecksetup(self.listpiece, self, tocell):
             raise TakenKingException
         if tocell.fileint == self.promotionfile:
             promotionto = self.mypromotionto(tocell, self.allyking, self.enemyking)
@@ -188,12 +188,7 @@ class Pawn(RealPiece):
             capturedpiece = self.isthereenemypiece(tocell)
             if capturedpiece is None:
                 raise NotLegalMoveException
-            fromcell = self.coordinate
-            self.coordinate = tocell
-            self.listpiece.removepiece(capturedpiece)
-            iskingtaken = self.allyking.imincheck()
-            self.listpiece.addpiece(capturedpiece)
-            self.coordinate = fromcell
+            iskingtaken = self.allyking.iminchecksetup(self.listpiece, self, tocell, capturedpiece)
             if iskingtaken:
                 raise TakenKingException
             if tocell.fileint == self.promotionfile:
@@ -203,12 +198,7 @@ class Pawn(RealPiece):
                 move = self.moveCaptureFactory(self, self.coordinate, tocell, capturedpiece, False)
         else:
             if enpiece.enpassantthreat:
-                fromcell = self.coordinate
-                self.coordinate = tocell
-                self.listpiece.removepiece(enpiece)
-                iskingtaken = self.allyking.imincheck()
-                self.listpiece.addpiece(enpiece)
-                self.coordinate = fromcell
+                iskingtaken = self.allyking.imincheck(self.listpiece, self, tocell, enpiece)
                 if iskingtaken:
                     raise TakenKingException
                 move = self.moveEnpassantFactory(self, self.coordinate, tocell, enpiece, False)
@@ -262,12 +252,14 @@ class Rook(RealPiece):
         allypiece = self.isthereallypiece(tocell)
         if allypiece is not None:
             raise AllyOccupationException
-        if self.allyking.imincheckonthismove(self, tocell):
-            raise TakenKingException
         capturedpiece = self.isthereenemypiece(tocell)
         if capturedpiece is not None:
+            if self.allyking.iminchecksetup(self.listpiece, self, tocell, capturedpiece):
+                raise TakenKingException
             move = self.moveCaptureFactory(self, self.coordinate, tocell, capturedpiece, False)
         else:
+            if self.allyking.iminchecksetup(self.listpiece, self, tocell):
+                raise TakenKingException
             move = self.moveFactory(self, self.coordinate, tocell, False)
         return move
 
@@ -281,7 +273,7 @@ class Rook(RealPiece):
                         moves.append(move)
                         if move.capturedpiece is not None:
                             break
-                    except(TakenKingException):
+                    except TakenKingException:
                         pass
             except(CoordinateException, AllyOccupationException):
                 pass
@@ -320,13 +312,14 @@ class Knight(RealPiece):
         allypiece = self.isthereallypiece(tocell)
         if allypiece is not None:
             raise AllyOccupationException
-        move = None
-        if self.allyking.imincheckonthismove(self, tocell):
-            raise TakenKingException
         capturedpiece = self.isthereenemypiece(tocell)
         if capturedpiece is None:
+            if self.allyking.iminchecksetup(self.listpiece, self, tocell, capturedpiece):
+                raise TakenKingException
             move = self.moveFactory(self, self.coordinate, tocell, False)
         else:
+            if self.allyking.iminchecksetup(self.listpiece, self, tocell):
+                raise TakenKingException
             move = self.moveCaptureFactory(self, self.coordinate, tocell, capturedpiece, False)
         return move
 
@@ -372,12 +365,14 @@ class Bishop(RealPiece):
         allypiece = self.isthereallypiece(tocell)
         if allypiece is not None:
             raise AllyOccupationException
-        if self.allyking.imincheckonthismove(self, tocell):
-            raise TakenKingException
         capturedpiece = self.isthereenemypiece(tocell)
         if capturedpiece is not None:
+            if self.allyking.iminchecksetup(self.listpiece, self, tocell, capturedpiece):
+                raise TakenKingException
             move = self.moveCaptureFactory(self, self.coordinate, tocell, capturedpiece, False)
         else:
+            if self.allyking.iminchecksetup(self.listpiece, self, tocell):
+                raise TakenKingException
             move = self.moveFactory(self, self.coordinate, tocell, False)
         return move
 
@@ -435,12 +430,14 @@ class Queen(RealPiece):
         allypiece = self.isthereallypiece(tocell)
         if allypiece is not None:
             raise AllyOccupationException
-        if self.allyking.imincheckonthismove(self, tocell):
-            raise TakenKingException
         capturedpiece = self.isthereenemypiece(tocell)
         if capturedpiece is not None:
+            if self.allyking.iminchecksetup(self.listpiece, self, tocell, capturedpiece):
+                raise TakenKingException
             move = self.moveCaptureFactory(self, self.coordinate, tocell, capturedpiece, False)
         else:
+            if self.allyking.iminchecksetup(self.listpiece, self, tocell):
+                raise TakenKingException
             move = self.moveFactory(self, self.coordinate, tocell, False)
         return move
 
@@ -470,12 +467,14 @@ class Queen(RealPiece):
         allypiece = self.isthereallypiece(tocell)
         if allypiece is not None:
             raise AllyOccupationException
-        if self.allyking.imincheckonthismove(self, tocell):
-            raise TakenKingException
         capturedpiece = self.isthereenemypiece(tocell)
         if capturedpiece is not None:
+            if self.allyking.iminchecksetup(self.listpiece, self, tocell, capturedpiece):
+                raise TakenKingException
             move = self.moveCaptureFactory(self, self.coordinate, tocell, capturedpiece, False)
         else:
+            if self.allyking.iminchecksetup(self.listpiece, self, tocell):
+                raise TakenKingException
             move = self.moveFactory(self, self.coordinate, tocell, False)
         return move
 
@@ -532,8 +531,9 @@ class King(RealPiece):
         self.queencastlingcoordinate = c1
         self.enemyindex = 1
         self.allyindex = 0
+        self.listpiece = None
 
-    def delta_0_2(self, delta):
+    def _delta_0_2(self, delta):
         for i in range(1, 8):
             targetcell = self.coordinate.sumcoordinate(delta[0] * i, delta[1] * i)
             allypiece = self.isthereallypiece(targetcell)
@@ -552,7 +552,7 @@ class King(RealPiece):
                     break
         return False
 
-    def delta_1_3_5_7(self, delta):
+    def _delta_1_3_5_7(self, delta):
         for i in range(1, 8):
             targetcell = self.coordinate.sumcoordinate(delta[0] * i, delta[1] * i)
             allypiece = self.isthereallypiece(targetcell)
@@ -571,7 +571,7 @@ class King(RealPiece):
                     break
         return False
 
-    def delta_4_6(self, delta):
+    def _delta_4_6(self, delta):
         for i in range(1, 8):
             targetcell = self.coordinate.sumcoordinate(delta[0] * i, delta[1] * i)
             allypiece = self.isthereallypiece(targetcell)
@@ -590,7 +590,7 @@ class King(RealPiece):
                     break
         return False
 
-    def knight_delta(self, delta):
+    def _knight_delta(self, delta):
         targetcell = self.coordinate.sumcoordinate(*delta)
         enemypiece = self.isthereenemypiece(targetcell)
         if isinstance(enemypiece, Knight):
@@ -598,41 +598,16 @@ class King(RealPiece):
         else:
             return False
 
-    def imincheckonthismove(self, piece, tocell):
-        self.piececoordinate = piece.coordinate
-        piece.coordinate = tocell
-        imincheck = False
-        for i in range(0, 8):
-            try:
-                imincheck = False
-                if i in (0, 2):
-                    imincheck = self.delta_0_2(self.deltas[i])
-                elif i in (1, 3, 5, 7):
-                    imincheck = self.delta_1_3_5_7(self.deltas[i])
-                elif i in (4, 6):
-                    imincheck = self.delta_4_6(self.deltas[i])
-                if imincheck:
-                    piece.coordinate = self.piececoordinate
-                    return imincheck
-            except(CoordinateException, AllyOccupationException):
-                pass
-        for delta in self.knightdeltas:
-            try:
-                imincheck = self.knight_delta(delta)
-                if imincheck:
-                    break
-            except(CoordinateException, AllyOccupationException):
-                pass
-        piece.coordinate = self.piececoordinate
-        return imincheck
-
-    def iminchecksetup(self, listpiece=None, piece=None, targetcoordinate=None, capturedpiece=None):
+    def iminchecksetup(self, listpiece, piece=None, targetcoordinate=None, capturedpiece=None):
         if piece:
             fromcell = piece.coordinate
             piece.coordinate = targetcoordinate
         if capturedpiece:
             listpiece.removepiece(capturedpiece)
+        tmp_listpiece = self.listpiece
+        self.listpiece = listpiece
         result = self._imincheck()
+        self.listpiece = tmp_listpiece
         if capturedpiece:
             listpiece.addpiece(capturedpiece)
         if piece:
@@ -640,49 +615,49 @@ class King(RealPiece):
         return result
 
     def _imincheck(self):
+        incheck = False
         for i in range(0, 8):
             try:
-                incheck = False
                 if i in (0, 2):
-                    incheck = self.delta_0_2(self.deltas[i])
+                    incheck = self._delta_0_2(self.deltas[i])
                 elif i in (1, 3, 5, 7):
-                    incheck = self.delta_1_3_5_7(self.deltas[i])
+                    incheck = self._delta_1_3_5_7(self.deltas[i])
                 elif i in (4, 6):
-                    incheck = self.delta_4_6(self.deltas[i])
+                    incheck = self._delta_4_6(self.deltas[i])
                 if incheck:
                     return incheck
             except(CoordinateException, AllyOccupationException):
                 pass
         for delta in self.knightdeltas:
             try:
-                incheck = self.knight_delta(delta)
+                incheck = self._knight_delta(delta)
                 if incheck:
                     break
             except(CoordinateException, AllyOccupationException):
                 pass
         return incheck
 
-    def issafekingsideline(self):
-        if self.imincheckonthismove(self, f1):
+    def _issafekingsideline(self):
+        if self.iminchecksetup(self.listpiece, self, f1):
             return False
         if self.isthereallypiece(f1) or self.isthereenemypiece(f1):
             return False
-        if self.imincheckonthismove(self, g1):
+        if self.iminchecksetup(self.listpiece, self, g1):
             return False
         if self.isthereallypiece(g1) or self.isthereenemypiece(g1):
             return False
         return True
 
-    def issafequeensideline(self):
-        if self.imincheckonthismove(self, d1):
+    def _issafequeensideline(self):
+        if self.iminchecksetup(self.listpiece, self, d1):
             return False
         if self.isthereallypiece(d1) or self.isthereenemypiece(d1):
             return False
-        if self.imincheckonthismove(self, c1):
+        if self.iminchecksetup(self.listpiece, self, c1):
             return False
         if self.isthereallypiece(c1) or self.isthereenemypiece(c1):
             return False
-        if self.imincheckonthismove(self, b1):
+        if self.iminchecksetup(self.listpiece, self, b1):
             return False
         if self.isthereallypiece(b1) or self.isthereenemypiece(b1):
             return False
@@ -693,13 +668,14 @@ class King(RealPiece):
         allypiece = self.isthereallypiece(tocell)
         if allypiece is not None:
             raise AllyOccupationException
-        if self.imincheckonthismove(self, tocell):
-            raise TakenKingException
-        move = None
         capturedpiece = self.isthereenemypiece(tocell)
         if capturedpiece is not None:
+            if self.iminchecksetup(self.listpiece, self, tocell, capturedpiece):
+                raise TakenKingException
             move = self.moveCaptureFactory(self, self.coordinate, tocell, capturedpiece, False)
         else:
+            if self.iminchecksetup(self.listpiece, self, tocell):
+                raise TakenKingException
             move = self.moveFactory(self, self.coordinate, tocell, False)
         return move
 
@@ -712,15 +688,13 @@ class King(RealPiece):
                 moves.append(move)
             except(CoordinateException, AllyOccupationException, TakenKingException):
                 pass
-        self.castlingrights.safekindsideline = self.issafekingsideline()
+        self.castlingrights.safekindsideline = self._issafekingsideline()
         if self.castlingrights.ispossiblekingcastling():
-            ischeck = self.imincheckonthismove(self, self.kingcastlingcoordinate)
-            move = self.moveKingCastlingFactory(ischeck)
+            move = self.moveKingCastlingFactory()
             moves.append(move)
-        self.castlingrights.safequeensideline = self.issafequeensideline()
+        self.castlingrights.safequeensideline = self._issafequeensideline()
         if self.castlingrights.ispossiblequeencastling():
-            ischeck = self.imincheckonthismove(self, self.queencastlingcoordinate)
-            move = self.moveQueenCastlingFactory(ischeck)
+            move = self.moveQueenCastlingFactory()
             moves.append(move)
         return moves
 
@@ -732,9 +706,6 @@ class WhiteKing(King):
     def __init__(self, coordinate, castlingrights):
         super().__init__(coordinate, castlingrights)
         self.letters = "wK"
-
-    def imincheckonthismove(self, piece, tocell):
-        return super().imincheckonthismove(piece, tocell)
 
 
 class BlackKing(King):
@@ -751,34 +722,35 @@ class BlackKing(King):
         self.enemyindex = 0
         self.allyindex = 1
 
-    def imincheckonthismove(self, piece, tocell):
-        return super().imincheckonthismove(piece, tocell)
-
-    def issafekingsideline(self):
-        if self.imincheckonthismove(self, f8):
+    def _issafekingsideline(self):
+        if self.iminchecksetup(self.listpiece, self, f8):
             return False
         if self.isthereallypiece(f8) or self.isthereenemypiece(f8):
             return False
-        if self.imincheckonthismove(self, g8):
+        if self.iminchecksetup(self.listpiece, self, g8):
             return False
         if self.isthereallypiece(g8) or self.isthereenemypiece(g8):
             return False
         return True
 
-    def issafequeensideline(self):
-        if self.imincheckonthismove(self, d8):
+    def _issafequeensideline(self):
+        if self.iminchecksetup(self.listpiece, self, d8):
             return False
         if self.isthereallypiece(d8) or self.isthereenemypiece(d8):
             return False
-        if self.imincheckonthismove(self, c8):
+        if self.iminchecksetup(self.listpiece, self, c8):
             return False
         if self.isthereallypiece(c8) or self.isthereenemypiece(c8):
             return False
-        if self.imincheckonthismove(self, b8):
+        if self.iminchecksetup(self.listpiece, self, b8):
             return False
         if self.isthereallypiece(b8) or self.isthereenemypiece(b8):
             return False
         return True
+
+
+class WhiteKingFactory:
+    pass
 
 
 class NullPiece(RealPiece):
@@ -854,7 +826,7 @@ class ListPiece:
         piece.coordinate = targetcoordinate
 
     def _capturepiece(self, move):
-        self.removepiece(move.piece)
+        self.removepiece(move.capturedpiece)
         self._movepiece(move.piece, move.tocell)
 
     def _captureandpromotion(self, move):
@@ -968,11 +940,11 @@ class ListPiece:
         else:
             self._movepiece(move.piece, move.fromcell)
 
-    def iswhitekingincheck(self):
-        return self.whiteking.imincheck()
+    def iswhitekingincheck(self, listpiece):
+        return self.whiteking.iminchecksetup(listpiece)
 
-    def isblackkingincheck(self):
-        return self.blackking.imincheck()
+    def isblackkingincheck(self, listpiece):
+        return self.blackking.iminchecksetup(listpiece)
 
     def __str__(self):
         keys = self.board.keys()
@@ -991,19 +963,19 @@ class ListPiece:
 
 if __name__ == '__main__':
     import movemodule
-
-    wc = movemodule.CastlingRights()
-    bc = movemodule.CastlingRights()
-    whiteKing = WhiteKing(g1, wc)
-    blackKing = BlackKing(c8, bc)
-    whitepieces = [whiteKing, WhiteRook(f1, whiteKing, blackKing), WhiteQueen(h8, whiteKing, blackKing)]
+    wc = movemodule.CastlingRights(False)
+    bc = movemodule.CastlingRights(False)
+    whiteKing = WhiteKing(d4, wc)
+    blackKing = BlackKing(a4, bc)
+    whitepieces = [whiteKing, WhiteQueen(a1, whiteKing, blackKing)]
     whitepawns = []
-    blackpawns = [BlackPawn(d3, blackKing, whiteKing)]
-    blackpieces = [blackKing, BlackRook(d8, blackKing, whiteKing), BlackQueen(g2, blackKing, whiteKing)]
+    blackpawns = []
+    blackpieces = [blackKing]
     l = ListPiece(whitepieces, whitepawns, blackpieces, blackpawns)
     whiteKing.listpiece = l
     blackKing.listpiece = l
     print(l)
-    moves = whiteKing.generatemoves(l)
+
+    moves = blackKing.generatemoves(l)
     for move in moves:
         print(move)

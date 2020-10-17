@@ -142,9 +142,8 @@ class BlackMoveEnpassantFactory(MoveEnpassantFactory):
 
 
 class KingsideCastlingFactory(MoveFactory):
-    def __call__(self, ischeck):
+    def __call__(self):
         self.iskingcastling = True
-        self.ischeck = ischeck
         move = Move(self.piece, self.fromcell, self.tocell, self.iswhiteturn,
                     self.capturedpiece, self.iskingcastling, self.isqueencastling,
                     self.promotionto, self.isenpassant, self.ischeck)

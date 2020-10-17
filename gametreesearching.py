@@ -2,6 +2,7 @@ import movemodule
 import piecesmodule
 import algebraicnotationmodule
 
+nposition = 0
 
 def white_generator_moves(listpiece):
     for piece in listpiece.whitepieces:
@@ -37,35 +38,52 @@ class GamePosition:
         self.value = None
         self.moves = []
         self.children = []
-        self.movegenerator = None
-        self.enemy_game_position = None
-        self.ischeck = None
+        self.movegeneratorfunc = None
+        self.enemy_game_position_func = None
+        self.ischeckfunc = None
+
+    def ischeckmate(self):
+        if self.moves == [] and self.ischeckfunc(self.listpiece):
+            return True
+        else:
+            return False
+
+    def isdraw(self):
+        if self.moves == [] and self.ischeckfunc(self.listpiece) == False:
+            return True
+        else:
+            return False
 
     def builtplytree(self, maxply, curply=0):
         # DEBUG
+        global nposition
+        nposition += 1
         if self.parent is None:
             msg = "ply: " + str(curply) + " root position"
         else:
             msg = ("ply: " + str(curply) + "\n\t last move: " + str(self.originmove.piece) + " " +
                    self.originmove.fromcell + self.originmove.tocell + "\n\t class: " + self.__class__.__name__ +
                     "\n\t position: " + str(self) + "\n\t parent: " + str(self.parent))
-
-        # DEBUG
         testfile.write(msg + '\n' + str(self.listpiece))
-        if curply == maxply:
-            return
-        for move in self.movegenerator(self.listpiece):
+
+        for move in self.movegeneratorfunc(self.listpiece):
             self.moves.append(move)
+        if self.ischeckmate():
+            testfile.write("***************** CHECKMATE - GAME ENDED ************************\n")
+            return
+        elif self.isdraw():
+            testfile.write("***************** DRAW - GAME ENDED ************************\n")
+            return
+        if curply >= maxply:
+            testfile.write("-------------- max ply -----------------\n")
+            return
+        for move in self.moves:
             self.listpiece.applymove(move)
-            child = self.enemy_game_position(self.listpiece, parent=self, originmove=move)
-            self.children.append(child)
+            child = self.enemy_game_position_func(self.listpiece, self, move)
             child.builtplytree(maxply, curply + 1)
             self.listpiece.undomove(move)
-        if not self.moves:
-            if self.ischeck():
-                testfile.write("************************ CHECKMATE - GAME ENDED ***********************\n")
-            else:
-                testfile.write("************************ DRAW - GAME ENDED ***********************\n")
+
+
 
     def bestmove(self):
         pass
@@ -74,51 +92,17 @@ class GamePosition:
 class WhiteGamePosition(GamePosition):
     def __init__(self, listpiece, parent=None, originmove=None):
         super().__init__(listpiece, parent, originmove)
-        self.movegenerator = white_generator_moves
-        self.enemy_game_position = BlackGamePosition
-        self.ischeck = self.listpiece.iswhitekingincheck
+        self.movegeneratorfunc = white_generator_moves
+        self.enemy_game_position_func = BlackGamePosition
+        self.ischeckfunc = self.listpiece.iswhitekingincheck
 
 
 class BlackGamePosition(GamePosition):
     def __init__(self, listpiece, parent=None, originmove=None):
         super().__init__(listpiece, parent, originmove)
-        self.movegenerator = black_generator_moves
-        self.enemy_game_position = WhiteGamePosition
-        self.ischeck = self.listpiece.isblackkingincheck
-
-
-class GameTree:
-    def __init__(self, position, children=None, parent=None):
-        self.position = position
-        self.value = 0
-        self.children = children or []
-        self.parent = parent
-
-    def add_child(self, gametree):
-        if not isinstance(gametree, GameTree):
-            raise AttributeError("GameTree.add_child accept only GameTree instances!")
-        self.children.append(gametree)
-
-    def is_root(self):
-        return self.parent is None
-
-    def is_leaf(self):
-        return not self.children
-
-    def __str__(self):
-        if self.is_leaf():
-            return str(self.position)
-        return '{data} [{children}]'.format(data=self.position, children=', '.join(map(str, self.children)))
-
-
-class GameTreeConstructor:
-    def __init__(self, gametree, max_depth, movegenerator):
-        self.gametree = gametree
-        self.max_depth = max_depth
-        self.movegenerator = movegenerator
-
-    def builtgametree(self, depth=0, position=None):
-        pass
+        self.movegeneratorfunc = black_generator_moves
+        self.enemy_game_position_func = WhiteGamePosition
+        self.ischeckfunc = self.listpiece.isblackkingincheck
 
 
 if __name__ == '__main__':
@@ -149,4 +133,5 @@ if __name__ == '__main__':
 
     root.builtplytree(maxply=2, curply=0)
 
+    print(nposition)
 
