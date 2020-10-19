@@ -1,5 +1,5 @@
 import movemodule
-import piecesmodule
+import piecesmodule as pcsm
 import algebraicnotationmodule
 
 nposition = 0
@@ -31,6 +31,9 @@ def black_generator_moves(listpiece):
 testfile = open("built_tree_test", "w")
 
 
+
+        
+
 class GamePosition:
     def __init__(self, listpiece, parent=None, originmove=None):
         self.listpiece = listpiece
@@ -49,41 +52,26 @@ class GamePosition:
         else:
             return False
 
-    def isdraw(self):
+    def isstalemate(self):
         if self.moves == [] and self.ischeckfunc(self.listpiece) == False:
             return True
         else:
             return False
 
     def builtplytree(self, maxply, curply=0):
-        # DEBUG
-        global nposition
-        nposition += 1
-
-        if self.parent is None:
-            msg = "ply: " + str(curply) + " root position"
-        else:
-            msg = ("ply: " + str(curply) + "\n\t last move: " + str(self.originmove.piece) + " " +
-                   self.originmove.fromcell + self.originmove.tocell + "\n\t class: " + self.__class__.__name__ +
-                    "\n\t position: " + str(self) + "\n\t parent: " + str(self.parent))
-        testfile.write(msg + '\n' + str(self.listpiece))
-
-
         for move in self.movegeneratorfunc(self.listpiece):
             self.moves.append(move)
         if self.ischeckmate():
-            testfile.write("***************** CHECKMATE - GAME ENDED ************************\n")
             return
-        elif self.isdraw():
-            testfile.write("***************** DRAW - GAME ENDED ************************\n")
+        elif self.isstalemate():
             return
         if curply >= maxply:
-            testfile.write("-------------- max ply -----------------\n")
             return
         for move in self.moves:
             self.listpiece.applymove(move)
             child = self.enemy_game_position_func(self.listpiece, self, move)
             child.builtplytree(maxply, curply + 1)
+            self.children.append(child)
             self.listpiece.undomove(move)
 
 
