@@ -7,22 +7,22 @@ nposition = 0
 
 def white_generator_moves(listpiece):
     for piece in listpiece.whitepieces:
-        moves = piece.generatemoves(l)
+        moves = piece.generatemoves()
         for move in moves:
             yield move
     for pawn in listpiece.whitepawns:
-        moves = pawn.generatemoves(l)
+        moves = pawn.generatemoves()
         for move in moves:
             yield move
 
 
 def black_generator_moves(listpiece):
     for piece in listpiece.blackpieces:
-        moves = piece.generatemoves(l)
+        moves = piece.generatemoves()
         for move in moves:
             yield move
     for pawn in listpiece.blackpawns:
-        moves = pawn.generatemoves(l)
+        moves = pawn.generatemoves()
         for move in moves:
             yield move
 
@@ -99,14 +99,10 @@ class Evaluator:
 
     def _countblockedpawns(self):
         for pawn in self.listpiece.whitepawns:
-            tocell = pawn.coordinate.sumcoordinate(0, 1)
-            if (pawn.isthereenemypiece(tocell) == True or pawn.isthereallypiece(tocell) == True or
-                    pawn.allyking.iminchecksetup(self.listpiece, pawn, tocell) == True):
+            if not pawn.onestepmove():
                 self.wblockedpawns += 1
         for pawn in self.listpiece.blackpawns:
-            tocell = pawn.coordinate.sumcoordinate(0, -1)
-            if (pawn.isthereenemypiece(tocell) == True or pawn.isthereallypiece(tocell) == True or
-                    pawn.allyking.iminchecksetup(self.listpiece, pawn, tocell) == True):
+            if not pawn.onestepmove():
                 self.bblockedpawns += 1
 
     def __str__(self):
@@ -130,25 +126,39 @@ class GamePosition:
         self.ischeckfunc = None
 
     def ischeckmate(self):
-        if self.moves == [] and self.ischeckfunc(self.listpiece):
+        if self.moves == [] and self.ischeckfunc():
             return True
         else:
             return False
 
     def isstalemate(self):
-        if self.moves == [] and self.ischeckfunc(self.listpiece) == False:
+        if self.moves == [] and self.ischeckfunc() == False:
             return True
         else:
             return False
 
     def builtplytree(self, maxply, curply=0):
-        for move in self.movegeneratorfunc(self.listpiece):
+        global nposition
+        nposition += 1
+
+        if self.parent is None:
+            msg = "ply: " + str(curply) + " root position"
+        else:
+            msg = ("ply: " + str(curply) + "\n\t last move: " + str(self.originmove.piece) + " " +
+                   self.originmove.fromcell + self.originmove.tocell + "\n\t class: " + self.__class__.__name__ +
+                   "\n\t position: " + str(self) + "\n\t parent: " + str(self.parent))
+        testfile.write(msg + '\n' + str(self.listpiece))
+
+        for move in self.movegeneratorfunc(pcsm.listpiece):
             self.moves.append(move)
         if self.ischeckmate():
+            testfile.write("***************** CHECKMATE - GAME ENDED ************************\n")
             return
         elif self.isstalemate():
+            testfile.write("***************** DRAW - GAME ENDED ************************\n")
             return
         if curply >= maxply:
+            testfile.write("-------------- max ply -----------------\n")
             return
         for move in self.moves:
             self.listpiece.applymove(move)
@@ -181,7 +191,6 @@ class BlackGamePosition(GamePosition):
 
 if __name__ == '__main__':
     import movemodule
-    import piecesmodule as pi
     from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
                                          a7, b7, c7, d7, e7, f7, g7, h7,
                                          a6, b6, c6, d6, e6, f6, g6, h6,
@@ -190,19 +199,17 @@ if __name__ == '__main__':
                                          a3, b3, c3, d3, e3, f3, g3, h3,
                                          a2, b2, c2, d2, e2, f2, g2, h2,
                                          a1, b1, c1, d1, e1, f1, g1, h1)
+
     wc = movemodule.CastlingRights(False)
     bc = movemodule.CastlingRights(False)
-    whiteKing = pi.WhiteKing(b6, wc)
-    blackKing = pi.BlackKing(b8, bc)
-    whitepieces = [whiteKing, pi.WhiteKnight(a6, whiteKing, blackKing)]
-    whitepawns = [pi.WhitePawn(c3, whiteKing, blackKing), pi.WhitePawn(c4, whiteKing, blackKing),
-                  pi.WhitePawn(c5, whiteKing, blackKing)]
-    blackpawns = [pi.BlackPawn(f7, blackKing, whiteKing), pi.BlackPawn(f6, blackKing, whiteKing)]
+    whiteKing = pcsm.WhiteKing(d4, wc)
+    blackKing = pcsm.BlackKing(a4, bc)
+    whitepieces = [whiteKing, pcsm.WhiteQueen(c3, whiteKing, blackKing)]
+    whitepawns = [pcsm.WhitePawn(f3, whiteKing, blackKing)]
+    blackpawns = [pcsm.BlackPawn(h7, blackKing, whiteKing), pcsm.BlackPawn(h6, blackKing, whiteKing)]
     blackpieces = [blackKing]
-    l = pi.ListPiece(whitepieces, whitepawns, blackpieces, blackpawns)
-    whiteKing.listpiece = l
-    blackKing.listpiece = l
-    print(l)
-    evaluator = Evaluator(l, 0)
-    print(evaluator)
+    pcsm.listpiece = pcsm.ListPiece(whitepieces, whitepawns, blackpieces, blackpawns)
+    print(pcsm.listpiece)
 
+    evaluator = Evaluator(pcsm.listpiece, 0)
+    print(evaluator)
