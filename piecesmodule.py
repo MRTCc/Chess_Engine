@@ -213,6 +213,9 @@ class Pawn(RealPiece):
                 return pawn
         return None
 
+    def onestepmove(self):
+        return self._onestepmove()
+
 
 class BlackPawn(Pawn, Black):
     def __init__(self, coordinate, allyking, enemyking):

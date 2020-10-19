@@ -1,6 +1,6 @@
 import movemodule
 import piecesmodule as pcsm
-import algebraicnotationmodule
+import algebraicnotationmodule as algn
 
 nposition = 0
 
@@ -31,8 +31,91 @@ def black_generator_moves(listpiece):
 testfile = open("built_tree_test", "w")
 
 
+class Evaluator:
+    def __init__(self, listpiece, nummoves):
+        self.listpiece = listpiece
+        self.nummoves = nummoves
+        self.wkings = 0
+        self.bkings = 0
+        self.wqueens = 0
+        self.bqueens = 0
+        self.wrooks = 0
+        self.brooks = 0
+        self.wbishops = 0
+        self.bbishops = 0
+        self.wknights = 0
+        self.bknights = 0
+        self.wpawns = 0
+        self.bpawns = 0
+        self.wdoubledpawns = 0
+        self.bdoubledpawns = 0
+        self.wblockedpawns = 0
+        self.bblockedpawns = 0
+        self._countpieces()
+        self._countdoubledpawns()
+        self._countblockedpawns()
 
-        
+    def _countpieces(self):
+        for piece in self.listpiece.whitepieces:
+            if isinstance(piece, pcsm.WhiteKing):
+                self.wkings += 1
+            elif isinstance(piece, pcsm.WhiteQueen):
+                self.wqueens += 1
+            elif isinstance(piece, pcsm.WhiteBishop):
+                self.wbishops += 1
+            elif isinstance(piece, pcsm.WhiteKnight):
+                self.wknights += 1
+            elif isinstance(piece, pcsm.WhiteRook):
+                self.wrooks += 1
+        for piece in self.listpiece.blackpieces:
+            if isinstance(piece, pcsm.BlackKing):
+                self.bkings += 1
+            elif isinstance(piece, pcsm.BlackQueen):
+                self.bqueens += 1
+            elif isinstance(piece, pcsm.BlackBishop):
+                self.bbishops += 1
+            elif isinstance(piece, pcsm.BlackKnight):
+                self.bknights += 1
+            elif isinstance(piece, pcsm.BlackRook):
+                self.brooks += 1
+        self.wpawns = len(self.listpiece.whitepawns)
+        self.bpawns = len(self.listpiece.blackpawns)
+
+    def _countdoubledpawns(self):
+        for column in algn.columns:
+            columncount = 0
+            for pawn in self.listpiece.whitepawns:
+                if pawn.coordinate.isequalcolumn(column):
+                    columncount += 1
+            if columncount > 1:
+                self.wdoubledpawns += columncount
+        for column in algn.columns:
+            columncount = 0
+            for pawn in self.listpiece.blackpawns:
+                if pawn.coordinate.isequalcolumn(column):
+                    columncount += 1
+            if columncount > 1:
+                self.bdoubledpawns += columncount
+
+    def _countblockedpawns(self):
+        for pawn in self.listpiece.whitepawns:
+            tocell = pawn.coordinate.sumcoordinate(0, 1)
+            if (pawn.isthereenemypiece(tocell) == True or pawn.isthereallypiece(tocell) == True or
+                    pawn.allyking.iminchecksetup(self.listpiece, pawn, tocell) == True):
+                self.wblockedpawns += 1
+        for pawn in self.listpiece.blackpawns:
+            tocell = pawn.coordinate.sumcoordinate(0, -1)
+            if (pawn.isthereenemypiece(tocell) == True or pawn.isthereallypiece(tocell) == True or
+                    pawn.allyking.iminchecksetup(self.listpiece, pawn, tocell) == True):
+                self.bblockedpawns += 1
+
+    def __str__(self):
+        msg = "Evaluation of position: \n\t"
+        for key, value in self.__dict__.items():
+            msg += key + " --> "
+            msg += str(value) + "\n\t"
+        return msg
+
 
 class GamePosition:
     def __init__(self, listpiece, parent=None, originmove=None):
@@ -112,19 +195,14 @@ if __name__ == '__main__':
     whiteKing = pi.WhiteKing(b6, wc)
     blackKing = pi.BlackKing(b8, bc)
     whitepieces = [whiteKing, pi.WhiteKnight(a6, whiteKing, blackKing)]
-    whitepawns = []
-    blackpawns = []
+    whitepawns = [pi.WhitePawn(c3, whiteKing, blackKing), pi.WhitePawn(c4, whiteKing, blackKing),
+                  pi.WhitePawn(c5, whiteKing, blackKing)]
+    blackpawns = [pi.BlackPawn(f7, blackKing, whiteKing), pi.BlackPawn(f6, blackKing, whiteKing)]
     blackpieces = [blackKing]
     l = pi.ListPiece(whitepieces, whitepawns, blackpieces, blackpawns)
     whiteKing.listpiece = l
     blackKing.listpiece = l
     print(l)
-    import time
-    root = BlackGamePosition(l)
-    start_time = time.time()
-    root.builtplytree(maxply=3, curply=0)
-    finish_time = time.time()
-    delta_time = finish_time - start_time
-    print(nposition)
-    print("number of nodes in a second: ", nposition / delta_time)
+    evaluator = Evaluator(l, 0)
+    print(evaluator)
 
