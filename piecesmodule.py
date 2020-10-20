@@ -41,28 +41,61 @@ class TakenKingException(Exception):
     pass
 
 
+class ListPieceFactory:
+    def __call__(self, whitepieces, whitepawns, blackpieces, blackpawns):
+        kingcount = 0
+        for piece in whitepieces:
+            if kingcount > 1:
+                break
+            if isinstance(piece, WhiteKing):
+                whiteking = piece
+                kingcount += 1
+        if kingcount > 1:
+            raise AttributeError("Only one White King must be on the board")
+        kingcount = 0
+        for piece in blackpieces:
+            if kingcount > 1:
+                break
+            if isinstance(piece, BlackKing):
+                blackking = piece
+                kingcount += 1
+        if kingcount > 1:
+            raise AttributeError("Only one Black King must be on the board")
+
+        wrongcolor = False
+        for piece in whitepieces + whitepawns:
+            if isinstance(piece, (BlackPawn, BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing)):
+                wrongcolor = True
+                break
+        if wrongcolor:
+            raise AttributeError("whitepieces and whitepawns contains a not White piece")
+        wrongcolor = False
+        for piece in blackpieces + blackpawns:
+            if isinstance(piece, (WhitePawn, WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing)):
+                wrongcolor = True
+                break
+        if wrongcolor:
+            raise AttributeError("blackpieces and blackpawns contains a not Black piece")
+
+        listpiece = ListPiece(whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking)
+        return listpiece
+
+
+listpiecefactory = ListPieceFactory()
+
+
 class ListPiece:
-    def __init__(self, whitepieces, whitepawns, blackpieces, blackpawns):
+    def __init__(self, whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking):
         self.whitepieces = whitepieces
         self.whitepawns = whitepawns
         self.blackpieces = blackpieces
         self.blackpawns = blackpawns
+        self.whiteking = whiteking
+        self.blackking = blackking
         self.piecesingame = [self.whitepieces, self.blackpieces]
         self.pawnsingame = [self.whitepawns, self.blackpawns]
         self.nullpiece = NullPiece()
         self.board = self._builtboard()
-        for piece in self.whitepieces:
-            if isinstance(piece, WhiteKing):
-                self.whiteking = piece
-                break
-        else:
-            raise Exception("No White King on the board")
-        for piece in self.blackpieces:
-            if isinstance(piece, BlackKing):
-                self.blackking = piece
-                break
-        else:
-            raise Exception("No Black King on the board")
 
     def addpiece(self, piece):
         if isinstance(piece.allyking, WhiteKing):

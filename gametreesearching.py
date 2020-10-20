@@ -51,9 +51,15 @@ class Evaluator:
         self.bdoubledpawns = 0
         self.wblockedpawns = 0
         self.bblockedpawns = 0
+        self.wisolatedpawns = 0
+        self.bisolatedpawns = 0
+        self.mobility = 0
         self._countpieces()
         self._countdoubledpawns()
         self._countblockedpawns()
+        self._countisolatedpawns(self.listpiece.whitepawns)
+        self._countisolatedpawns(self.listpiece.blackpawns)
+        self._countmobility(nummoves)
 
     def _countpieces(self):
         for piece in self.listpiece.whitepieces:
@@ -82,17 +88,17 @@ class Evaluator:
         self.bpawns = len(self.listpiece.blackpawns)
 
     def _countdoubledpawns(self):
-        for column in algn.columns:
+        for column in algn.ranks:
             columncount = 0
             for pawn in self.listpiece.whitepawns:
-                if pawn.coordinate.isequalcolumn(column):
+                if pawn.coordinate.isequalrank(column):
                     columncount += 1
             if columncount > 1:
                 self.wdoubledpawns += columncount
-        for column in algn.columns:
+        for column in algn.ranks:
             columncount = 0
             for pawn in self.listpiece.blackpawns:
-                if pawn.coordinate.isequalcolumn(column):
+                if pawn.coordinate.isequalrank(column):
                     columncount += 1
             if columncount > 1:
                 self.bdoubledpawns += columncount
@@ -104,6 +110,60 @@ class Evaluator:
         for pawn in self.listpiece.blackpawns:
             if not pawn.onestepmove():
                 self.bblockedpawns += 1
+
+    def _countisolatedpawns(self, pawnslist):
+        for pawn in pawnslist:
+            issxisolated = True
+            isdxisolated = True
+            pawnrank = pawn.coordinate.getrank()
+            index = algn.ranks.index(pawnrank)
+            try:
+                sxrank = algn.ranks[index - 1]
+                for sxpawn in pawnslist:
+                    if sxpawn == pawn:
+                        continue
+                    if sxpawn.coordinate.isequalrank(sxrank):
+                        issxisolated = False
+            except IndexError:
+                pass
+            try:
+                dxrank = algn.ranks[index + 1]
+                for dxpawn in pawnslist:
+                    if dxpawn == pawn:
+                        continue
+                    if dxpawn.coordinate.isequalrank(dxrank):
+                        isdxisolated = False
+            except IndexError:
+                pass
+            if issxisolated and isdxisolated:
+                if pawnslist == self.listpiece.whitepawns:
+                    self.wisolatedpawns += 1
+                elif pawnslist == self.listpiece.blackpawns:
+                    self.bisolatedpawns += 1
+                else:
+                    raise AttributeError
+
+    def _countmobility(self, nummoves):
+        if nummoves > 5:
+            self.mobility = 1
+        else:
+            self.mobility = -1
+
+    def __call__(self):
+        pawnmaterial = (self.wpawns - self.bpawns) * 1
+        rookmaterial = (self.wrooks - self.brooks) * 5
+        knightmaterial = (self.wknights - self.bknights) * 3
+        bishopmaterial = (self.wbishops - self.bbishops) * 3
+        queenmaterial = (self.wqueens - self.bqueens) * 9
+        kingmaterial = (self.wkings - self.bkings) * 500
+        doubledpawns = (self.wdoubledpawns - self.bdoubledpawns) * 0.5
+        isolatedpawns = (self.wisolatedpawns - self.bisolatedpawns) * 0.5
+        blockedpawns = (self.wblockedpawns - self.bblockedpawns) * 0.5
+        mobility = self.mobility
+
+        self.evaluation = (pawnmaterial + rookmaterial + knightmaterial + bishopmaterial + queenmaterial + kingmaterial
+                           + doubledpawns + isolatedpawns + blockedpawns + mobility)
+        return self.evaluation
 
     def __str__(self):
         msg = "Evaluation of position: \n\t"
@@ -124,14 +184,18 @@ class GamePosition:
         self.movegeneratorfunc = None
         self.enemy_game_position_func = None
         self.ischeckfunc = None
+        self.imincheckmatevalue = None
+        self.childrenevaluationfunc = None
 
-    def ischeckmate(self):
+    def imincheckmate(self):
         if self.moves == [] and self.ischeckfunc():
             return True
         else:
             return False
 
     def isstalemate(self):
+        if len(self.listpiece.whitepieces) == 1 and len(self.listpiece.blackpieces) == 1:
+            return True
         if self.moves == [] and self.ischeckfunc() == False:
             return True
         else:
@@ -151,7 +215,7 @@ class GamePosition:
 
         for move in self.movegeneratorfunc(pcsm.listpiece):
             self.moves.append(move)
-        if self.ischeckmate():
+        if self.imincheckmate():
             testfile.write("***************** CHECKMATE - GAME ENDED ************************\n")
             return
         elif self.isstalemate():
@@ -167,10 +231,69 @@ class GamePosition:
             self.children.append(child)
             self.listpiece.undomove(move)
 
+    def __lt__(self, other):
+        if self.value < other.value:
+            return True
+        else:
+            return False
 
+    def __gt__(self, other):
+        if self.value > other.value:
+            return True
+        else:
+            return False
 
-    def bestmove(self):
-        pass
+    def __eq__(self, other):
+        if self.value == other.value:
+            return True
+        else:
+            return False
+
+    def builtplytreevalue(self, maxply, curply=0):
+        global nposition
+        nposition += 1
+
+        if self.parent is None:
+            msg = "ply: " + str(curply) + " root position"
+        else:
+            msg = ("ply: " + str(curply) + "\n\t last move: " + str(self.originmove.piece) + " " +
+                   self.originmove.fromcell + self.originmove.tocell + "\n\t class: " + self.__class__.__name__ +
+                   "\n\t position: " + str(self) + "\n\t parent: " + str(self.parent))
+        testfile.write(msg + '\n' + str(self.listpiece))
+
+        for move in self.movegeneratorfunc(pcsm.listpiece):
+            self.moves.append(move)
+        if self.imincheckmate():
+            self.value = self.imincheckmatevalue
+            testfile.write("position value : " + str(self.value) + '\n')
+            testfile.write("***************** CHECKMATE - GAME ENDED ************************\n")
+            return
+
+        elif self.isstalemate():
+            self.value = 0
+            testfile.write("position value : " + str(self.value) + '\n')
+            testfile.write("***************** DRAW - GAME ENDED ************************\n")
+            return
+        if curply >= maxply:
+            evaluator = Evaluator(self.listpiece, len(self.moves))
+            self.value = evaluator()
+            testfile.write("position value : " + str(self.value) + '\n')
+            testfile.write("-------------- max ply -----------------\n")
+            return
+        for move in self.moves:
+            self.listpiece.applymove(move)
+            child = self.enemy_game_position_func(self.listpiece, self, move)
+            child.builtplytreevalue(maxply, curply + 1)
+            self.children.append(child)
+            self.listpiece.undomove(move)
+        self.value = self.childrenevaluationfunc((child.value for child in self.children))
+        testfile.write(str(self) + " --> " + "position value : " + str(self.value) + '\n')
+        bestchild = self.childrenevaluationfunc(self.children)
+        indexbestchild = self.children.index(bestchild)
+        bestmove = self.moves[indexbestchild]
+        testfile.write(str(self) + " --> " + "position value : " + str(self.value) + "\n\t best move: " + str(bestmove) +
+                       '\n')
+        return bestmove
 
 
 class WhiteGamePosition(GamePosition):
@@ -179,6 +302,8 @@ class WhiteGamePosition(GamePosition):
         self.movegeneratorfunc = white_generator_moves
         self.enemy_game_position_func = BlackGamePosition
         self.ischeckfunc = self.listpiece.iswhitekingincheck
+        self.imincheckmatevalue = -1000
+        self.childrenevaluationfunc = max
 
 
 class BlackGamePosition(GamePosition):
@@ -187,6 +312,8 @@ class BlackGamePosition(GamePosition):
         self.movegeneratorfunc = black_generator_moves
         self.enemy_game_position_func = WhiteGamePosition
         self.ischeckfunc = self.listpiece.isblackkingincheck
+        self.imincheckmatevalue = 1000
+        self.childrenevaluationfunc = min
 
 
 if __name__ == '__main__':
@@ -202,14 +329,15 @@ if __name__ == '__main__':
 
     wc = movemodule.CastlingRights(False)
     bc = movemodule.CastlingRights(False)
-    whiteKing = pcsm.WhiteKing(d4, wc)
+    whiteKing = pcsm.WhiteKing(c4, wc)
     blackKing = pcsm.BlackKing(a4, bc)
-    whitepieces = [whiteKing, pcsm.WhiteQueen(c3, whiteKing, blackKing)]
-    whitepawns = [pcsm.WhitePawn(f3, whiteKing, blackKing)]
-    blackpawns = [pcsm.BlackPawn(h7, blackKing, whiteKing), pcsm.BlackPawn(h6, blackKing, whiteKing)]
-    blackpieces = [blackKing]
-    pcsm.listpiece = pcsm.ListPiece(whitepieces, whitepawns, blackpieces, blackpawns)
+    whitepieces = [whiteKing, pcsm.WhiteQueen(b8, whiteKing, blackKing)]
+    whitepawns = []
+    blackpawns = []
+    blackpieces = [blackKing, pcsm.BlackRook(h8, blackKing, whiteKing)]
+    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns)
     print(pcsm.listpiece)
 
-    evaluator = Evaluator(pcsm.listpiece, 0)
-    print(evaluator)
+    root = BlackGamePosition(pcsm.listpiece)
+    root.builtplytreevalue(2)
+    print(nposition)

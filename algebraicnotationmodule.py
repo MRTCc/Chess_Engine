@@ -40,11 +40,17 @@ class AlgebraicNotation(str):
             result = True
         return result
 
-    def isequalcolumn(self, column):
-        if self.coordinate[0] == column:
+    def isequalrank(self, rank):
+        if self.coordinate[0] == rank:
             return True
         else:
             return False
+
+    def getrank(self):
+        return self.coordinate[0]
+
+    def getfile(self):
+        return int(self.coordinate[1])
 
     def __str__(self):
         return self.coordinate
@@ -115,7 +121,7 @@ h6 = AlgebraicNotation("h6")
 h7 = AlgebraicNotation("h7")
 h8 = AlgebraicNotation("h8")
 
-columns = ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h')
+ranks = ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h')
 
 # board from white's point of view
 celllist = (a8, b8, c8, d8, e8, f8, g8, h8,
