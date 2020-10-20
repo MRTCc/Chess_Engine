@@ -86,6 +86,7 @@ class ConnectionState(State):
         self.printer.send("id martuc\n")
 
         # qui si da eventualmente il comando option
+        self.printer.send("option engine_color\n")
 
         self.printer.send("uciok\n")
 
@@ -94,6 +95,10 @@ class ConnectionState(State):
 
 
 class NewGameInitState(State):
+    def __init__(self, printer, logger, command):
+        self.engine_color = None
+        super().__init__(printer, logger, command)
+
     def parse(self, msg):
         tokens = msg.split()
         command = tokens[0]
@@ -105,12 +110,21 @@ class NewGameInitState(State):
                 self._log(command=self.command, response="Invalid Position command syntax")
                 resultstate = self
             else:
-                resultstate = PositionState(self.printer, self.logger, msg, self.board)
+                resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
         elif "isready" == command:
             resultstate = self
         elif "quit" == command:
             self._log(command=msg, response="I\'m quitting")
             resultstate = QuitState(self.printer, self.logger, msg)
+        elif "setoption" == command and len(tokens) == 3:
+            # eventuali setoption
+            if "engine_color" == tokens[1]:
+                if tokens[2] in ("white", "black"):
+                    self.engine_color = tokens[2]
+                    self._log(command=self.command, response="setoption command executed")
+                else:
+                    self._log(command=msg, response="Not a valid setoption syntax!")
+            resultstate = self
         else:
             self._log(command=msg, response="Not a valid command! Commands accepted: position, quit")
             resultstate = self
@@ -119,17 +133,16 @@ class NewGameInitState(State):
 
     def execute(self):
         # inizializzazione delle strutture dati necessarie
-        # eventuali setoption
-
-
         self.printer.send("readyok\n")
 
         self._log(command="ucinewgame", response="New game initialization")
 
 
 class PositionState(State):
-    def __init__(self, printer, logger, command, board):
-        self.board = board
+    def __init__(self, printer, logger, command, engine_color):
+        self.boardposition = None
+        self.engine_color = engine_color
+        self.tokens = None
         super().__init__(printer, logger, command)
 
     def parse(self, msg):
@@ -140,7 +153,7 @@ class PositionState(State):
         command = self.tokens[0]
         resultstate = None
         if "go" == command:
-            resultstate = GoState(self.printer, self.logger, msg, self.board)
+            resultstate = GoState(self.printer, self.logger, msg, self.boardposition)
         elif "stop" == command:
             # operazione di stop
             resultstate = self
@@ -149,7 +162,7 @@ class PositionState(State):
             resultstate = QuitState(self.printer, self.logger, msg)
         else:
             self._log(command=msg, response="Not a valid command! Commands accepted: go, stop, quit")
-            resultstate = PositionState(self.printer, self.logger, msg, self.board)
+            resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
 
         return resultstate
 
@@ -164,18 +177,19 @@ class PositionState(State):
             try:
                 moves = tokens[3:]
                 for move in moves:
-                    if len(move) < 4 and len(move) > 5:
+                    if 4 > len(move) > 5:
                         raise Exception("Invalid moves notation")
 
-                self.board.updateposition(moves)
+                # position update and management
+
             except Exception as e:
                 print(e)
 
 
 class GoState(State):
-    def __init__(self, printer, logger, command, board):
+    def __init__(self, printer, logger, command, boardposition):
         self.threading = False
-        self.board = board
+        self.boardposition = boardposition
         super().__init__(printer, logger, command)
 
     def parse(self, msg):
