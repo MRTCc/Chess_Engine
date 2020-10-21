@@ -177,8 +177,12 @@ class PositionState(State):
             self.boardposition = gm.WhiteGamePosition(listpiece)
         else:
             # fenstring
-            listpiece = None
+            fenparser = gm.FenStrParser()
+            self.boardposition = fenparser(tokens[1])
             pass
+        index = tokens.index('moves')
+        movesetter = gm.UciMoveSetter(self.boardposition, tokens[index + 1])
+        movesetter()
 
 
 class GoState(State):

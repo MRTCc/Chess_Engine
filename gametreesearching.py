@@ -140,6 +140,20 @@ class UciMoveSetter:
             iswhiteturn = not iswhiteturn
 
 
+class FenStrParser:
+    def __init__(self):
+        pass
+
+    def parsecastlingrights(self, fencastling):
+        
+
+    def __call__(self, fenstr):
+        tokens = fenstr.split()
+        if len(tokens) != 6:
+            raise ValueError("Invalid FEN string!!!")
+        wcastlingrights, bcastlingrights = self.parsecastlingrights(tokens[2])
+
+
 # TODO Solo per debug
 testfile = open("built_tree_test", "w")
 
