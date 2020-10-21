@@ -133,5 +133,139 @@ celllist = (a8, b8, c8, d8, e8, f8, g8, h8,
             a2, b2, c2, d2, e2, f2, g2, h2,
             a1, b1, c1, d1, e1, f1, g1, h1)
 
+
+def str_to_algebraic(strcoordinate):
+    if strcoordinate == 'a1':
+        return a1
+    elif strcoordinate == 'a2':
+        return a2
+    elif strcoordinate == 'a3':
+        return a3
+    elif strcoordinate == 'a4':
+        return a4
+    elif strcoordinate == 'a5':
+        return a5
+    elif strcoordinate == 'a6':
+        return a6
+    elif strcoordinate == 'a7':
+        return a7
+    elif strcoordinate == 'a8':
+        return a8
+    elif strcoordinate == 'b1':
+        return b1
+    elif strcoordinate == 'b2':
+        return b2
+    elif strcoordinate == 'b3':
+        return b3
+    elif strcoordinate == 'b4':
+        return b4
+    elif strcoordinate == 'b5':
+        return b5
+    elif strcoordinate == 'b6':
+        return b6
+    elif strcoordinate == 'b7':
+        return b7
+    elif strcoordinate == 'b8':
+        return b8
+    elif strcoordinate == 'c1':
+        return c1
+    elif strcoordinate == 'c2':
+        return c2
+    elif strcoordinate == 'c3':
+        return c3
+    elif strcoordinate == 'c4':
+        return c4
+    elif strcoordinate == 'c5':
+        return c5
+    elif strcoordinate == 'c6':
+        return c6
+    elif strcoordinate == 'c7':
+        return c7
+    elif strcoordinate == 'c8':
+        return c8
+    elif strcoordinate == 'd1':
+        return d1
+    elif strcoordinate == 'd2':
+        return d2
+    elif strcoordinate == 'd3':
+        return d3
+    elif strcoordinate == 'd4':
+        return d4
+    elif strcoordinate == 'd5':
+        return d5
+    elif strcoordinate == 'd6':
+        return d6
+    elif strcoordinate == 'd7':
+        return d7
+    elif strcoordinate == 'd8':
+        return d8
+    elif strcoordinate == 'e1':
+        return e1
+    elif strcoordinate == 'e2':
+        return e2
+    elif strcoordinate == 'e3':
+        return e3
+    elif strcoordinate == 'e4':
+        return e4
+    elif strcoordinate == 'e5':
+        return e5
+    elif strcoordinate == 'e6':
+        return e6
+    elif strcoordinate == 'e7':
+        return e7
+    elif strcoordinate == 'e8':
+        return e8
+    elif strcoordinate == 'f1':
+        return f1
+    elif strcoordinate == 'f2':
+        return f2
+    elif strcoordinate == 'f3':
+        return f3
+    elif strcoordinate == 'f4':
+        return f4
+    elif strcoordinate == 'f5':
+        return f5
+    elif strcoordinate == 'f6':
+        return f6
+    elif strcoordinate == 'f7':
+        return f7
+    elif strcoordinate == 'f8':
+        return f8
+    elif strcoordinate == 'g1':
+        return g1
+    elif strcoordinate == 'g2':
+        return g2
+    elif strcoordinate == 'g3':
+        return g3
+    elif strcoordinate == 'g4':
+        return g4
+    elif strcoordinate == 'g5':
+        return g5
+    elif strcoordinate == 'g6':
+        return g6
+    elif strcoordinate == 'g7':
+        return g7
+    elif strcoordinate == 'g8':
+        return g8
+    elif strcoordinate == 'h1':
+        return h1
+    elif strcoordinate == 'h2':
+        return h2
+    elif strcoordinate == 'h3':
+        return h3
+    elif strcoordinate == 'h4':
+        return h4
+    elif strcoordinate == 'h5':
+        return h5
+    elif strcoordinate == 'h6':
+        return h6
+    elif strcoordinate == 'h7':
+        return h7
+    elif strcoordinate == 'h8':
+        return h8
+    else:
+        raise ValueError('Not a valid string argument!!!')
+
+
 if __name__ == '__main__':
     a1.sumcoordinate(1, 7)

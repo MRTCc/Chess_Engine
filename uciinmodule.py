@@ -4,6 +4,7 @@ Created on Fri Sep 25 11:51:59 2020
 @author: martu
 """
 import ucioutmodule
+import gametreesearching as gm
 
 uciincommands = ["uci", "isready", "setoption", "ucinewgame",
                  "position", "go", "stop", "quit"]
@@ -153,7 +154,7 @@ class PositionState(State):
         command = self.tokens[0]
         resultstate = None
         if "go" == command:
-            resultstate = GoState(self.printer, self.logger, msg, self.boardposition)
+            resultstate = GoState(self.printer, self.logger, msg, self.boardposition, self.engine_color)
         elif "stop" == command:
             # operazione di stop
             resultstate = self
@@ -170,26 +171,21 @@ class PositionState(State):
         # aggiornamento della posizione e di tutte le strutture dati coinvolte
         tokens = self.command.split()
         keyword = tokens[1]
-        if "fen" == keyword:
-            # not yet implemented
+        if keyword[0] == 's':
+            # startpos
+            listpiece = gm.startpos_factory()
+            self.boardposition = gm.WhiteGamePosition(listpiece)
+        else:
+            # fenstring
+            listpiece = None
             pass
-        elif "startpos" == keyword:
-            try:
-                moves = tokens[3:]
-                for move in moves:
-                    if 4 > len(move) > 5:
-                        raise Exception("Invalid moves notation")
-
-                # position update and management
-
-            except Exception as e:
-                print(e)
 
 
 class GoState(State):
-    def __init__(self, printer, logger, command, boardposition):
+    def __init__(self, printer, logger, command, boardposition, engine_color):
         self.threading = False
         self.boardposition = boardposition
+        self.engine_color = engine_color
         super().__init__(printer, logger, command)
 
     def parse(self, msg):
@@ -200,11 +196,11 @@ class GoState(State):
         if "position" == command and self.threading == True:
             self._log(command=msg, response="Not possible: current evaluation not finished!")
         elif "position" == command and self.threading == False:
-            resultstate = PositionState(self.printer, self.logger, msg)
+            resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
         elif "stop" == command:
             # qui bisogna stoppare il thread di calcolo della mossa
             self._log(command=self.command, response="I'm stopping")
-            resultstate = PositionState(self.printer, self.logger, msg)
+            resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
         elif "quit" == command:
             self._log(command=msg, response="I\'m quitting")
             resultstate = QuitState(self.printer, self.logger, msg)
@@ -215,7 +211,7 @@ class GoState(State):
         return resultstate
 
     def execute(self):
-        if self.threading == True:
+        if self.threading:
             return None
 
         # questo è il nucleo dell'engine... qui parte  il thread per il calcolo della mossa

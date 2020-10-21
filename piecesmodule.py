@@ -262,6 +262,13 @@ class ListPiece:
     def isblackkingincheck(self):
         return self.blackking.iminchecksetup()
 
+    def getpiecefromcoordinate(self, coordinate):
+        piece = self.board[coordinate]
+        if isinstance(piece, NullPiece):
+            return None
+        else:
+            return piece
+
     def __str__(self):
         keys = self.board.keys()
         strlist = [str(self.board[coordinate]) for coordinate in coordinatelist]
@@ -458,6 +465,9 @@ class Pawn(RealPiece):
                AllyOccupationException):
             move = None
         return move
+
+    def mypromotiontofactory(self, tocell):
+        return self.mypromotionto(tocell, self.allyking, self.enemyking)
 
 
 class BlackPawn(Pawn, Black):
