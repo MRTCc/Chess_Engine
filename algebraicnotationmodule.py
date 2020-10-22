@@ -133,6 +133,8 @@ celllist = (a8, b8, c8, d8, e8, f8, g8, h8,
             a2, b2, c2, d2, e2, f2, g2, h2,
             a1, b1, c1, d1, e1, f1, g1, h1)
 
+enpassantlist = (a6, b6, c6, d6, e6, f6, g6, h6,
+                 a3, b3, c3, d3, e3, f3, g3, h3)
 
 def str_to_algebraic(strcoordinate):
     if strcoordinate == 'a1':

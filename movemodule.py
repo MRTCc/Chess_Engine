@@ -226,6 +226,21 @@ class CastlingRights:
             result = True
         return result
 
+    def setonlykingcastling(self):
+        self.rooksxinstartpos = False
+        self.safequeensideline = False
+
+    def setonlyqueencastling(self):
+        self.rookdxinstartpos = False
+        self.safekingsideline = False
+
+    def __str__(self):
+        msg = "Castling rights: \n\t"
+        for key, value in self.__dict__.items():
+            msg += key + " --> "
+            msg += str(value) + "\n\t"
+        return msg
+
 
 if __name__ == '__main__':
     print(whiteKindsideCastlingFactory)

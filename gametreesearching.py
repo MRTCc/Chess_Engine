@@ -10,6 +10,7 @@ from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
                                      a2, b2, c2, d2, e2, f2, g2, h2,
                                      a1, b1, c1, d1, e1, f1, g1, h1)
 
+
 nposition = 0
 
 
@@ -142,16 +143,154 @@ class UciMoveSetter:
 
 class FenStrParser:
     def __init__(self):
-        pass
+        self.whiteletters = ('R', 'N', 'B', 'Q', 'K', 'P')
+        self.blackletters = ('r', 'n', 'b', 'q', 'k', 'p')
 
     def parsecastlingrights(self, fencastling):
-        
+        if '-' in fencastling:
+            wcastlingrights = mvm.CastlingRights(False)
+            bcastlingrights = mvm.CastlingRights(False)
+            return wcastlingrights, bcastlingrights
+        kingsidecastling = 'K' in fencastling
+        queensidecastling = 'Q' in fencastling
+        if kingsidecastling and queensidecastling:
+            wcastlingrights = mvm.CastlingRights()
+        elif kingsidecastling and not queensidecastling:
+            wcastlingrights = mvm.CastlingRights()
+            wcastlingrights.setonlykingcastling()
+        elif not kingsidecastling and queensidecastling:
+            wcastlingrights = mvm.CastlingRights()
+            wcastlingrights.setonlyqueencastling()
+        else:
+            wcastlingrights = mvm.CastlingRights(False)
+        kingsidecastling = 'k' in fencastling
+        queensidecastling = 'q' in fencastling
+        if kingsidecastling and queensidecastling:
+            bcastlingrights = mvm.CastlingRights()
+        elif kingsidecastling and not queensidecastling:
+            bcastlingrights = mvm.CastlingRights()
+            bcastlingrights.setonlykingcastling()
+        elif not kingsidecastling and queensidecastling:
+            bcastlingrights = mvm.CastlingRights()
+            bcastlingrights.setonlyqueencastling()
+        else:
+            bcastlingrights = mvm.CastlingRights(False)
+        return wcastlingrights, bcastlingrights
+
+    def isboardvalid(self, boardstring):
+        rankcounter = 0
+        for char in boardstring:
+            if char in ('1', '2', '3', '4', '5', '6', '7', '8'):
+                rankcounter += int(char)
+            elif char == '/':
+                if rankcounter != 8:
+                    raise ValueError('Fen string not valid: invalid first field!!!')
+                rankcounter = 0
+            elif char in self.whiteletters + self.blackletters:
+                rankcounter += 1
+            else:
+                raise ValueError("Not valid character in first field's string")
+
+    def parsekings(self, boardstring, wcastlingrights, bcastlingrights):
+        index = 0
+        whitekingcoordinate = None
+        blackkingcoordinate = None
+        for char in boardstring:
+            if char in ('1', '2', '3', '4', '5', '6', '7', '8'):
+                index += int(char) - 1
+            elif char == '/':
+                continue
+            elif char == 'K':
+                whitekingcoordinate = algn.celllist[index]
+            elif char == 'k':
+                blackkingcoordinate = algn.celllist[index]
+            index += 1
+        if whitekingcoordinate is None or blackkingcoordinate is None:
+            raise ValueError("No king on the board!!!")
+        whiteking = pcsm.WhiteKing(whitekingcoordinate, wcastlingrights)
+        blackking = pcsm.BlackKing(blackkingcoordinate, bcastlingrights)
+        return whiteking, blackking
+
+    def parsepieces(self, boardstring, whiteking, blackking):
+        index = 0
+        whitepieces = []
+        whitepawns = []
+        blackpieces = []
+        blackpawns = []
+        for char in boardstring:
+            coordinate = algn.celllist[index]
+            if char in ('1', '2', '3', '4', '5', '6', '7', '8'):
+                index += int(char) - 1
+            elif char == '/':
+                continue
+            elif char == 'R':
+                whitepieces.append(pcsm.WhiteRook(coordinate, whiteking, blackking))
+            elif char == 'N':
+                whitepieces.append(pcsm.WhiteKnight(coordinate, whiteking, blackking))
+            elif char == 'B':
+                whitepieces.append(pcsm.WhiteBishop(coordinate, whiteking, blackking))
+            elif char == 'Q':
+                whitepieces.append(pcsm.WhiteQueen(coordinate, whiteking, blackking))
+            elif char == 'P':
+                whitepawns.append(pcsm.WhitePawn(coordinate, whiteking, blackking))
+            elif char == 'r':
+                blackpieces.append(pcsm.BlackRook(coordinate, blackking, whiteking))
+            elif char == 'n':
+                blackpieces.append(pcsm.BlackKnight(coordinate, blackking, whiteking))
+            elif char == 'b':
+                blackpieces.append(pcsm.BlackBishop(coordinate, blackking, whiteking))
+            elif char == 'q':
+                blackpieces.append(pcsm.BlackQueen(coordinate, blackking, whiteking))
+            elif char == 'p':
+                blackpawns.append(pcsm.BlackPawn(coordinate, blackking, whiteking))
+            index += 1
+        whitepieces.append(whiteking)
+        blackpieces.append(blackking)
+        return whitepieces, whitepawns, blackpieces, blackpawns
+
+    def parsergameposition(self, colorstring, listpiece):
+        if len(colorstring) != 1:
+            raise ValueError('Not a valid string fen color!!!')
+        if colorstring == 'w':
+            gameposition = WhiteGamePosition(listpiece)
+        elif colorstring == 'b':
+            gameposition = BlackGamePosition(listpiece)
+        else:
+            raise ValueError('Not a valid string fen color!!!')
+        return gameposition
+
+    def parserenpassant(self, enpassantstr, listpiece):
+        enpcoordinate = algn.str_to_algebraic(enpassantstr)
+        if enpcoordinate not in algn.enpassantlist:
+            raise ValueError("Not valid enpassant square!!!")
+        if enpcoordinate.fileint == 3:
+            if len(listpiece.whitepawns) <= 0:
+                raise ValueError("No white pawns in game!!!")
+            filestep = listpiece.whitepawns[0].filestep
+        else:
+            if len(listpiece.blackpawns) <= 0:
+                raise ValueError("No black pawns in game!!!")
+            filestep = listpiece.whitepawns[0].filestep
+        coordinate = enpcoordinate.sumcoordinate(0, filestep)
+        piece = listpiece.getpiecefromcoordinate(coordinate)
+        if piece is None:
+            raise ValueError("No enpassant-pawn at the coordinate inserted!!!")
+        piece.enpassantthreat = True
+        print("En passant pawn: ", piece, "at :", piece.coordinate)
 
     def __call__(self, fenstr):
         tokens = fenstr.split()
         if len(tokens) != 6:
             raise ValueError("Invalid FEN string!!!")
+        self.isboardvalid(tokens[0])
         wcastlingrights, bcastlingrights = self.parsecastlingrights(tokens[2])
+        whiteking, blackking = self.parsekings(tokens[0], wcastlingrights, bcastlingrights)
+        whitepieces, whitepawns, blackpieces, blackpawns = self.parsepieces(tokens[0], whiteking, blackking)
+        pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns)
+        self.parserenpassant(tokens[3], pcsm.listpiece)
+        gameposition = self.parsergameposition(tokens[1], pcsm.listpiece)
+        # print(gameposition)
+        return gameposition
 
 
 # TODO Solo per debug
@@ -402,6 +541,11 @@ class WhiteGamePosition(GamePosition):
         self.imincheckmatevalue = -1000
         self.childrenevaluationfunc = max
 
+    def __str__(self):
+        msg = 'Active color: white\n'
+        msg += str(self.listpiece)
+        return msg
+
 
 class BlackGamePosition(GamePosition):
     def __init__(self, listpiece, parent=None, originmove=None):
@@ -411,6 +555,11 @@ class BlackGamePosition(GamePosition):
         self.ischeckfunc = self.listpiece.isblackkingincheck
         self.imincheckmatevalue = 1000
         self.childrenevaluationfunc = min
+
+    def __str__(self):
+        msg = 'Active color: black\n'
+        msg += str(self.listpiece)
+        return msg
 
 
 if __name__ == '__main__':
@@ -424,8 +573,11 @@ if __name__ == '__main__':
                                          a2, b2, c2, d2, e2, f2, g2, h2,
                                          a1, b1, c1, d1, e1, f1, g1, h1)
 
-    root = BlackGamePosition(debug_pos_factory())
-    print(pcsm.listpiece)
-    u = UciMoveSetter(root, ['e1d1', 'e8d8'])
-    u()
-    print(pcsm.listpiece)
+    # root = BlackGamePosition(debug_pos_factory())
+    # print(pcsm.listpiece)
+    # u = UciMoveSetter(root, ['e1d1', 'e8d8'])
+    # u()
+    # print(pcsm.listpiece)
+
+    fen = FenStrParser()
+    fen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e8 0 1")
