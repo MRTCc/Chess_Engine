@@ -37,8 +37,8 @@ def black_generator_moves(listpiece):
 
 
 def startpos_factory():
-    wc = movemodule.CastlingRights()
-    bc = movemodule.CastlingRights()
+    wc = mvm.CastlingRights()
+    bc = mvm.CastlingRights()
     whiteKing = pcsm.WhiteKing(e1, wc)
     blackKing = pcsm.BlackKing(e8, bc)
     whitepieces = [pcsm.WhiteRook(a1, whiteKing, blackKing), pcsm.WhiteKnight(b1, whiteKing, blackKing),
@@ -260,6 +260,8 @@ class FenStrParser:
         return gameposition
 
     def parserenpassant(self, enpassantstr, listpiece):
+        if enpassantstr == '-':
+            return
         enpcoordinate = algn.str_to_algebraic(enpassantstr)
         if enpcoordinate not in algn.enpassantlist:
             raise ValueError("Not valid enpassant square!!!")
@@ -276,10 +278,10 @@ class FenStrParser:
         if piece is None:
             raise ValueError("No enpassant-pawn at the coordinate inserted!!!")
         piece.enpassantthreat = True
-        print("En passant pawn: ", piece, "at :", piece.coordinate)
+        # print("En passant pawn: ", piece, "at :", piece.coordinate)
 
     def __call__(self, fenstr):
-        tokens = fenstr.split()
+        tokens = fenstr
         if len(tokens) != 6:
             raise ValueError("Invalid FEN string!!!")
         self.isboardvalid(tokens[0])
@@ -290,6 +292,7 @@ class FenStrParser:
         self.parserenpassant(tokens[3], pcsm.listpiece)
         gameposition = self.parsergameposition(tokens[1], pcsm.listpiece)
         # print(gameposition)
+        # al momento, ignoro gli altri due campi fen
         return gameposition
 
 
@@ -573,11 +576,11 @@ if __name__ == '__main__':
                                          a2, b2, c2, d2, e2, f2, g2, h2,
                                          a1, b1, c1, d1, e1, f1, g1, h1)
 
-    # root = BlackGamePosition(debug_pos_factory())
-    # print(pcsm.listpiece)
-    # u = UciMoveSetter(root, ['e1d1', 'e8d8'])
-    # u()
-    # print(pcsm.listpiece)
+    root = BlackGamePosition(debug_pos_factory())
+    print(pcsm.listpiece)
+    u = UciMoveSetter(root, ['e1d1', 'e8d8'])
+    u()
+    print(pcsm.listpiece)
 
     fen = FenStrParser()
-    fen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e8 0 1")
+    fen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1")

@@ -104,10 +104,13 @@ class NewGameInitState(State):
         tokens = msg.split()
         command = tokens[0]
         if "position" == command:
-            if len(tokens) < 4:
+            keyword = tokens[1]
+            if 'moves' not in tokens:
                 self._log(command=self.command, response="Invalid Position command syntax")
                 resultstate = self
-            elif "moves" not in (tokens[2], tokens[3]):
+            elif keyword == 'startpos':
+                resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
+            elif len(tokens[1:tokens.index('moves')]) != 6:
                 self._log(command=self.command, response="Invalid Position command syntax")
                 resultstate = self
             else:
@@ -171,18 +174,23 @@ class PositionState(State):
         # aggiornamento della posizione e di tutte le strutture dati coinvolte
         tokens = self.command.split()
         keyword = tokens[1]
-        if keyword[0] == 's':
-            # startpos
-            listpiece = gm.startpos_factory()
-            self.boardposition = gm.WhiteGamePosition(listpiece)
-        else:
-            # fenstring
-            fenparser = gm.FenStrParser()
-            self.boardposition = fenparser(tokens[1])
-            pass
         index = tokens.index('moves')
-        movesetter = gm.UciMoveSetter(self.boardposition, tokens[index + 1])
-        movesetter()
+        try:
+            if keyword == 'startpos':
+                # startpos
+                listpiece = gm.startpos_factory()
+                self.boardposition = gm.WhiteGamePosition(listpiece)
+            else:
+                # fenstring
+                fenparser = gm.FenStrParser()
+                self.boardposition = fenparser(tokens[1:index])
+                pass
+            movesetter = gm.UciMoveSetter(self.boardposition, tokens[index + 1:])
+            movesetter()
+            # debug
+            self.printer.send("Position set\nreadyok\n" + str(self.boardposition) + '\n')
+        except Exception as e:
+            raise e
 
 
 class GoState(State):
@@ -248,6 +256,6 @@ if __name__ == '__main__':
             if not command.run:
                 isrunning = False
     except Exception as e:
-        print("Exception!!!" + str(e))
+        raise e
     finally:
         ucilogfile.close()
