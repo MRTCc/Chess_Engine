@@ -116,6 +116,12 @@ class UciMoveSetter:
                 move = mvm.whiteMovePromotionFactory(piece, fromcell, tocell, promotionto, False)
             else:
                 move = mvm.blackMovePromotionFactory(piece, fromcell, tocell, promotionto, False)
+        elif isinstance(piece, pcsm.Pawn) and fromcell.absfiledifference(tocell) == 2:
+            # enpassant
+            if iswhiteturn:
+                move = mvm.whiteMoveEnpassantFactory(piece, fromcell, tocell, False)
+            else:
+                move = mvm.blackMoveEnpassantFactory(piece, fromcell, tocell, False)
         elif capturedpiece is not None:
             # cattura
             if iswhiteturn:
@@ -630,11 +636,9 @@ if __name__ == '__main__':
     """
     fen = FenStrParser()
     gameposition = fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-    print(pcsm.listpiece.board[e2].isstartpos)
-    setter = UciMoveSetter(gameposition, ['e2e4', 'e7e5'])
+    print(pcsm.listpiece.board[e2].enpassantthreat)
+    setter = UciMoveSetter(gameposition, ['e2e4'])
     setter()
-    print(pcsm.listpiece.board[e4].isstartpos)
-    move = mvm.blackMoveFactory(pcsm.listpiece.board[e5], e7, e5, False)
-    pcsm.listpiece.undomove(move)
-    print(pcsm.listpiece.board[e7].isstartpos)
+    print(pcsm.listpiece.board[e4].enpassantthreat)
+
 

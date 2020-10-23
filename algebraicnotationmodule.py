@@ -52,6 +52,9 @@ class AlgebraicNotation(str):
     def getfile(self):
         return int(self.coordinate[1])
 
+    def absfiledifference(self, other):
+        return abs(self.fileint - other.fileint)
+
     def __str__(self):
         return self.coordinate
 

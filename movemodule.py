@@ -51,10 +51,7 @@ class MoveFactory:
 
     def __call__(self, piece, fromcell, tocell, ischeck):
         """
-
-
         si assumono le mosse legali, qui non si farà alcun controllo
-
         """
         self.piece = piece
         self.fromcell = fromcell
@@ -124,10 +121,10 @@ class BlackMoveCapturePromotionFactory(MoveCapturePromotionFactory):
         self.iswhiteturn = False
 
 
-class MoveEnpassantFactory(MoveCaptureFactory):
-    def __call__(self, piece, fromcell, tocell, capturedpawn, ischeck):
+class MoveEnpassantFactory(MoveFactory):
+    def __call__(self, piece, fromcell, tocell, ischeck):
         self.isenpassant = True
-        return super().__call__(piece, fromcell, tocell, capturedpawn, ischeck)
+        return super().__call__(piece, fromcell, tocell, ischeck)
 
 
 class WhiteMoveEnpassantFactory(MoveEnpassantFactory):

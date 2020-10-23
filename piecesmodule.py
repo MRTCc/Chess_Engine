@@ -92,14 +92,15 @@ class ListPiece:
         self.blackpawns = blackpawns
         self.whiteking = whiteking
         self.blackking = blackking
-        self.whitesxrook = None
-        self.whitedxrook = None
-        self.blacksxrook = None
-        self.blackdxrook = None
         self.piecesingame = [self.whitepieces, self.blackpieces]
         self.pawnsingame = [self.whitepawns, self.blackpawns]
         self.nullpiece = NullPiece()
         self.board = self._builtboard()
+        self.moves = []
+        self.whitesxrook = None
+        self.whitedxrook = None
+        self.blacksxrook = None
+        self.blackdxrook = None
         self._setrooks()
 
     def _setrooks(self):
@@ -200,17 +201,11 @@ class ListPiece:
         king.isstartpos = False
         rook.isstartpos = False
 
-    def _applyenpassant(self, move):
-        self.removepiece(move.capturedpiece)
-        self.movepiece(move.piece, move.tocell)
-
     def applymove(self, move):
         if move.iskingcastling:
             self._applykingcastling(move)
         elif move.isqueencastling:
             self._applyqueencastling(move)
-        elif move.isenpassant:
-            self._applyenpassant(move)
         elif move.capturedpiece is not None:
             if move.promotionto is not None:
                 self._captureandpromotion(move)
@@ -227,8 +222,16 @@ class ListPiece:
         if move.piece:
             move.piece.movescounter += 1
             move.piece.isstartpos = False
+        if self.moves:
+            lastmove = self.moves[-1]
+            if lastmove.isenpassant:
+                lastmove.piece.enpassantthreat = False
         self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
         self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
+        self.moves.append(move)
+        lastmove = self.moves[-1]
+        if lastmove.isenpassant:
+            lastmove.piece.enpassantthreat = True
 
     def _undokingcastling(self, move):
         if move.iswhiteturn:
@@ -260,10 +263,6 @@ class ListPiece:
         self.movepiece(king, king.startpos)
         self.movepiece(rook, rookstartpos)
 
-    def _undoenpassant(self, move):
-        self.movepiece(move.piece, move.fromcell)
-        self.addpiece(move.capturedpiece)
-
     def _undocaptureandpromotion(self, move):
         self.addpiece(move.piece)
         self.removepiece(move.promotionto)
@@ -282,8 +281,6 @@ class ListPiece:
             self._undokingcastling(move)
         elif move.isqueencastling:
             self._undoqueencastling(move)
-        elif move.isenpassant:
-            self._undoenpassant(move)
         elif move.capturedpiece is not None:
             if move.promotionto is not None:
                 self._undocaptureandpromotion(move)
@@ -299,6 +296,13 @@ class ListPiece:
                 move.piece.isstartpos = True
         self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
         self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
+        if move.isenpassant:
+            move.piece.enpassantthreat = False
+        self.moves.remove(move)
+        if self.moves:
+            lastmove = self.moves[-1]
+            if lastmove.isenpassant:
+                lastmove.piece.enpassantthreat = True
 
     def iswhitekingincheck(self):
         return self.whiteking.iminchecksetup()
@@ -468,7 +472,7 @@ class Pawn(RealPiece):
             raise OccupationException
         if self.allyking.iminchecksetup(self, tocell):
             raise TakenKingException
-        return self.moveFactory(self, self.coordinate, tocell, False)
+        return self.moveEnpassantFactory(self, self.coordinate, tocell, False)
 
     def _onestepmove(self):
         tocell = self.coordinate.sumcoordinate(0, self.filestep)
@@ -506,7 +510,7 @@ class Pawn(RealPiece):
                 iskingtaken = self.allyking.imincheck(self, tocell, enpiece)
                 if iskingtaken:
                     raise TakenKingException
-                move = self.moveEnpassantFactory(self, self.coordinate, tocell, enpiece, False)
+                move = self.moveCaptureFactory(self, self.coordinate, tocell, enpiece, False)
             else:
                 raise NotLegalMoveException
         return move
