@@ -243,7 +243,7 @@ class CastlingRights:
 
 
 if __name__ == '__main__':
-    print(whiteKindsideCastlingFactory)
+
     c = CastlingRights()
     a = c.ispossiblekingcastling()
     print(a)

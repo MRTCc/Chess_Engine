@@ -201,18 +201,28 @@ class GoState(State):
         super().__init__(printer, logger, command)
 
     def parse(self, msg):
-        self.tokens = msg.split()
-        command = self.tokens[0]
+        tokens = msg.split()
+        command = tokens[0]
         resultstate = None
         # ho un dubbio... non è che qui si rischia di saltare alla prossima mossa prima che l'engine abbia finito?
         if "position" == command and self.threading == True:
             self._log(command=msg, response="Not possible: current evaluation not finished!")
         elif "position" == command and self.threading == False:
-            resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
+            keyword = tokens[1]
+            if 'moves' not in tokens:
+                self._log(command=self.command, response="Invalid Position command syntax")
+                resultstate = self
+            elif keyword == 'startpos':
+                resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
+            elif len(tokens[1:tokens.index('moves')]) != 6:
+                self._log(command=self.command, response="Invalid Position command syntax")
+                resultstate = self
+            else:
+                resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
         elif "stop" == command:
             # qui bisogna stoppare il thread di calcolo della mossa
             self._log(command=self.command, response="I'm stopping")
-            resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
+            resultstate = NewGameInitState(self.printer, self.logger, msg)
         elif "quit" == command:
             self._log(command=msg, response="I\'m quitting")
             resultstate = QuitState(self.printer, self.logger, msg)
@@ -225,10 +235,11 @@ class GoState(State):
     def execute(self):
         if self.threading:
             return None
+        gamethread = gm.GameThread(self.boardposition)
+        bestmove = gamethread.start()
 
-        # questo è il nucleo dell'engine... qui parte  il thread per il calcolo della mossa
+        self.printer.send(str(bestmove) + '\n')
 
-        self.printer.send("bestmove a7a6\n")
         self._log(command=self.command, response="Evaluation going on!")
 
 

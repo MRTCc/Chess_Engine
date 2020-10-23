@@ -1,5 +1,6 @@
 import movemodule as mvm
 import piecesmodule as pcsm
+import threading
 import algebraicnotationmodule as algn
 from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
                                      a7, b7, c7, d7, e7, f7, g7, h7,
@@ -58,6 +59,7 @@ def startpos_factory():
                   pcsm.BlackPawn(e7, blackKing, whiteKing), pcsm.BlackPawn(f7, blackKing, whiteKing),
                   pcsm.BlackPawn(g7, blackKing, whiteKing), pcsm.BlackPawn(h7, blackKing, whiteKing)]
     pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns)
+    pcsm.listpiece.updatecastlingrights()
     return pcsm.listpiece
 
 
@@ -146,10 +148,10 @@ class FenStrParser:
         self.whiteletters = ('R', 'N', 'B', 'Q', 'K', 'P')
         self.blackletters = ('r', 'n', 'b', 'q', 'k', 'p')
 
-    def parsecastlingrights(self, fencastling):
+    def _parsecastlingrights(self, fencastling):
         if '-' in fencastling:
-            wcastlingrights = mvm.CastlingRights(False)
-            bcastlingrights = mvm.CastlingRights(False)
+            wcastlingrights = mvm.CastlingRights(False, False, False, False, False, False)
+            bcastlingrights = mvm.CastlingRights(False, False, False, False, False, False)
             return wcastlingrights, bcastlingrights
         kingsidecastling = 'K' in fencastling
         queensidecastling = 'Q' in fencastling
@@ -162,7 +164,7 @@ class FenStrParser:
             wcastlingrights = mvm.CastlingRights()
             wcastlingrights.setonlyqueencastling()
         else:
-            wcastlingrights = mvm.CastlingRights(False)
+            wcastlingrights = mvm.CastlingRights(False, False, False, False, False, False)
         kingsidecastling = 'k' in fencastling
         queensidecastling = 'q' in fencastling
         if kingsidecastling and queensidecastling:
@@ -174,10 +176,10 @@ class FenStrParser:
             bcastlingrights = mvm.CastlingRights()
             bcastlingrights.setonlyqueencastling()
         else:
-            bcastlingrights = mvm.CastlingRights(False)
+            bcastlingrights = mvm.CastlingRights(False, False, False, False, False, False)
         return wcastlingrights, bcastlingrights
 
-    def isboardvalid(self, boardstring):
+    def _isboardvalid(self, boardstring):
         rankcounter = 0
         for char in boardstring:
             if char in ('1', '2', '3', '4', '5', '6', '7', '8'):
@@ -191,7 +193,7 @@ class FenStrParser:
             else:
                 raise ValueError("Not valid character in first field's string")
 
-    def parsekings(self, boardstring, wcastlingrights, bcastlingrights):
+    def _parsekings(self, boardstring, wcastlingrights, bcastlingrights):
         index = 0
         whitekingcoordinate = None
         blackkingcoordinate = None
@@ -211,7 +213,7 @@ class FenStrParser:
         blackking = pcsm.BlackKing(blackkingcoordinate, bcastlingrights)
         return whiteking, blackking
 
-    def parsepieces(self, boardstring, whiteking, blackking):
+    def _parsepieces(self, boardstring, whiteking, blackking):
         index = 0
         whitepieces = []
         whitepawns = []
@@ -248,7 +250,7 @@ class FenStrParser:
         blackpieces.append(blackking)
         return whitepieces, whitepawns, blackpieces, blackpawns
 
-    def parsergameposition(self, colorstring, listpiece):
+    def _parsergameposition(self, colorstring, listpiece):
         if len(colorstring) != 1:
             raise ValueError('Not a valid string fen color!!!')
         if colorstring == 'w':
@@ -259,7 +261,7 @@ class FenStrParser:
             raise ValueError('Not a valid string fen color!!!')
         return gameposition
 
-    def parserenpassant(self, enpassantstr, listpiece):
+    def _parserenpassant(self, enpassantstr, listpiece):
         if enpassantstr == '-':
             return
         enpcoordinate = algn.str_to_algebraic(enpassantstr)
@@ -281,18 +283,19 @@ class FenStrParser:
         # print("En passant pawn: ", piece, "at :", piece.coordinate)
 
     def __call__(self, fenstr):
-        tokens = fenstr
+        tokens = fenstr.split()
         if len(tokens) != 6:
             raise ValueError("Invalid FEN string!!!")
-        self.isboardvalid(tokens[0])
-        wcastlingrights, bcastlingrights = self.parsecastlingrights(tokens[2])
-        whiteking, blackking = self.parsekings(tokens[0], wcastlingrights, bcastlingrights)
-        whitepieces, whitepawns, blackpieces, blackpawns = self.parsepieces(tokens[0], whiteking, blackking)
+        self._isboardvalid(tokens[0])
+        wcastlingrights, bcastlingrights = self._parsecastlingrights(tokens[2])
+        whiteking, blackking = self._parsekings(tokens[0], wcastlingrights, bcastlingrights)
+        whitepieces, whitepawns, blackpieces, blackpawns = self._parsepieces(tokens[0], whiteking, blackking)
         pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns)
-        self.parserenpassant(tokens[3], pcsm.listpiece)
-        gameposition = self.parsergameposition(tokens[1], pcsm.listpiece)
+        pcsm.listpiece.updatecastlingrights()
+        self._parserenpassant(tokens[3], pcsm.listpiece)
+        gameposition = self._parsergameposition(tokens[1], pcsm.listpiece)
         # print(gameposition)
-        # al momento, ignoro gli altri due campi fen
+        # TODO al momento, ignoro gli altri due campi fen
         return gameposition
 
 
@@ -488,7 +491,7 @@ class GamePosition:
         else:
             return False
 
-    def builtplytreevalue(self, maxply, curply=0):
+    def builtplytreevalue1(self, maxply, curply=0):
         global nposition
         nposition += 1
 
@@ -534,6 +537,34 @@ class GamePosition:
                        '\n')
         return bestmove
 
+    def builtplytreevalue(self, maxply, curply=0):
+        global nposition
+        nposition += 1
+        for move in self.movegeneratorfunc(pcsm.listpiece):
+            self.moves.append(move)
+        if self.imincheckmate():
+            self.value = self.imincheckmatevalue
+            return
+
+        elif self.isstalemate():
+            self.value = 0
+            return
+        if curply >= maxply:
+            evaluator = Evaluator(self.listpiece, len(self.moves))
+            self.value = evaluator()
+            return
+        for move in self.moves:
+            self.listpiece.applymove(move)
+            child = self.enemy_game_position_func(self.listpiece, self, move)
+            child.builtplytreevalue(maxply, curply + 1)
+            self.children.append(child)
+            self.listpiece.undomove(move)
+        self.value = self.childrenevaluationfunc((child.value for child in self.children))
+        bestchild = self.childrenevaluationfunc(self.children)
+        indexbestchild = self.children.index(bestchild)
+        bestmove = self.moves[indexbestchild]
+        return bestmove
+
 
 class WhiteGamePosition(GamePosition):
     def __init__(self, listpiece, parent=None, originmove=None):
@@ -565,6 +596,15 @@ class BlackGamePosition(GamePosition):
         return msg
 
 
+class GameThread(threading.Thread):
+    def __init__(self, gameposition):
+        super().__init__()
+        self.gameposition = gameposition
+
+    def run(self):
+        return self.gameposition.builtplytreevalue(3)
+
+
 if __name__ == '__main__':
     import movemodule
     from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
@@ -576,11 +616,21 @@ if __name__ == '__main__':
                                          a2, b2, c2, d2, e2, f2, g2, h2,
                                          a1, b1, c1, d1, e1, f1, g1, h1)
 
-    root = BlackGamePosition(debug_pos_factory())
-    print(pcsm.listpiece)
-    u = UciMoveSetter(root, ['e1d1', 'e8d8'])
-    u()
-    print(pcsm.listpiece)
+    # root = BlackGamePosition(debug_pos_factory())
+    # print(pcsm.listpiece)
+    # u = UciMoveSetter(root, ['e1d1', 'e8d8'])
+    # u()
+    # print(pcsm.listpiece)
 
+    """
+        fen = FenStrParser()
+        gameposition = fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+        gamethread = GameThread(gameposition)
+        gamethread.start()
+    """
     fen = FenStrParser()
-    fen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1")
+    gameposition = fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+    print(pcsm.listpiece)
+    print("White castling rights: ", gameposition.listpiece.whiteking.castlingrights)
+    print("Black castling rights: ", gameposition.listpiece.blackking.castlingrights)
+

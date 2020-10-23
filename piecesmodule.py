@@ -92,10 +92,29 @@ class ListPiece:
         self.blackpawns = blackpawns
         self.whiteking = whiteking
         self.blackking = blackking
+        self.whitesxrook = None
+        self.whitedxrook = None
+        self.blacksxrook = None
+        self.blackdxrook = None
         self.piecesingame = [self.whitepieces, self.blackpieces]
         self.pawnsingame = [self.whitepawns, self.blackpawns]
         self.nullpiece = NullPiece()
         self.board = self._builtboard()
+        self._setrooks()
+
+    def _setrooks(self):
+        whitedxrook = self.board[h1]
+        if isinstance(whitedxrook, WhiteRook) and whitedxrook.isstartpos:
+            self.whitedxrook = whitedxrook
+        whitesxrook = self.board[a1]
+        if isinstance(whitesxrook, WhiteRook) and whitesxrook.isstartpos:
+            self.whitesxrook = whitesxrook
+        blackdxrook = self.board[h8]
+        if isinstance(blackdxrook, BlackRook) and blackdxrook.isstartpos:
+            self.blackdxrook = blackdxrook
+        blacksxrook = self.board[a8]
+        if isinstance(blacksxrook, BlackRook) and blacksxrook.isstartpos:
+            self.blacksxrook = blacksxrook
 
     def addpiece(self, piece):
         if isinstance(piece.allyking, WhiteKing):
@@ -197,6 +216,8 @@ class ListPiece:
         else:
             self.movepiece(move.piece, move.tocell)
             pass
+        self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
+        self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
 
     def _undokingcastling(self, move):
         if move.iswhiteturn:
@@ -255,6 +276,8 @@ class ListPiece:
             self._undopromotepawn(move)
         else:
             self.movepiece(move.piece, move.fromcell)
+        self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
+        self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
 
     def iswhitekingincheck(self):
         return self.whiteking.iminchecksetup()
@@ -268,6 +291,21 @@ class ListPiece:
             return None
         else:
             return piece
+
+    def _updatekingcastlingrights(self, king, sxrook, dxrook):
+        castlingrights = king.castlingrights
+        castlingrights.kinginstartpos = king.isstartpos
+        if sxrook:
+            castlingrights.rooksxinstartpos = sxrook.isstartpos
+        if dxrook:
+            castlingrights.rookdxinstartpos = dxrook.isstartpos
+        castlingrights.safekingsideline = king.issafekingsideline()
+        castlingrights.safequeensideline = king.issafequeensideline()
+        castlingrights.kingincheck = king.iminchecksetup()
+
+    def updatecastlingrights(self):
+        self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
+        self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
 
     def __str__(self):
         keys = self.board.keys()
@@ -783,6 +821,8 @@ class King(RealPiece):
         self.queencastlingcoordinate = c1
         self.enemyindex = 1
         self.allyindex = 0
+        self.kingsidelinecoordinates = None
+        self.queensidelinecoordinates = None
 
     def _delta_0_2(self, delta):
         for i in range(1, 8):
@@ -886,30 +926,20 @@ class King(RealPiece):
                 pass
         return incheck
 
-    def _issafekingsideline(self):
-        if self.iminchecksetup(self, f1):
-            return False
-        if self.isthereallypiece(f1) or self.isthereenemypiece(f1):
-            return False
-        if self.iminchecksetup(self, g1):
-            return False
-        if self.isthereallypiece(g1) or self.isthereenemypiece(g1):
-            return False
+    def issafekingsideline(self):
+        for coordinate in self.kingsidelinecoordinates:
+            if not self.isempty(coordinate):
+                return False
+            if self.iminchecksetup(self, coordinate):
+                return False
         return True
 
-    def _issafequeensideline(self):
-        if self.iminchecksetup(self, d1):
-            return False
-        if self.isthereallypiece(d1) or self.isthereenemypiece(d1):
-            return False
-        if self.iminchecksetup(self, c1):
-            return False
-        if self.isthereallypiece(c1) or self.isthereenemypiece(c1):
-            return False
-        if self.iminchecksetup(self, b1):
-            return False
-        if self.isthereallypiece(b1) or self.isthereenemypiece(b1):
-            return False
+    def issafequeensideline(self):
+        for coordinate in self.queensidelinecoordinates:
+            if not self.isempty(coordinate):
+                return False
+            if self.iminchecksetup(self, coordinate):
+                return False
         return True
 
     def generatemove(self, rankstep, filestep):
@@ -936,24 +966,21 @@ class King(RealPiece):
                 moves.append(move)
             except(CoordinateException, AllyOccupationException, TakenKingException):
                 pass
-        self.castlingrights.safekindsideline = self._issafekingsideline()
         if self.castlingrights.ispossiblekingcastling():
             move = self.moveKingCastlingFactory()
             moves.append(move)
-        self.castlingrights.safequeensideline = self._issafequeensideline()
         if self.castlingrights.ispossiblequeencastling():
             move = self.moveQueenCastlingFactory()
             moves.append(move)
         return moves
-
-    def updatecastlingrights(self):
-        pass
 
 
 class WhiteKing(King):
     def __init__(self, coordinate, castlingrights):
         super().__init__(coordinate, castlingrights)
         self.letters = "wK"
+        self.kingsidelinecoordinates = (f1, g1)
+        self.queensidelinecoordinates = (d1, c1, b1)
 
 
 class BlackKing(King):
@@ -969,32 +996,8 @@ class BlackKing(King):
         self.queencastlingcoordinate = c8
         self.enemyindex = 0
         self.allyindex = 1
-
-    def _issafekingsideline(self):
-        if self.iminchecksetup(self, f8):
-            return False
-        if self.isthereallypiece(f8) or self.isthereenemypiece(f8):
-            return False
-        if self.iminchecksetup(self, g8):
-            return False
-        if self.isthereallypiece(g8) or self.isthereenemypiece(g8):
-            return False
-        return True
-
-    def _issafequeensideline(self):
-        if self.iminchecksetup(self, d8):
-            return False
-        if self.isthereallypiece(d8) or self.isthereenemypiece(d8):
-            return False
-        if self.iminchecksetup(self, c8):
-            return False
-        if self.isthereallypiece(c8) or self.isthereenemypiece(c8):
-            return False
-        if self.iminchecksetup(self, b8):
-            return False
-        if self.isthereallypiece(b8) or self.isthereenemypiece(b8):
-            return False
-        return True
+        self.kingsidelinecoordinates = (f8, g8)
+        self.queensidelinecoordinates = (d8, c8, b8)
 
 
 class WhiteKingFactory:

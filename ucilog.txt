@@ -101,3 +101,46 @@
 22/10/2020 19:17:22 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
 22/10/2020 19:17:42 --> <class '__main__.PositionState'>:   command = quit ; response = I'm quitting ; 
 22/10/2020 19:17:42 --> <class '__main__.QuitState'>:   command = quit ; 
+--------------------started at: 22/10/2020 20:26:41--------------------
+--------------------started at: 22/10/2020 20:26:41--------------------
+22/10/2020 20:26:44 --> <class '__main__.StartState'>:   command = uci ; response = UCI protocl established ; 
+22/10/2020 20:26:44 --> <class '__main__.ConnectionState'>:   command = uci ; response = connection established ; 
+22/10/2020 20:26:46 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command = keyword = tokens[1] ; response = Not a valid command! Commands accepted: position, quit ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command =             if 'moves' not in tokens: ; response = Not a valid command! Commands accepted: position, quit ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command =                 self._log(command=self.command, response="Invalid Position command syntax") ; response = Not a valid command! Commands accepted: position, quit ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command =                 resultstate = self ; response = Not a valid command! Commands accepted: position, quit ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command =             elif keyword == 'startpos': ; response = Not a valid command! Commands accepted: position, quit ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command =                 resultstate = PositionState(self.printer, self.logger, msg, self.engine_color) ; response = Not a valid command! Commands accepted: position, quit ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command =             elif len(tokens[1:tokens.index('moves')]) != 6: ; response = Not a valid command! Commands accepted: position, quit ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command =                 self._log(command=self.command, response="Invalid Position command syntax") ; response = Not a valid command! Commands accepted: position, quit ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command =                 resultstate = self ; response = Not a valid command! Commands accepted: position, quit ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command =             else: ; response = Not a valid command! Commands accepted: position, quit ; 
+22/10/2020 20:26:52 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:27:05 --> <class '__main__.NewGameInitState'>:   command =                 resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)position startpos moves e2e4 ; response = Not a valid command! Commands accepted: position, quit ; 
+22/10/2020 20:27:05 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:27:22 --> <class '__main__.NewGameInitState'>:   command = quit ; response = I'm quitting ; 
+22/10/2020 20:27:22 --> <class '__main__.QuitState'>:   command = quit ; 
+--------------------started at: 22/10/2020 20:40:18--------------------
+--------------------started at: 22/10/2020 20:40:18--------------------
+22/10/2020 20:40:20 --> <class '__main__.StartState'>:   command = uci ; response = UCI protocl established ; 
+22/10/2020 20:40:20 --> <class '__main__.ConnectionState'>:   command = uci ; response = connection established ; 
+22/10/2020 20:40:23 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+--------------------started at: 22/10/2020 20:43:09--------------------
+--------------------started at: 22/10/2020 20:43:09--------------------
+22/10/2020 20:43:11 --> <class '__main__.StartState'>:   command = uci  ; response = Not a valid command! First, establish used protocol ; 
+22/10/2020 20:43:12 --> <class '__main__.StartState'>:   command = uci ; response = UCI protocl established ; 
+22/10/2020 20:43:12 --> <class '__main__.ConnectionState'>:   command = uci ; response = connection established ; 
+22/10/2020 20:43:14 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+22/10/2020 20:43:24 --> <class '__main__.GoState'>:   command = go ; response = Evaluation going on! ; 
+22/10/2020 20:45:07 --> <class '__main__.GoState'>:   command = quit ; response = I'm quitting ; 
+22/10/2020 20:45:07 --> <class '__main__.QuitState'>:   command = quit ; 
