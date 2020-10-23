@@ -181,6 +181,10 @@ class ListPiece:
             rook = self.board[h8]
         self.movepiece(king, king.kingcastlingcoordinate)
         self.movepiece(rook, rook.kingcastlingcoordinate)
+        king.movescounter += 1
+        rook.movescounter += 1
+        king.isstartpos = False
+        rook.isstartpos = False
 
     def _applyqueencastling(self, move):
         if move.iswhiteturn:
@@ -191,6 +195,10 @@ class ListPiece:
             rook = self.board[a8]
         self.movepiece(king, king.queencastlingcoordinate)
         self.movepiece(rook, rook.queencastlingcoordinate)
+        king.movescounter += 1
+        rook.movescounter += 1
+        king.isstartpos = False
+        rook.isstartpos = False
 
     def _applyenpassant(self, move):
         self.removepiece(move.capturedpiece)
@@ -216,6 +224,9 @@ class ListPiece:
         else:
             self.movepiece(move.piece, move.tocell)
             pass
+        if move.piece:
+            move.piece.movescounter += 1
+            move.piece.isstartpos = False
         self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
         self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
 
@@ -230,6 +241,12 @@ class ListPiece:
             rookstartpos = h8
         self.movepiece(king, king.startpos)
         self.movepiece(rook, rookstartpos)
+        king.movescounter -= 1
+        rook.movescounter -= 1
+        if rook.movescounter == 0:
+            rook.isstartpos = True
+        if king.movescounter == 0:
+            king.isstartpos = True
 
     def _undoqueencastling(self, move):
         if move.iswhiteturn:
@@ -276,6 +293,10 @@ class ListPiece:
             self._undopromotepawn(move)
         else:
             self.movepiece(move.piece, move.fromcell)
+        if move.piece:
+            move.piece.movescounter -= 1
+            if move.piece.movescounter == 0:
+                move.piece.isstartpos = True
         self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
         self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
 
@@ -346,6 +367,7 @@ class Piece:
 class RealPiece(Piece):
     def __init__(self, coordinate):
         super().__init__(coordinate)
+        self.movescounter = 0
         self.isstartpos = True
         self.letters = "xx"
         self.moveFactory = movemodule.whiteMoveFactory

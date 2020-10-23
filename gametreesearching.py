@@ -630,7 +630,11 @@ if __name__ == '__main__':
     """
     fen = FenStrParser()
     gameposition = fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-    print(pcsm.listpiece)
-    print("White castling rights: ", gameposition.listpiece.whiteking.castlingrights)
-    print("Black castling rights: ", gameposition.listpiece.blackking.castlingrights)
+    print(pcsm.listpiece.board[e2].isstartpos)
+    setter = UciMoveSetter(gameposition, ['e2e4', 'e7e5'])
+    setter()
+    print(pcsm.listpiece.board[e4].isstartpos)
+    move = mvm.blackMoveFactory(pcsm.listpiece.board[e5], e7, e5, False)
+    pcsm.listpiece.undomove(move)
+    print(pcsm.listpiece.board[e7].isstartpos)
 

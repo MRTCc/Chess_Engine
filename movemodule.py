@@ -4,7 +4,6 @@ Created on Fri Oct  2 17:52:20 2020
 
 @author: martu
 """
-import algebraicnotationmodule as alg
 
 
 class Move:
