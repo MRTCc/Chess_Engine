@@ -147,30 +147,33 @@ class PositionState(State):
         self.boardposition = None
         self.engine_color = engine_color
         self.tokens = None
+        self.invalidcommand = False
         super().__init__(printer, logger, command)
 
     def parse(self, msg):
+        resultstate = self
         self.tokens = msg.split()
         if len(self.tokens) < 1:
             self._log(command=msg, response="No command")
             return None
         command = self.tokens[0]
-        resultstate = None
         if "go" == command:
             resultstate = GoState(self.printer, self.logger, msg, self.boardposition, self.engine_color)
         elif "stop" == command:
             # operazione di stop
-            resultstate = self
+            pass
         elif "quit" == command:
             self._log(command=msg, response="I\'m quitting")
             resultstate = QuitState(self.printer, self.logger, msg)
         else:
             self._log(command=msg, response="Not a valid command! Commands accepted: go, stop, quit")
-            resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
+            self.invalidcommand = True
 
         return resultstate
 
     def execute(self):
+        if self.invalidcommand:
+            return
         # aggiornamento della posizione e di tutte le strutture dati coinvolte
         tokens = self.command.split()
         keyword = tokens[1]
@@ -178,17 +181,17 @@ class PositionState(State):
         try:
             if keyword == 'startpos':
                 # startpos
-                listpiece = gm.startpos_factory()
-                self.boardposition = gm.WhiteGamePosition(listpiece)
+                self.boardposition = gm.startpos_factory(self.engine_color)
+                iswhiteactivecolor = True
             else:
                 # fenstring
-                fenparser = gm.FenStrParser()
+                fenparser = gm.FenStrParser(self.engine_color)
                 self.boardposition = fenparser(tokens[1:index])
-                pass
+                iswhiteactivecolor = fenparser.activecolor
             movesetter = gm.UciMoveSetter(self.boardposition, tokens[index + 1:])
-            movesetter()
+            movesetter(iswhiteactivecolor)
             # debug
-            self.printer.send("Position set\nreadyok\n" + str(self.boardposition) + '\n')
+            self.printer.send("Position set\nEngine color: " + self.engine_color + '\n' + str(self.boardposition) + 'readyok\n')
         except Exception as e:
             raise e
 
@@ -198,49 +201,77 @@ class GoState(State):
         self.threading = False
         self.boardposition = boardposition
         self.engine_color = engine_color
+        self.gamethread = None
+        self.bestmove = None
+        self.command = None
         super().__init__(printer, logger, command)
 
     def parse(self, msg):
+        resultstate = self
         tokens = msg.split()
+        if len(tokens) < 1:
+            return PassState(self)
         command = tokens[0]
-        resultstate = None
         # ho un dubbio... non è che qui si rischia di saltare alla prossima mossa prima che l'engine abbia finito?
-        if "position" == command and self.threading == True:
+        if "position" == command and self.gamethread.is_alive():
             self._log(command=msg, response="Not possible: current evaluation not finished!")
-        elif "position" == command and self.threading == False:
+        elif "position" == command and not self.gamethread.is_alive():
             keyword = tokens[1]
             if 'moves' not in tokens:
                 self._log(command=self.command, response="Invalid Position command syntax")
-                resultstate = self
             elif keyword == 'startpos':
                 resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
             elif len(tokens[1:tokens.index('moves')]) != 6:
                 self._log(command=self.command, response="Invalid Position command syntax")
-                resultstate = self
             else:
                 resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
         elif "stop" == command:
-            # qui bisogna stoppare il thread di calcolo della mossa
+            # TODO al momento implemento STOP in maniera semplificata, poi metterò a posto
             self._log(command=self.command, response="I'm stopping")
-            resultstate = NewGameInitState(self.printer, self.logger, msg)
+            resultstate = PassState(self)
+            self.gamethread.killthread()
+            self.gamethread.randommove()
         elif "quit" == command:
             self._log(command=msg, response="I\'m quitting")
             resultstate = QuitState(self.printer, self.logger, msg)
+            self.run = False
+            self.gamethread.killthread()
         else:
             self._log(command=msg, response="Not a valid command! Commands accepted: position, stop, quit")
-            resultstate = self
+            resultstate = PassState(self)
 
         return resultstate
 
     def execute(self):
         if self.threading:
             return None
-        gamethread = gm.GameThread(self.boardposition)
-        bestmove = gamethread.start()
-
-        self.printer.send(str(bestmove) + '\n')
-
+        self.gamethread = gm.GameThread(self.boardposition, 2)
+        isrunning = self.gamethread.is_alive()
+        self.command = self
+        while isrunning:
+            if not self.gamethread.is_alive():
+                break
+            msg = input()
+            self.command = self.command.parse(msg)
+            self.command.execute()
+            if isinstance(self.command, PassState):
+                self.command = self.command.client
+            if not command.run:
+                isrunning = False
+            if not self.gamethread.is_alive():
+                break
+        self.gamethread.join()
+        self.bestmove = self.gamethread.getbestmove()
+        self.printer.send(str(self.bestmove) + '\n')
         self._log(command=self.command, response="Evaluation going on!")
+
+
+class PassState:
+    def __init__(self, client):
+        self.client = client
+
+    def execute(self):
+        pass
 
 
 class QuitState(State):
@@ -264,6 +295,8 @@ if __name__ == '__main__':
             msg = input()
             command = command.parse(msg)
             command.execute()
+            if isinstance(command, PassState):
+                command = command.client
             if not command.run:
                 isrunning = False
     except Exception as e:

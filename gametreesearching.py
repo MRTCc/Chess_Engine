@@ -1,6 +1,7 @@
 import movemodule as mvm
 import piecesmodule as pcsm
 import threading
+import ctypes
 import algebraicnotationmodule as algn
 from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
                                      a7, b7, c7, d7, e7, f7, g7, h7,
@@ -37,7 +38,7 @@ def black_generator_moves(listpiece):
             yield move
 
 
-def startpos_factory():
+def startpos_factory(enginecolor):
     wc = mvm.CastlingRights()
     bc = mvm.CastlingRights()
     whiteKing = pcsm.WhiteKing(e1, wc)
@@ -60,12 +61,18 @@ def startpos_factory():
                   pcsm.BlackPawn(g7, blackKing, whiteKing), pcsm.BlackPawn(h7, blackKing, whiteKing)]
     pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns)
     pcsm.listpiece.updatecastlingrights()
-    return pcsm.listpiece
+    if enginecolor == 'white':
+        boardposition = WhiteGamePosition(pcsm.listpiece)
+    elif enginecolor == 'black':
+        boardposition = BlackGamePosition(pcsm.listpiece)
+    else:
+        raise ValueError("Not a valid engine_color value!!!")
+    return boardposition
 
 
 def debug_pos_factory():
-    wc = movemodule.CastlingRights()
-    bc = movemodule.CastlingRights()
+    wc = mvm.CastlingRights()
+    bc = mvm.CastlingRights()
     whiteKing = pcsm.WhiteKing(e1, wc)
     blackKing = pcsm.BlackKing(e8, bc)
     whitepieces = [whiteKing, pcsm.WhiteRook(a1, whiteKing, blackKing),
@@ -137,22 +144,23 @@ class UciMoveSetter:
 
         return move
 
-    def __call__(self):
-        iswhiteturn = True
+    def __call__(self, activecolor):
         for strmove in self.strmoves:
             fromcell = algn.str_to_algebraic(strmove[0:2])
             tocell = algn.str_to_algebraic(strmove[2:4])
             piece = self.gameposition.listpiece.getpiecefromcoordinate(fromcell)
             capturedpiece = self.gameposition.listpiece.getpiecefromcoordinate(tocell)
-            move = self.movefactory(piece, fromcell, tocell, capturedpiece, iswhiteturn)
+            move = self.movefactory(piece, fromcell, tocell, capturedpiece, activecolor)
             self.gameposition.listpiece.applymove(move)
-            iswhiteturn = not iswhiteturn
+            activecolor = not activecolor
 
 
 class FenStrParser:
-    def __init__(self):
+    def __init__(self, enginecolor):
         self.whiteletters = ('R', 'N', 'B', 'Q', 'K', 'P')
         self.blackletters = ('r', 'n', 'b', 'q', 'k', 'p')
+        self.enginecolor = enginecolor
+        self.activecolor = None
 
     def _parsecastlingrights(self, fencastling):
         if '-' in fencastling:
@@ -256,16 +264,22 @@ class FenStrParser:
         blackpieces.append(blackking)
         return whitepieces, whitepawns, blackpieces, blackpawns
 
-    def _parsergameposition(self, colorstring, listpiece):
-        if len(colorstring) != 1:
-            raise ValueError('Not a valid string fen color!!!')
-        if colorstring == 'w':
+    def _parsergameposition(self, listpiece):
+        if self.enginecolor == 'white':
             gameposition = WhiteGamePosition(listpiece)
-        elif colorstring == 'b':
+        elif self.enginecolor == 'black':
             gameposition = BlackGamePosition(listpiece)
         else:
-            raise ValueError('Not a valid string fen color!!!')
+            raise ValueError('Not a valid enginecolor value!!!')
         return gameposition
+
+    def _parseactivecolor(self, colorstring):
+        if colorstring not in ('w', 'b'):
+            raise ValueError('Not a valid string fen color!!!')
+        if colorstring == 'w':
+            self.activecolor = True
+        else:
+            self.activecolor = False
 
     def _parserenpassant(self, enpassantstr, listpiece):
         if enpassantstr == '-':
@@ -289,7 +303,7 @@ class FenStrParser:
         # print("En passant pawn: ", piece, "at :", piece.coordinate)
 
     def __call__(self, fenstr):
-        tokens = fenstr.split()
+        tokens = fenstr
         if len(tokens) != 6:
             raise ValueError("Invalid FEN string!!!")
         self._isboardvalid(tokens[0])
@@ -299,14 +313,12 @@ class FenStrParser:
         pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns)
         pcsm.listpiece.updatecastlingrights()
         self._parserenpassant(tokens[3], pcsm.listpiece)
-        gameposition = self._parsergameposition(tokens[1], pcsm.listpiece)
+        gameposition = self._parsergameposition(pcsm.listpiece)
+        self._parseactivecolor(tokens[1])
         # print(gameposition)
         # TODO al momento, ignoro gli altri due campi fen
         return gameposition
 
-
-# TODO Solo per debug
-testfile = open("built_tree_test", "w")
 
 
 class Evaluator:
@@ -451,6 +463,10 @@ class Evaluator:
         return msg
 
 
+# TODO Solo per debug
+testfile = open("built_tree_test", "w")
+
+
 class GamePosition:
     def __init__(self, listpiece, parent=None, originmove=None):
         self.listpiece = listpiece
@@ -496,52 +512,6 @@ class GamePosition:
             return True
         else:
             return False
-
-    def builtplytreevalue1(self, maxply, curply=0):
-        global nposition
-        nposition += 1
-
-        if self.parent is None:
-            msg = "ply: " + str(curply) + " root position"
-        else:
-            msg = ("ply: " + str(curply) + "\n\t last move: " + str(self.originmove.piece) + " " +
-                   self.originmove.fromcell + self.originmove.tocell + "\n\t class: " + self.__class__.__name__ +
-                   "\n\t position: " + str(self) + "\n\t parent: " + str(self.parent))
-        testfile.write(msg + '\n' + str(self.listpiece))
-
-        for move in self.movegeneratorfunc(pcsm.listpiece):
-            self.moves.append(move)
-        if self.imincheckmate():
-            self.value = self.imincheckmatevalue
-            testfile.write("position value : " + str(self.value) + '\n')
-            testfile.write("***************** CHECKMATE - GAME ENDED ************************\n")
-            return
-
-        elif self.isstalemate():
-            self.value = 0
-            testfile.write("position value : " + str(self.value) + '\n')
-            testfile.write("***************** DRAW - GAME ENDED ************************\n")
-            return
-        if curply >= maxply:
-            evaluator = Evaluator(self.listpiece, len(self.moves))
-            self.value = evaluator()
-            testfile.write("position value : " + str(self.value) + '\n')
-            testfile.write("-------------- max ply -----------------\n")
-            return
-        for move in self.moves:
-            self.listpiece.applymove(move)
-            child = self.enemy_game_position_func(self.listpiece, self, move)
-            child.builtplytreevalue(maxply, curply + 1)
-            self.children.append(child)
-            self.listpiece.undomove(move)
-        self.value = self.childrenevaluationfunc((child.value for child in self.children))
-        testfile.write(str(self) + " --> " + "position value : " + str(self.value) + '\n')
-        bestchild = self.childrenevaluationfunc(self.children)
-        indexbestchild = self.children.index(bestchild)
-        bestmove = self.moves[indexbestchild]
-        testfile.write(str(self) + " --> " + "position value : " + str(self.value) + "\n\t best move: " + str(bestmove) +
-                       '\n')
-        return bestmove
 
     def builtplytreevalue(self, maxply, curply=0):
         global nposition
@@ -603,42 +573,57 @@ class BlackGamePosition(GamePosition):
 
 
 class GameThread(threading.Thread):
-    def __init__(self, gameposition):
+    def __init__(self, gameposition, maxply):
         super().__init__()
         self.gameposition = gameposition
+        self.bestmove = None
+        self.maxply = maxply
+        self.start()
 
     def run(self):
-        return self.gameposition.builtplytreevalue(3)
+        try:
+            self.bestmove = self.gameposition.builtplytreevalue(self.maxply)
+        except Exception:
+            print('GameThread ended')
+
+    def get_id(self):
+
+        # returns id of the respective thread
+        if hasattr(self, '_thread_id'):
+            return self._thread_id
+        for id, thread in threading._active.items():
+            if thread is self:
+                return id
+
+    def killthread(self):
+        thread_id = self.get_id()
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,
+                                                         ctypes.py_object(SystemExit))
+        if res > 1:
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
+            print('Exception raise failure')
+
+    def randommove(self):
+        self.bestmove = self.gameposition.movegeneratorfunc(self.gameposition.listpiece)
+
+    def getbestmove(self):
+        return self.bestmove
 
 
 if __name__ == '__main__':
-    import movemodule
-    from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
-                                         a7, b7, c7, d7, e7, f7, g7, h7,
-                                         a6, b6, c6, d6, e6, f6, g6, h6,
-                                         a5, b5, c5, d5, e5, f5, g5, h5,
-                                         a4, b4, c4, d4, e4, f4, g4, h4,
-                                         a3, b3, c3, d3, e3, f3, g3, h3,
-                                         a2, b2, c2, d2, e2, f2, g2, h2,
-                                         a1, b1, c1, d1, e1, f1, g1, h1)
-
     # root = BlackGamePosition(debug_pos_factory())
     # print(pcsm.listpiece)
     # u = UciMoveSetter(root, ['e1d1', 'e8d8'])
     # u()
     # print(pcsm.listpiece)
 
-    """
-        fen = FenStrParser()
-        gameposition = fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-        gamethread = GameThread(gameposition)
-        gamethread.start()
-    """
-    fen = FenStrParser()
+    fen = FenStrParser('black')
     gameposition = fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-    print(pcsm.listpiece.board[e2].enpassantthreat)
     setter = UciMoveSetter(gameposition, ['e2e4'])
-    setter()
-    print(pcsm.listpiece.board[e4].enpassantthreat)
-
-
+    setter(False)
+    gamethread = GameThread(gameposition, 5)
+    print("started")
+    import time
+    time.sleep(5)
+    gamethread.killthread()
+    print(gamethread.getbestmove())

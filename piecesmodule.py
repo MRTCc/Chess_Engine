@@ -262,6 +262,12 @@ class ListPiece:
             rookstartpos = a8
         self.movepiece(king, king.startpos)
         self.movepiece(rook, rookstartpos)
+        king.movescounter -= 1
+        rook.movescounter -= 1
+        if rook.movescounter == 0:
+            rook.isstartpos = True
+        if king.movescounter == 0:
+            king.isstartpos = True
 
     def _undocaptureandpromotion(self, move):
         self.addpiece(move.piece)
@@ -506,7 +512,7 @@ class Pawn(RealPiece):
             else:
                 move = self.moveCaptureFactory(self, self.coordinate, tocell, capturedpiece, False)
         else:
-            if enpiece.enpassantthreat:
+            if isinstance(enpiece, Pawn) and enpiece.enpassantthreat:
                 iskingtaken = self.allyking.imincheck(self, tocell, enpiece)
                 if iskingtaken:
                     raise TakenKingException
