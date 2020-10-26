@@ -374,3 +374,13 @@
 26/10/2020 14:05:54 --> <class '__main__.GoState'>:   command = <__main__.GoState object at 0x000001DF5A82BEC8> ; response = Evaluation going on! ; 
 26/10/2020 14:06:14 --> <class '__main__.GoState'>:   command = quit ; response = I'm quitting ; 
 26/10/2020 14:06:14 --> <class '__main__.QuitState'>:   command = quit ; 
+--------------------started at: 26/10/2020 14:29:25--------------------
+--------------------started at: 26/10/2020 14:29:25--------------------
+26/10/2020 14:29:27 --> <class '__main__.StartState'>:   command = uci ; response = UCI protocl established ; 
+26/10/2020 14:29:27 --> <class '__main__.ConnectionState'>:   command = uci ; response = connection established ; 
+26/10/2020 14:29:31 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+26/10/2020 14:29:40 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = setoption command executed ; 
+26/10/2020 14:29:40 --> <class '__main__.NewGameInitState'>:   command = ucinewgame ; response = New game initialization ; 
+26/10/2020 14:29:48 --> <class '__main__.GoState'>:   command = <__main__.GoState object at 0x000002094A15E208> ; response = Evaluation going on! ; 
+26/10/2020 14:29:53 --> <class '__main__.GoState'>:   command = quit ; response = I'm quitting ; 
+26/10/2020 14:29:53 --> <class '__main__.QuitState'>:   command = quit ; 
