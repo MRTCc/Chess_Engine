@@ -13,7 +13,7 @@ from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
                                      a2, b2, c2, d2, e2, f2, g2, h2,
                                      a1, b1, c1, d1, e1, f1, g1, h1)
 
-
+checkmatevalue = 10000
 nposition = 0
 
 
@@ -406,7 +406,7 @@ class WhiteGamePosition(GamePosition):
         self.movegeneratorfunc = white_generator_moves
         self.enemy_game_position_func = BlackGamePosition
         self.ischeckfunc = self.listpiece.iswhitekingincheck
-        self.imincheckmatevalue = -1000
+        self.imincheckmatevalue = -checkmatevalue
         self.childrenevaluationfunc = max
 
     def __str__(self):
@@ -421,7 +421,7 @@ class BlackGamePosition(GamePosition):
         self.movegeneratorfunc = black_generator_moves
         self.enemy_game_position_func = WhiteGamePosition
         self.ischeckfunc = self.listpiece.isblackkingincheck
-        self.imincheckmatevalue = 1000
+        self.imincheckmatevalue = checkmatevalue
         self.childrenevaluationfunc = min
 
     def __str__(self):

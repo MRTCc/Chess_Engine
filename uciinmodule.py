@@ -245,7 +245,8 @@ class GoState(State):
     def execute(self):
         if self.threading:
             return None
-        self.gamethread = gm.GameThread(self.boardposition, 2)
+        # TODO setoption per poter settare la ply
+        self.gamethread = gm.GameThread(self.boardposition, 3)
         isrunning = self.gamethread.is_alive()
         self.command = self
         while isrunning:
