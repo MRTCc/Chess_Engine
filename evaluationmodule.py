@@ -132,6 +132,7 @@ class Evaluator:
     def __init__(self, listpiece, nummoves):
         self.listpiece = listpiece
         self.nummoves = nummoves
+
         self.wkings = 0
         self.bkings = 0
         self.wqueens = 0
@@ -144,6 +145,7 @@ class Evaluator:
         self.bknights = 0
         self.wpawns = 0
         self.bpawns = 0
+
         self.wdoubledpawns = 0
         self.bdoubledpawns = 0
         self.wblockedpawns = 0
@@ -157,6 +159,11 @@ class Evaluator:
         self._countisolatedpawns(self.listpiece.whitepawns)
         self._countisolatedpawns(self.listpiece.blackpawns)
         self._countmobility(nummoves)
+        self.evaluation = None
+        self.whitepieces = []
+        self.whitepawns = []
+        self.blackpieces = []
+        self.blackpawns = []
 
     def _countpieces(self):
         for piece in self.listpiece.whitepieces:
@@ -241,10 +248,10 @@ class Evaluator:
                     raise AttributeError
 
     def _countmobility(self, nummoves):
-        if nummoves > 5:
-            self.mobility = 1
+        if nummoves > 10:
+            self.mobility = 0.
         else:
-            self.mobility = -1
+            self.mobility = -1.
 
     def _setevaluationparameters(self, piece):
         if isinstance(piece, pcsm.WhitePawn):
@@ -290,32 +297,61 @@ class Evaluator:
     def _positionalevaluation(self, piece):
         evaluationtable, piecevalue = self._setevaluationparameters(piece)
         percent = evaluationtable[piece.coordinate]
-        return piecevalue + (piecevalue * percent)
+        return piecevalue + (piecevalue * (percent * 0.01))
 
     def __call__(self):
-        pawnmaterial = (self.wpawns - self.bpawns) * pawnvalue
-        rookmaterial = (self.wrooks - self.brooks) * rookvalue
-        knightmaterial = (self.wknights - self.bknights) * knightvalue
-        bishopmaterial = (self.wbishops - self.bbishops) * bishopvalue
-        queenmaterial = (self.wqueens - self.bqueens) * queenvalue
-        kingmaterial = (self.wkings - self.bkings) * 500
+        self.evaluation = 0
+        whitevalue = 0
+        blackvalue = 0
+        for piece in self.listpiece.whitepieces:
+            value = self._positionalevaluation(piece)
+            self.whitepieces.append(value)
+            whitevalue += value
+        for piece in self.listpiece.whitepawns:
+            value = self._positionalevaluation(piece)
+            self.whitepawns.append(value)
+            whitevalue += value
+        for piece in self.listpiece.blackpieces:
+            value = self._positionalevaluation(piece)
+            self.blackpieces.append(value)
+            blackvalue += value
+        for piece in self.listpiece.blackpawns:
+            value = self._positionalevaluation(piece)
+            self.blackpawns.append(value)
+            blackvalue += value
+        self.evaluation = whitevalue - blackvalue
         doubledpawns = (self.wdoubledpawns - self.bdoubledpawns) * doublepawnvalue
         isolatedpawns = (self.wisolatedpawns - self.bisolatedpawns) * isolatedpawnvalue
         blockedpawns = (self.wblockedpawns - self.bblockedpawns) * blockedpawnvalue
         mobility = self.mobility
-        self.evaluation = (pawnmaterial + rookmaterial + knightmaterial + bishopmaterial + queenmaterial + kingmaterial
-                           + doubledpawns + isolatedpawns + blockedpawns + mobility)
-        for piece in self.listpiece.whitepieces + self.listpiece.whitepawns:
-            self.evaluation += self._positionalevaluation(piece)
-        for piece in self.listpiece.blackpieces + self.listpiece.blackpawns:
-            self.evaluation += self._positionalevaluation(piece)
+        self.evaluation += doubledpawns + isolatedpawns + blockedpawns + mobility
         return self.evaluation
 
     def __str__(self):
         msg = "Evaluation of position: \n\t"
-        for key, value in self.__dict__.items():
-            msg += key + " --> "
-            msg += str(value) + "\n\t"
+        pieces = self.listpiece.whitepieces
+        for index in range(0, len(pieces)):
+            piece = pieces[index]
+            msg += str(piece) + " in " + str(piece.coordinate) + " value: " + str(self.whitepieces[index]) + "\n\t"
+        pieces = self.listpiece.whitepawns
+        for index in range(0, len(pieces)):
+            piece = pieces[index]
+            msg += str(piece) + " in " + str(piece.coordinate) + " value: " + str(self.whitepawns[index]) + "\n\t"
+        pieces = self.listpiece.blackpieces
+        for index in range(0, len(pieces)):
+            piece = pieces[index]
+            msg += str(piece) + " in " + str(piece.coordinate) + " value: " + str(self.blackpieces[index]) + "\n\t"
+        pieces = self.listpiece.blackpawns
+        for index in range(0, len(pieces)):
+            piece = pieces[index]
+            msg += str(piece) + " in " + str(piece.coordinate) + "; value: " + str(self.blackpawns[index]) + "\n\t"
+        msg += "white doubled pawns:" + str(self.wdoubledpawns) + "\n\t"
+        msg += "black doubled pawns:" + str(self.bdoubledpawns) + "\n\t"
+        msg += "white isolated pawns:" + str(self.wisolatedpawns) + "\n\t"
+        msg += "black isolated pawns:" + str(self.bisolatedpawns) + "\n\t"
+        msg += "white blocked pawns:" + str(self.wblockedpawns) + "\n\t"
+        msg += "black blocked pawns:" + str(self.bblockedpawns) + "\n\t"
+        msg += "position value: " + str(self.evaluation)
         return msg
 
 

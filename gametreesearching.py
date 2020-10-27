@@ -486,4 +486,8 @@ if __name__ == '__main__':
     gamethread.killthread()
     print(gamethread.getbestmove())
     """
-    
+    gameposition = startpos_factory('white')
+    print(pcsm.listpiece)
+    ev = evm.Evaluator(gameposition.listpiece, 40)
+    evaluation = ev()
+    print(ev)
