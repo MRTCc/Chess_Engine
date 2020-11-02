@@ -21,6 +21,9 @@ class Move:
         self.isenpassant = isenpassant
         self.ischeck = ischeck  # per ora lo metto, forse può servire a qualche ottimizzazione
 
+    def short__str__(self):
+        return str(self.fromcell) + str(self.tocell)
+
     def __str__(self):
         result = "Move: \n"
         result += "\t piece = " + str(self.piece) + '\n'

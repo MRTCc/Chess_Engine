@@ -129,23 +129,8 @@ blackkingmiddlegametable = {a8: 20,     b8: 30,     c8: 10,     d8: 0,       e8:
 
 
 class Evaluator:
-    def __init__(self, listpiece, nummoves):
+    def __init__(self, listpiece):
         self.listpiece = listpiece
-        self.nummoves = nummoves
-
-        self.wkings = 0
-        self.bkings = 0
-        self.wqueens = 0
-        self.bqueens = 0
-        self.wrooks = 0
-        self.brooks = 0
-        self.wbishops = 0
-        self.bbishops = 0
-        self.wknights = 0
-        self.bknights = 0
-        self.wpawns = 0
-        self.bpawns = 0
-
         self.wdoubledpawns = 0
         self.bdoubledpawns = 0
         self.wblockedpawns = 0
@@ -153,43 +138,23 @@ class Evaluator:
         self.wisolatedpawns = 0
         self.bisolatedpawns = 0
         self.mobility = 0
-        self._countpieces()
         self._countdoubledpawns()
         self._countblockedpawns()
         self._countisolatedpawns(self.listpiece.whitepawns)
         self._countisolatedpawns(self.listpiece.blackpawns)
-        self._countmobility(nummoves)
         self.evaluation = None
         self.whitepieces = []
         self.whitepawns = []
         self.blackpieces = []
         self.blackpawns = []
-
-    def _countpieces(self):
-        for piece in self.listpiece.whitepieces:
-            if isinstance(piece, pcsm.WhiteKing):
-                self.wkings += 1
-            elif isinstance(piece, pcsm.WhiteQueen):
-                self.wqueens += 1
-            elif isinstance(piece, pcsm.WhiteBishop):
-                self.wbishops += 1
-            elif isinstance(piece, pcsm.WhiteKnight):
-                self.wknights += 1
-            elif isinstance(piece, pcsm.WhiteRook):
-                self.wrooks += 1
-        for piece in self.listpiece.blackpieces:
-            if isinstance(piece, pcsm.BlackKing):
-                self.bkings += 1
-            elif isinstance(piece, pcsm.BlackQueen):
-                self.bqueens += 1
-            elif isinstance(piece, pcsm.BlackBishop):
-                self.bbishops += 1
-            elif isinstance(piece, pcsm.BlackKnight):
-                self.bknights += 1
-            elif isinstance(piece, pcsm.BlackRook):
-                self.brooks += 1
-        self.wpawns = len(self.listpiece.whitepawns)
-        self.bpawns = len(self.listpiece.blackpawns)
+        self.controlledcells = {a8: 0,  b8: 0,  c8: 0,  d8: 0,  e8: 0,  f8: 0,  g8: 0,  h8: 0,
+                                a7: 0,  b7: 0,  c7: 0,  d7: 0,  e7: 0,  f7: 0,  g7: 0,  h7: 0,
+                                a6: 0,  b6: 0,  c6: 0,  d6: 0,  e6: 0,  f6: 0,  g6: 0,  h6: 0,
+                                a5: 0,  b5: 0,  c5: 0,  d5: 0,  e5: 0,  f5: 0,  g5: 0,  h5: 0,
+                                a4: 0,  b4: 0,  c4: 0,  d4: 0,  e4: 0,  f4: 0,  g4: 0,  h4: 0,
+                                a3: 0,  b3: 0,  c3: 0,  d3: 0,  e3: 0,  f3: 0,  g3: 0,  h3: 0,
+                                a2: 0,  b2: 0,  c2: 0,  d2: 0,  e2: 0,  f2: 0,  g2: 0,  h2: 0,
+                                a1: 0,  b1: 0,  c1: 0,  d1: 0,  e1: 0,  f1: 0,  g1: 0,  h1: 0}
 
     def _countdoubledpawns(self):
         for column in algn.ranks:
@@ -247,11 +212,13 @@ class Evaluator:
                 else:
                     raise AttributeError
 
-    def _countmobility(self, nummoves):
-        if nummoves > 10:
-            self.mobility = 0.
-        else:
-            self.mobility = -1.
+    def _setcontrolledcells(self):
+        for move in pcsm.white_generator_moves(self.listpiece):
+            self.controlledcells[move.tocell] += 10
+            self.mobility += 1
+        for move in pcsm.black_generator_moves(self.listpiece):
+            self.controlledcells[move.tocell] -= 10
+            self.mobility -= 1
 
     def _setevaluationparameters(self, piece):
         if isinstance(piece, pcsm.WhitePawn):
@@ -296,10 +263,11 @@ class Evaluator:
 
     def _positionalevaluation(self, piece):
         evaluationtable, piecevalue = self._setevaluationparameters(piece)
-        percent = evaluationtable[piece.coordinate]
+        percent = evaluationtable[piece.coordinate] + self.controlledcells[piece.coordinate]
         return piecevalue + (piecevalue * (percent * 0.01))
 
     def __call__(self):
+        self._setcontrolledcells()
         self.evaluation = 0
         whitevalue = 0
         blackvalue = 0
@@ -323,8 +291,7 @@ class Evaluator:
         doubledpawns = (self.wdoubledpawns - self.bdoubledpawns) * doublepawnvalue
         isolatedpawns = (self.wisolatedpawns - self.bisolatedpawns) * isolatedpawnvalue
         blockedpawns = (self.wblockedpawns - self.bblockedpawns) * blockedpawnvalue
-        mobility = self.mobility
-        self.evaluation += doubledpawns + isolatedpawns + blockedpawns + mobility
+        self.evaluation += doubledpawns + isolatedpawns + blockedpawns + self.mobility
         return self.evaluation
 
     def __str__(self):

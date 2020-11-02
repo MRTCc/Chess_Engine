@@ -17,28 +17,6 @@ checkmatevalue = 10000
 nposition = 0
 
 
-def white_generator_moves(listpiece):
-    for piece in listpiece.whitepieces:
-        moves = piece.generatemoves()
-        for move in moves:
-            yield move
-    for pawn in listpiece.whitepawns:
-        moves = pawn.generatemoves()
-        for move in moves:
-            yield move
-
-
-def black_generator_moves(listpiece):
-    for piece in listpiece.blackpieces:
-        moves = piece.generatemoves()
-        for move in moves:
-            yield move
-    for pawn in listpiece.blackpawns:
-        moves = pawn.generatemoves()
-        for move in moves:
-            yield move
-
-
 def startpos_factory(enginecolor):
     wc = mvm.CastlingRights()
     bc = mvm.CastlingRights()
@@ -326,10 +304,9 @@ testfile = open("built_tree_test", "w")
 
 
 class GamePosition:
-    def __init__(self, listpiece, parent=None, originmove=None):
+    def __init__(self, listpiece, parent=None):
         self.listpiece = listpiece
         self.parent = parent
-        self.originmove = originmove
         self.value = None
         self.moves = []
         self.children = []
@@ -338,6 +315,10 @@ class GamePosition:
         self.ischeckfunc = None
         self.imincheckmatevalue = None
         self.childrenevaluationfunc = None
+        if parent is None:
+            self.originmoves = []
+        else:
+            self.originmoves = parent.originmoves
 
     def imincheckmate(self):
         if self.moves == [] and self.ischeckfunc():
@@ -354,24 +335,25 @@ class GamePosition:
             return False
 
     def __lt__(self, other):
-        if self.value < other.value:
-            return True
-        else:
-            return False
+        return self.value < other.value
 
-    def __gt__(self, other):
-        if self.value > other.value:
-            return True
-        else:
-            return False
+    def __le__(self, other):
+        return self.value <= other.value
 
     def __eq__(self, other):
-        if self.value == other.value:
-            return True
-        else:
-            return False
+        return self.value == other.value
 
-    def builtplytreevalue(self, maxply, curply=0):
+    def __ne__(self, other):
+        return self.value != other.value
+
+    def __gt__(self, other):
+        return self.value > other.value
+
+    def __ge__(self, other):
+        return self.value >= other.value
+
+    """
+    def builtplytreevalue1(self, maxply, curply=0):
         global nposition
         nposition += 1
         for move in self.movegeneratorfunc(pcsm.listpiece):
@@ -384,13 +366,13 @@ class GamePosition:
             self.value = 0
             return
         if curply >= maxply:
-            evaluator = evm.Evaluator(self.listpiece, len(self.moves))
+            evaluator = evm.Evaluator(self.listpiece)
             self.value = evaluator()
             return
         for move in self.moves:
             self.listpiece.applymove(move)
             child = self.enemy_game_position_func(self.listpiece, self, move)
-            child.builtplytreevalue(maxply, curply + 1)
+            child.builtplytreevalue1(maxply, curply + 1)
             self.children.append(child)
             self.listpiece.undomove(move)
         self.value = self.childrenevaluationfunc((child.value for child in self.children))
@@ -398,12 +380,57 @@ class GamePosition:
         indexbestchild = self.children.index(bestchild)
         bestmove = self.moves[indexbestchild]
         return bestmove
+    """
+
+    def builtplytreevalue(self, maxply, curply=0):
+        global nposition
+        nposition += 1
+        if curply >= maxply:
+            evaluator = evm.Evaluator(self.listpiece)
+            self.value = evaluator()
+            msg = ""
+            for move in self.listpiece.moves:
+                msg += move.short__str__() + " "
+            msg += str(self.value)
+            testfile.write(msg + "\n")
+            return
+        for move in self.movegeneratorfunc(pcsm.listpiece):
+            self.moves.append(move)
+        for move in self.moves:
+            self.listpiece.applymove(move)
+            child = self.enemy_game_position_func(self.listpiece, self)
+            child.builtplytreevalue(maxply, curply + 1)
+            self.children.append(child)
+            self.listpiece.undomove(move)
+        if len(self.moves) < 1 and self.ischeckfunc():
+            self.value = self.imincheckmatevalue
+            msg = ""
+            for move in self.listpiece.moves:
+                msg += move.short__str__() + " "
+            msg += str(self.value)
+            testfile.write(msg + "****** CHECKMATE - GAME ENDED ******\n")
+            return
+        if len(self.moves) < 1 and not self.ischeckfunc():
+            self.value = 0
+            msg = ""
+            for move in self.listpiece.moves:
+                msg += move.short__str__() + " "
+            msg += str(self.value)
+            testfile.write(msg + "****** DRAW - GAME ENDED ******\n")
+            return
+        values = []
+        for child in self.children:
+            values.append(child.value)
+        bestvalue = self.childrenevaluationfunc(values)
+        self.value = bestvalue
+        bestmove = self.moves[values.index(bestvalue)]
+        return bestmove
 
 
 class WhiteGamePosition(GamePosition):
-    def __init__(self, listpiece, parent=None, originmove=None):
-        super().__init__(listpiece, parent, originmove)
-        self.movegeneratorfunc = white_generator_moves
+    def __init__(self, listpiece, parent=None):
+        super().__init__(listpiece, parent)
+        self.movegeneratorfunc = pcsm.white_generator_moves
         self.enemy_game_position_func = BlackGamePosition
         self.ischeckfunc = self.listpiece.iswhitekingincheck
         self.imincheckmatevalue = -checkmatevalue
@@ -416,9 +443,9 @@ class WhiteGamePosition(GamePosition):
 
 
 class BlackGamePosition(GamePosition):
-    def __init__(self, listpiece, parent=None, originmove=None):
-        super().__init__(listpiece, parent, originmove)
-        self.movegeneratorfunc = black_generator_moves
+    def __init__(self, listpiece, parent=None):
+        super().__init__(listpiece, parent)
+        self.movegeneratorfunc = pcsm.black_generator_moves
         self.enemy_game_position_func = WhiteGamePosition
         self.ischeckfunc = self.listpiece.isblackkingincheck
         self.imincheckmatevalue = checkmatevalue
@@ -476,7 +503,7 @@ if __name__ == '__main__':
     # print(pcsm.listpiece)
     """"
     fen = FenStrParser('black')
-    gameposition = fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+    gameposition = fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".split())
     setter = UciMoveSetter(gameposition, ['e2e4'])
     setter(False)
     gamethread = GameThread(gameposition, 5)
@@ -486,8 +513,17 @@ if __name__ == '__main__':
     gamethread.killthread()
     print(gamethread.getbestmove())
     """
-    gameposition = startpos_factory('white')
+
+    fen = FenStrParser('white')
+    gameposition = fen("8/8/8/8/k2K4/2Q5/8/8 w - - 0 0".split())
     print(pcsm.listpiece)
-    ev = evm.Evaluator(gameposition.listpiece, 40)
+    bestmove = gameposition.builtplytreevalue(2)
+    print(nposition)
+    print(bestmove)
+    """
+    fen = FenStrParser('white')
+    gameposition = fen("8/8/8/8/k2K4/2Q5/8/8 w - - 0 0".split())
+    ev = evm.Evaluator(gameposition.listpiece)
     evaluation = ev()
     print(ev)
+    """
