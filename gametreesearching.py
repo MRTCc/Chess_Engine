@@ -423,7 +423,14 @@ class GamePosition:
             values.append(child.value)
         bestvalue = self.childrenevaluationfunc(values)
         self.value = bestvalue
-        bestmove = self.moves[values.index(bestvalue)]
+
+    def calcbestmove(self, ply):
+        self.builtplytreevalue(ply)
+        bestmove = None
+        for index in range(0, len(self.children)):
+            if self.children[index].value == self.value:
+                bestmove = self.moves[index]
+                break
         return bestmove
 
 
@@ -435,6 +442,22 @@ class WhiteGamePosition(GamePosition):
         self.ischeckfunc = self.listpiece.iswhitekingincheck
         self.imincheckmatevalue = -checkmatevalue
         self.childrenevaluationfunc = max
+
+    def alphabeta(self, alpha, beta, depthleft):
+        global nposition
+        nposition += 1
+        if depthleft == 0:
+            evaluator = evm.Evaluator(self.listpiece)
+            self.value = evaluator()
+            return
+        # assegnamento del valore alle mosse
+        # ordinamento delle mosse
+        for move in self.moves:
+            self.listpiece.applymove(move)
+            child = self.enemy_game_position_func(self.listpiece, self)
+            child.alphabeta(alpha, beta, depthleft - 1)
+            self.children.append(child)
+            self.listpiece.undomove(move)
 
     def __str__(self):
         msg = 'Active color: white\n'
@@ -450,6 +473,22 @@ class BlackGamePosition(GamePosition):
         self.ischeckfunc = self.listpiece.isblackkingincheck
         self.imincheckmatevalue = checkmatevalue
         self.childrenevaluationfunc = min
+
+    def alphabeta(self, alpha, beta, depthleft):
+        global nposition
+        nposition += 1
+        if depthleft == 0:
+            evaluator = evm.Evaluator(self.listpiece)
+            self.value = evaluator()
+            return
+        # assegnamento del valore alle mosse
+        # ordinamento delle mosse
+        for move in self.moves:
+            self.listpiece.applymove(move)
+            child = self.enemy_game_position_func(self.listpiece, self)
+            child.alphabeta(alpha, beta, depthleft - 1)
+            self.children.append(child)
+            self.listpiece.undomove(move)
 
     def __str__(self):
         msg = 'Active color: black\n'
@@ -517,7 +556,7 @@ if __name__ == '__main__':
     fen = FenStrParser('white')
     gameposition = fen("8/8/8/8/k2K4/2Q5/8/8 w - - 0 0".split())
     print(pcsm.listpiece)
-    bestmove = gameposition.builtplytreevalue(2)
+    bestmove = gameposition.calcbestmove(3)
     print(nposition)
     print(bestmove)
     """

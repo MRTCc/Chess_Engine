@@ -215,10 +215,15 @@ class Evaluator:
     def _setcontrolledcells(self):
         for move in pcsm.white_generator_moves(self.listpiece):
             self.controlledcells[move.tocell] += 10
-            self.mobility += 1
+            self.mobility += 0.5
         for move in pcsm.black_generator_moves(self.listpiece):
             self.controlledcells[move.tocell] -= 10
-            self.mobility -= 1
+            self.mobility -= 0.5
+        for cell in self.controlledcells.values():
+            if cell > 0:
+                self.mobility += 7
+            elif cell < 0:
+                self.mobility -= 7
 
     def _setevaluationparameters(self, piece):
         if isinstance(piece, pcsm.WhitePawn):
