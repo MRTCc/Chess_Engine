@@ -631,7 +631,7 @@ if __name__ == '__main__':
     print(gamethread.getbestmove())
     """
 
-    # ora sto testando questo
+    
     fen = FenStrParser('black')
     gameposition = fen("8/8/8/8/8/2k5/1p4K1/8 b - - 0 0".split())
     print(pcsm.listpiece)
