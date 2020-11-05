@@ -127,6 +127,24 @@ blackkingmiddlegametable = {a8: 20,     b8: 30,     c8: 10,     d8: 0,       e8:
                             a2: -30,    b2: -40,    c2: -40,    d2: -50,     e2: -50,      f2: -40,   g2: -40,  h2: -30,
                             a1: -30,    b1: -40,    c1: -40,    d1: -50,     e1: -50,      f1: -40,   g1: -40,  h1: -30}
 
+whitekingendgametable = {a8: -50,    b8: -40,    c8: -30,    d8: -20,     e8: -20,      f8: -30,   g8: -40,  h8: -50,
+                         a7: -30,    b7: -20,    c7: -10,    d7: 0,       e7: 0,        f7: -10,   g7: -20,  h7: -30,
+                         a6: -30,    b6: -10,    c6: 20,     d6: 30,      e6: 30,       f6: 20,    g6: -10,  h6: -30,
+                         a5: -30,    b5: -10,    c5: 30,     d5: 40,      e5: 40,       f5: 30,    g5: -10,  h5: -30,
+                         a4: -30,    b4: -10,    c4: 30,     d4: 40,      e4: 40,       f4: 30,    g4: -10,  h4: -30,
+                         a3: -30,    b3: -10,    c3: 20,     d3: 30,      e3: 30,       f3: 20,    g3: -10,  h3: -30,
+                         a2: -30,    b2: -30,    c2: 0,      d2: 0,       e2: 0,        f2: 0,     g2: -30,  h2: -30,
+                         a1: -50,    b1: -30,    c1: -30,    d1: -30,     e1: -30,      f1: -30,   g1: -30,  h1: -50}
+
+blackkingendgametable = {a8: -50,    b8: -30,    c8: -30,    d8: -30,     e8: -30,      f8: -30,   g8: -30,  h8: -50,
+                         a7: -30,    b7: -30,    c7: 0,      d7: 0,       e7: 0,        f7: 0,     g7: -30,  h7: -30,
+                         a6: -30,    b6: -10,    c6: 20,     d6: 30,      e6: 30,       f6: 20,    g6: -10,  h6: -30,
+                         a5: -30,    b5: -10,    c5: 30,     d5: 40,      e5: 40,       f5: 30,    g5: -10,  h5: -30,
+                         a4: -30,    b4: -10,    c4: 30,     d4: 40,      e4: 40,       f4: 30,    g4: -10,  h4: -30,
+                         a3: -30,    b3: -10,    c3: 20,     d3: 30,      e3: 30,       f3: 20,    g3: -10,  h3: -30,
+                         a2: -30,    b2: -20,    c2: -10,    d2: 0,       e2: 0,        f2: -10,   g2: -20,  h2: -30,
+                         a1: -50,    b1: -40,    c1: -30,    d1: -20,     e1: -20,      f1: -30,   g1: -40,  h1: -50}
+
 
 class Evaluator:
     def __init__(self, listpiece):
@@ -143,6 +161,8 @@ class Evaluator:
         self._countisolatedpawns(self.listpiece.whitepawns)
         self._countisolatedpawns(self.listpiece.blackpawns)
         self.evaluation = None
+        self.isendgamephase = True
+        self._setisendgamephase()
         self.whitepieces = []
         self.whitepawns = []
         self.blackpieces = []
@@ -212,6 +232,25 @@ class Evaluator:
                 else:
                     raise AttributeError
 
+    def _setisendgamephase(self):
+        whitepawns = self.listpiece.whitepawns
+        whitepieces = self.listpiece.whitepieces
+        blackpawns = self.listpiece.blackpawns
+        blackpieces = self.listpiece.blackpieces
+        if len(whitepieces) > 3:
+            self.isendgamephase = False
+            return
+        if len(blackpieces) > 3:
+            self.isendgamephase = False
+            return
+        if len(whitepawns) > 4:
+            self.isendgamephase = False
+            return
+        if len(blackpawns) > 4:
+            self.isendgamephase = False
+            return
+        self.isendgamephase = True
+
     def _setcontrolledcells(self):
         for move in pcsm.white_generator_moves(self.listpiece):
             self.controlledcells[move.tocell] += 10
@@ -257,10 +296,16 @@ class Evaluator:
             evaluationtable = blackqueentable
             piecevalue = queenvalue
         elif isinstance(piece, pcsm.WhiteKing):
-            evaluationtable = whitekingmiddlegametable
+            if self.isendgamephase:
+                evaluationtable = whitekingendgametable
+            else:
+                evaluationtable = whitekingmiddlegametable
             piecevalue = kingvalue
         elif isinstance(piece, pcsm.BlackKing):
-            evaluationtable = blackkingmiddlegametable
+            if self.isendgamephase:
+                evaluationtable = blackkingendgametable
+            else:
+                evaluationtable = blackkingmiddlegametable
             piecevalue = kingvalue
         else:
             raise ValueError("Not a valid piece!!!")

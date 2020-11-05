@@ -1045,10 +1045,14 @@ def white_generator_moves(listpiece):
     for piece in listpiece.whitepieces:
         moves = piece.generatemoves()
         for move in moves:
+            if listpiece.blackking.iminchecksetup(piece, move.tocell):
+                move.ischeck = True
             yield move
     for pawn in listpiece.whitepawns:
         moves = pawn.generatemoves()
         for move in moves:
+            if listpiece.blackking.iminchecksetup(pawn, move.tocell):
+                move.ischeck = True
             yield move
 
 
@@ -1056,10 +1060,14 @@ def black_generator_moves(listpiece):
     for piece in listpiece.blackpieces:
         moves = piece.generatemoves()
         for move in moves:
+            if listpiece.whiteking.iminchecksetup(piece, move.tocell):
+                move.ischeck = True
             yield move
     for pawn in listpiece.blackpawns:
         moves = pawn.generatemoves()
         for move in moves:
+            if listpiece.whiteking.iminchecksetup(pawn, move.tocell):
+                move.ischeck = True
             yield move
 
 
