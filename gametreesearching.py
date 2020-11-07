@@ -17,7 +17,7 @@ checkmatevalue = 10000
 nposition = 0
 
 
-def startpos_factory(enginecolor):
+def startpos_factory(enginecolor, algorithm):
     wc = mvm.CastlingRights()
     bc = mvm.CastlingRights()
     whiteKing = pcsm.WhiteKing(e1, wc)
@@ -40,13 +40,23 @@ def startpos_factory(enginecolor):
                   pcsm.BlackPawn(g7, blackKing, whiteKing), pcsm.BlackPawn(h7, blackKing, whiteKing)]
     pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns)
     pcsm.listpiece.updatecastlingrights()
-    if enginecolor == 'white':
-        boardposition = WhiteGamePosition(pcsm.listpiece)
-    elif enginecolor == 'black':
-        boardposition = BlackGamePosition(pcsm.listpiece)
+    if algorithm == 'minmax':
+        if enginecolor == 'white':
+            gameposition = MinMaxWhiteGamePosition(pcsm.listpiece)
+        elif enginecolor == 'black':
+            gameposition = MinMaxBlackGamePosition(pcsm.listpiece)
+        else:
+            raise ValueError('Not a valid enginecolor value!!!')
+    elif algorithm == 'alphabeta':
+        if enginecolor == 'white':
+            gameposition = AlphaBetaWhiteGamePosition(pcsm.listpiece)
+        elif enginecolor == 'black':
+            gameposition = AlphaBetaBlackGamePosition(pcsm.listpiece)
+        else:
+            raise ValueError('Not a valid enginecolor value!!!')
     else:
-        raise ValueError("Not a valid engine_color value!!!")
-    return boardposition
+        raise ValueError('Not a valid algorithm!!!')
+    return gameposition
 
 
 def debug_pos_factory():
@@ -135,11 +145,12 @@ class UciMoveSetter:
 
 
 class FenStrParser:
-    def __init__(self, enginecolor):
+    def __init__(self, enginecolor, algorithm):
         self.whiteletters = ('R', 'N', 'B', 'Q', 'K', 'P')
         self.blackletters = ('r', 'n', 'b', 'q', 'k', 'p')
         self.enginecolor = enginecolor
         self.activecolor = None
+        self.algorithm = algorithm
 
     def _parsecastlingrights(self, fencastling):
         if '-' in fencastling:
@@ -244,12 +255,22 @@ class FenStrParser:
         return whitepieces, whitepawns, blackpieces, blackpawns
 
     def _parsergameposition(self, listpiece):
-        if self.enginecolor == 'white':
-            gameposition = WhiteGamePosition(listpiece)
-        elif self.enginecolor == 'black':
-            gameposition = BlackGamePosition(listpiece)
+        if self.algorithm == 'minmax':
+            if self.enginecolor == 'white':
+                gameposition = MinMaxWhiteGamePosition(listpiece)
+            elif self.enginecolor == 'black':
+                gameposition = MinMaxBlackGamePosition(listpiece)
+            else:
+                raise ValueError('Not a valid enginecolor value!!!')
+        elif self.algorithm == 'alphabeta':
+            if self.enginecolor == 'white':
+                gameposition = AlphaBetaWhiteGamePosition(listpiece)
+            elif self.enginecolor == 'black':
+                gameposition = AlphaBetaBlackGamePosition(listpiece)
+            else:
+                raise ValueError('Not a valid enginecolor value!!!')
         else:
-            raise ValueError('Not a valid enginecolor value!!!')
+            raise ValueError('Not a valid algorithm!!!')
         return gameposition
 
     def _parseactivecolor(self, colorstring):
@@ -303,10 +324,6 @@ class FenStrParser:
 testfile = open("built_tree_test", "w")
 
 
-def moveorderingkey(move):
-    return move.priority
-
-
 class GamePosition:
     def __init__(self, listpiece, parent=None):
         self.listpiece = listpiece
@@ -319,10 +336,281 @@ class GamePosition:
         self.ischeckfunc = None
         self.imincheckmatevalue = None
         self.childrenevaluationfunc = None
-        if parent is None:
-            self.originmoves = []
+
+    def imincheckmate(self):
+        if len(self.moves) < 1 and self.ischeckfunc():
+            return True
         else:
-            self.originmoves = parent.originmoves
+            return False
+
+    def isstalemate(self):
+        if (len(self.listpiece.whitepieces) + len(self.listpiece.whitepawns) == 1 and
+                len(self.listpiece.blackpieces) + len(self.listpiece.blackpawns) == 1):
+            return True
+        if len(self.moves) < 1 and not self.ischeckfunc():
+            return True
+        else:
+            return False
+
+    def calcbestmove(self, ply):
+        pass
+
+    def _outputmoves(self):
+        msg = ""
+        for move in self.listpiece.moves:
+            msg += move.short__str__() + " "
+        msg += str(self.value)
+        return msg
+
+
+class MinMaxGamePosition(GamePosition):
+    def __lt__(self, other):
+        return self.value < other.value
+
+    def __le__(self, other):
+        return self.value <= other.value
+
+    def __eq__(self, other):
+        return self.value == other.value
+
+    def __ne__(self, other):
+        return self.value != other.value
+
+    def __gt__(self, other):
+        return self.value > other.value
+
+    def __ge__(self, other):
+        return self.value >= other.value
+
+    def builtplytreevalue(self, depthleft):
+        global nposition
+        nposition += 1
+        if depthleft == 0:
+            evaluator = evm.Evaluator(self.listpiece)
+            self.value = evaluator()
+            msg = self._outputmoves()
+            testfile.write(msg + "\n")
+            return
+        for move in self.movegeneratorfunc(self.listpiece):
+            self.moves.append(move)
+        for move in self.moves:
+            self.listpiece.applymove(move)
+            child = self.enemy_game_position_func(self.listpiece, self)
+            child.builtplytreevalue(depthleft - 1)
+            self.children.append(child)
+            self.listpiece.undomove(move)
+        if self.imincheckmate():
+            self.value = self.imincheckmatevalue
+            msg = self._outputmoves()
+            testfile.write(msg + "****** CHECKMATE - GAME ENDED ******\n")
+            return
+        if self.isstalemate():
+            self.value = 0
+            msg = self._outputmoves()
+            testfile.write(msg + "****** DRAW - GAME ENDED ******\n")
+            return
+        values = []
+        for child in self.children:
+            values.append(child.value)
+        bestvalue = self.childrenevaluationfunc(values)
+        self.value = bestvalue
+
+    def calcbestmove(self, ply):
+        self.builtplytreevalue(ply)
+        bestmove = None
+        for index in range(0, len(self.children)):
+            if self.children[index].value == self.value:
+                bestmove = self.moves[index]
+                break
+        return bestmove
+
+
+class MinMaxWhiteGamePosition(MinMaxGamePosition):
+    def __init__(self, listpiece, parent=None):
+        super().__init__(listpiece, parent)
+        self.movegeneratorfunc = pcsm.white_generator_moves
+        self.enemy_game_position_func = MinMaxBlackGamePosition
+        self.ischeckfunc = self.listpiece.iswhitekingincheck
+        self.imincheckmatevalue = -checkmatevalue
+        self.childrenevaluationfunc = max
+
+    def __str__(self):
+        msg = 'Active color: white\n'
+        msg += str(self.listpiece)
+        return msg
+
+
+class MinMaxBlackGamePosition(MinMaxGamePosition):
+    def __init__(self, listpiece, parent=None):
+        super().__init__(listpiece, parent)
+        self.movegeneratorfunc = pcsm.black_generator_moves
+        self.enemy_game_position_func = MinMaxWhiteGamePosition
+        self.ischeckfunc = self.listpiece.isblackkingincheck
+        self.imincheckmatevalue = checkmatevalue
+        self.childrenevaluationfunc = min
+
+    def __str__(self):
+        msg = 'Active color: black\n'
+        msg += str(self.listpiece)
+        return msg
+
+
+class AlphaBetaGamePosition(GamePosition):
+    @staticmethod
+    def _movepriority(move):
+        if move.ischeck:
+            move.priority = 6
+        elif move.capturedpiece:
+            move.priority = 5
+        elif move.iskingcastling:
+            move.priority = 4
+        elif move.isqueencastling:
+            move.priority = 3
+        elif move.promotionto:
+            move.priority = 2
+        else:
+            move.priority = 1
+
+    @staticmethod
+    def _moveorderingkey(move):
+        return move.priority
+
+    def alphabeta(self, alpha, beta, ply):
+        pass
+
+    def calcbestmove(self, ply):
+        self.value = self.alphabeta(-10000000, +10000000, ply)
+        bestmove = None
+        for index in range(0, len(self.children)):
+            if self.children[index].value == self.value:
+                bestmove = self.moves[index]
+                break
+        return bestmove
+
+
+class AlphaBetaWhiteGamePosition(AlphaBetaGamePosition):
+    def __init__(self, listpiece, parent=None):
+        super().__init__(listpiece, parent)
+        self.movegeneratorfunc = pcsm.white_generator_moves
+        self.enemy_game_position_func = AlphaBetaBlackGamePosition
+        self.ischeckfunc = self.listpiece.iswhitekingincheck
+        self.imincheckmatevalue = -checkmatevalue
+        self.childrenevaluationfunc = max
+
+    def alphabeta(self, alpha, beta, depthleft):
+        global nposition
+        nposition += 1
+        if depthleft == 0:
+            evaluator = evm.Evaluator(self.listpiece)
+            self.value = evaluator()
+            msg = self._outputmoves()
+            testfile.write(msg + "\n")
+            return self.value
+        for move in self.movegeneratorfunc(pcsm.listpiece):
+            self._movepriority(move)
+            self.moves.append(move)
+        if self.imincheckmate():
+            self.value = self.imincheckmatevalue
+            msg = self._outputmoves()
+            testfile.write(msg + "********** CHECKMATE - GAME ENDED **********\n")
+            return self.value
+        if self.isstalemate():
+            self.value = 0
+            msg = self._outputmoves()
+            testfile.write(msg + "********** DRAW - GAME ENDED **********\n")
+            return self.value
+        self.moves.sort(key=AlphaBetaGamePosition._moveorderingkey, reverse=True)
+        for move in self.moves:
+            self.listpiece.applymove(move)
+            child = self.enemy_game_position_func(self.listpiece, self)
+            child.value = child.alphabeta(alpha, beta, depthleft - 1)
+            if child.value >= beta:
+                tmp = self.value
+                msg = self._outputmoves()
+                testfile.write(msg + "\n")
+                self.value = tmp
+                self.listpiece.undomove(move)
+                return beta
+            if child.value > alpha:
+                alpha = child.value
+            self.children.append(child)
+            self.listpiece.undomove(move)
+        return alpha
+
+    def __str__(self):
+        msg = 'Active color: white\n'
+        msg += str(self.listpiece)
+        return msg
+
+
+class AlphaBetaBlackGamePosition(AlphaBetaGamePosition):
+    def __init__(self, listpiece, parent=None):
+        super().__init__(listpiece, parent)
+        self.movegeneratorfunc = pcsm.black_generator_moves
+        self.enemy_game_position_func = AlphaBetaWhiteGamePosition
+        self.ischeckfunc = self.listpiece.isblackkingincheck
+        self.imincheckmatevalue = checkmatevalue
+        self.childrenevaluationfunc = min
+
+    def alphabeta(self, alpha, beta, depthleft):
+        global nposition
+        nposition += 1
+        if depthleft == 0:
+            evaluator = evm.Evaluator(self.listpiece)
+            self.value = evaluator()
+            msg = self._outputmoves()
+            testfile.write(msg + "\n")
+            return self.value
+        for move in self.movegeneratorfunc(pcsm.listpiece):
+            self._movepriority(move)
+            self.moves.append(move)
+        if self.imincheckmate():
+            self.value = self.imincheckmatevalue
+            msg = self._outputmoves()
+            testfile.write(msg + "********** CHECKMATE - GAME ENDED **********\n")
+            return self.value
+        if self.isstalemate():
+            self.value = 0
+            msg = self._outputmoves()
+            testfile.write(msg + "********** DRAW - GAME ENDED **********\n")
+            return self.value
+        self.moves.sort(key=AlphaBetaGamePosition._moveorderingkey, reverse=True)
+        for move in self.moves:
+            self.listpiece.applymove(move)
+            child = self.enemy_game_position_func(self.listpiece, self)
+            child.value = child.alphabeta(alpha, beta, depthleft - 1)
+            if child.value <= alpha:
+                tmp = self.value
+                msg = self._outputmoves()
+                testfile.write(msg + "\n")
+                self.value = tmp
+                self.listpiece.undomove(move)
+                return alpha
+            if child.value < beta:
+                beta = child.value
+            self.children.append(child)
+            self.listpiece.undomove(move)
+        return beta
+
+    def __str__(self):
+        msg = 'Active color: black\n'
+        msg += str(self.listpiece)
+        return msg
+
+
+""" # GamePosition attuale, non modificata
+class GamePosition:
+    def __init__(self, listpiece, parent=None):
+        self.listpiece = listpiece
+        self.parent = parent
+        self.value = None
+        self.moves = []
+        self.children = []
+        self.movegeneratorfunc = None
+        self.enemy_game_position_func = None
+        self.ischeckfunc = None
+        self.imincheckmatevalue = None
+        self.childrenevaluationfunc = None
 
     def imincheckmate(self):
         if len(self.moves) < 1 and self.ischeckfunc():
@@ -357,7 +645,8 @@ class GamePosition:
     def __ge__(self, other):
         return self.value >= other.value
 
-    """
+"""
+"""
     def builtplytreevalue1(self, maxply, curply=0):
         global nposition
         nposition += 1
@@ -385,7 +674,8 @@ class GamePosition:
         indexbestchild = self.children.index(bestchild)
         bestmove = self.moves[indexbestchild]
         return bestmove
-    """
+"""
+"""
 
     def builtplytreevalue(self, maxply, curply=0):
         global nposition
@@ -572,6 +862,7 @@ class BlackGamePosition(GamePosition):
         msg = 'Active color: black\n'
         msg += str(self.listpiece)
         return msg
+"""
 
 
 class GameThread(threading.Thread):
@@ -613,11 +904,6 @@ class GameThread(threading.Thread):
 
 
 if __name__ == '__main__':
-    # root = BlackGamePosition(debug_pos_factory())
-    # print(pcsm.listpiece)
-    # u = UciMoveSetter(root, ['e1d1', 'e8d8'])
-    # u()
-    # print(pcsm.listpiece)
     """"
     fen = FenStrParser('black')
     gameposition = fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".split())
@@ -631,21 +917,13 @@ if __name__ == '__main__':
     print(gamethread.getbestmove())
     """
 
-    
-    fen = FenStrParser('black')
-    gameposition = fen("8/8/8/8/8/2k5/1p4K1/8 b - - 0 0".split())
+    fen = FenStrParser('black', 'alphabeta')
+    gameposition = fen("1r2k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
     print(pcsm.listpiece)
-    bestmove = gameposition.calcbestmovealphabeta(3)
+    bestmove = gameposition.calcbestmove(3)
     print(nposition)
     print(bestmove)
     nposition = 0
-
-
-    """
-    bestmove = gameposition.calcbestmove(5)
-    print(nposition)
-    print(bestmove)
-    """
 
     """
     fen = FenStrParser('white')

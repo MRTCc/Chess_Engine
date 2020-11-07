@@ -118,16 +118,18 @@ class ListPiece:
             self.blacksxrook = blacksxrook
 
     def addpiece(self, piece):
-        if isinstance(piece.allyking, WhiteKing):
+        if isinstance(piece.allyking, WhiteKing) or isinstance(piece, WhiteKing):
             if isinstance(piece, Pawn):
                 lst = self.whitepawns
             else:
                 lst = self.whitepieces
-        else:
+        elif isinstance(piece.allyking, BlackKing) or isinstance(piece, BlackKing):
             if isinstance(piece, Pawn):
                 lst = self.blackpawns
             else:
                 lst = self.blackpieces
+        else:
+            raise ValueError("Listpiece --> addpiece --> Not a valid piece!!!")
         lst.append(piece)
         self.board[piece.coordinate] = piece
 
