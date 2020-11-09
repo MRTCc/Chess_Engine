@@ -102,6 +102,7 @@ class ListPiece:
         self.blacksxrook = None
         self.blackdxrook = None
         self._setrooks()
+        self.arecastlingrightschanged = [False, False, False, False]
 
     def _setrooks(self):
         whitedxrook = self.board[h1]
@@ -203,7 +204,26 @@ class ListPiece:
         king.isstartpos = False
         rook.isstartpos = False
 
+    def _initarecastlingrightschanged(self, whitecastlingrights, blackcastlingrights):
+        self.arecastlingrightschanged[0] = whitecastlingrights.ispossiblekingcastling()
+        self.arecastlingrightschanged[1] = whitecastlingrights.ispossiblequeencastling()
+        self.arecastlingrightschanged[2] = blackcastlingrights.ispossiblekingcastling()
+        self.arecastlingrightschanged[3] = blackcastlingrights.ispossiblequeencastling()
+
+    def _updatearecastlingrightschanged(self, whitecastlingrights, blackcastlingrights):
+        if whitecastlingrights.ispossiblekingcastling() == self.arecastlingrightschanged[0]:
+            self.arecastlingrightschanged[0] = False
+        if whitecastlingrights.ispossiblequeencastling() == self.arecastlingrightschanged[1]:
+            self.arecastlingrightschanged[1] = False
+        if blackcastlingrights.ispossiblekingcastling() == self.arecastlingrightschanged[2]:
+            self.arecastlingrightschanged[2] = False
+        if blackcastlingrights.ispossiblequeencastling() == self.arecastlingrightschanged[3]:
+            self.arecastlingrightschanged[3] = False
+
     def applymove(self, move):
+        whitecastlingrights = self.whiteking.castlingrights
+        blackcastlingrights = self.blackking.castlingrights
+        self._initarecastlingrightschanged(whitecastlingrights, blackcastlingrights)
         if move.iskingcastling:
             self._applykingcastling(move)
         elif move.isqueencastling:
@@ -234,6 +254,7 @@ class ListPiece:
         lastmove = self.moves[-1]
         if lastmove.isenpassant:
             lastmove.piece.enpassantthreat = True
+        self._updatearecastlingrightschanged(whitecastlingrights, blackcastlingrights)
 
     def _undokingcastling(self, move):
         if move.iswhiteturn:
