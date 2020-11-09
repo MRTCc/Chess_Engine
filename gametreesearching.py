@@ -3,6 +3,7 @@ import piecesmodule as pcsm
 import threading
 import ctypes
 import evaluationmodule as evm
+import transpositionmodule as trsp
 import algebraicnotationmodule as algn
 from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
                                      a7, b7, c7, d7, e7, f7, g7, h7,
@@ -326,6 +327,7 @@ testfile = open("built_tree_test", "w")
 
 class GamePosition:
     def __init__(self, listpiece, parent=None):
+        self.iswhiteturn = None
         self.listpiece = listpiece
         self.parent = parent
         self.value = None
@@ -428,6 +430,7 @@ class MinMaxGamePosition(GamePosition):
 class MinMaxWhiteGamePosition(MinMaxGamePosition):
     def __init__(self, listpiece, parent=None):
         super().__init__(listpiece, parent)
+        self.iswhiteturn = True
         self.movegeneratorfunc = pcsm.white_generator_moves
         self.enemy_game_position_func = MinMaxBlackGamePosition
         self.ischeckfunc = self.listpiece.iswhitekingincheck
@@ -443,6 +446,7 @@ class MinMaxWhiteGamePosition(MinMaxGamePosition):
 class MinMaxBlackGamePosition(MinMaxGamePosition):
     def __init__(self, listpiece, parent=None):
         super().__init__(listpiece, parent)
+        self.iswhiteturn = False
         self.movegeneratorfunc = pcsm.black_generator_moves
         self.enemy_game_position_func = MinMaxWhiteGamePosition
         self.ischeckfunc = self.listpiece.isblackkingincheck
@@ -491,6 +495,7 @@ class AlphaBetaGamePosition(GamePosition):
 class AlphaBetaWhiteGamePosition(AlphaBetaGamePosition):
     def __init__(self, listpiece, parent=None):
         super().__init__(listpiece, parent)
+        self.iswhiteturn = True
         self.movegeneratorfunc = pcsm.white_generator_moves
         self.enemy_game_position_func = AlphaBetaBlackGamePosition
         self.ischeckfunc = self.listpiece.iswhitekingincheck
@@ -546,6 +551,7 @@ class AlphaBetaWhiteGamePosition(AlphaBetaGamePosition):
 class AlphaBetaBlackGamePosition(AlphaBetaGamePosition):
     def __init__(self, listpiece, parent=None):
         super().__init__(listpiece, parent)
+        self.iswhiteturn = False
         self.movegeneratorfunc = pcsm.black_generator_moves
         self.enemy_game_position_func = AlphaBetaWhiteGamePosition
         self.ischeckfunc = self.listpiece.isblackkingincheck
@@ -649,7 +655,7 @@ if __name__ == '__main__':
     gamethread.killthread()
     print(gamethread.getbestmove())
     """
-
+    """
     fen = FenStrParser('black', 'alphabeta')
     gameposition = fen("1r2k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
     print(pcsm.listpiece)
@@ -657,7 +663,7 @@ if __name__ == '__main__':
     print(nposition)
     print(bestmove)
     nposition = 0
-
+    """
     """
     fen = FenStrParser('white')
     gameposition = fen("8/8/8/8/k2K4/2Q5/8/8 w - - 0 0".split())
@@ -666,3 +672,13 @@ if __name__ == '__main__':
     print(ev)
     """
 
+    fen = FenStrParser('black', 'alphabeta')
+    gameposition = fen("1r2k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
+    print(pcsm.listpiece)
+    z = trsp.Zobrist()
+    print(z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
+    print(z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
+    gameposition = fen("2r1k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
+    print(pcsm.listpiece)
+    print(z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
+    print(z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))

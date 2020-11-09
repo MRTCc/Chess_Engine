@@ -8,7 +8,7 @@ MAX64INT = 9223372036854775807
 
 class Zobrist:
     def __init__(self):
-        self.zarray = [[[[self._getrandomnumber() for l in range(0, 64)] for j in range(0, 6)]] for i in range(0, 2)]
+        self.zarray = [[[self._getrandomnumber() for k in range(0, 64)] for j in range(0, 6)] for i in range(0, 2)]
         self.zenpassant = [self._getrandomnumber() for i in range(0, 8)]
         self.zcastle = [self._getrandomnumber() for i in range(0, 4)]
         self.zblackmove = self._getrandomnumber()
