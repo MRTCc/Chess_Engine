@@ -672,19 +672,20 @@ if __name__ == '__main__':
     print(ev)
     """
 
-    """
     fen = FenStrParser('black', 'alphabeta')
-    gameposition = fen("1r2k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
+    gameposition = fen("2r1k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
     print(pcsm.listpiece)
     z = trsp.Zobrist()
-    print(z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
-    print(z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
+    key = z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn)
+    gameposition = fen("2r1k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
+    print(pcsm.listpiece)
+    newkey = z.updatezobristkey(key, gameposition.listpiece, not gameposition.iswhiteturn)
+    print("update key:", newkey)
+    print("get zobrist key: ", z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
+
+    """
     gameposition = fen("2r1k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
     print(pcsm.listpiece)
     print(z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
     print(z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
     """
-    fen = FenStrParser('black', 'alphabeta')
-    gameposition = fen("1r2k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
-    listpiece = gameposition.listpiece
-    print(listpiece)

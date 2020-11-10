@@ -65,6 +65,89 @@ class Zobrist:
             color += 1
         return zobristkey
 
+    def _istwostepsmove(self, move):
+        if not isinstance(move.piece, pcsm.Pawn):
+            return False
+        filesteps = move.fromcell.absfiledifference(move.tocell)
+        if filesteps == 2:
+            return True
+        else:
+            return False
+
+    def _getcastlingcells(self, move):
+        if move.iskingcastling:
+            if move.iswhiteturn:
+                kingfrom = alg.celllist.index(alg.e1)
+                kingto = alg.celllist.index(alg.g1)
+                rookfrom = alg.celllist.index(alg.h1)
+                rookto = alg.celllist.index(alg.f1)
+            else:
+                kingfrom = alg.celllist.index(alg.e8)
+                kingto = alg.celllist.index(alg.g8)
+                rookfrom = alg.celllist.index(alg.h8)
+                rookto = alg.celllist.index(alg.f8)
+        elif move.isqueencastling:
+            if move.iswhiteturn:
+                kingfrom = alg.celllist.index(alg.e1)
+                kingto = alg.celllist.index(alg.c1)
+                rookfrom = alg.celllist.index(alg.a1)
+                rookto = alg.celllist.index(alg.d1)
+            else:
+                kingfrom = alg.celllist.index(alg.e8)
+                kingto = alg.celllist.index(alg.c8)
+                rookfrom = alg.celllist.index(alg.a8)
+                rookto = alg.celllist.index(alg.d8)
+        else:
+            raise ValueError("Zobrist --> _getcastlingcells : Invalid castling move!!!")
+        return kingfrom, kingto, rookfrom, rookto
+
+    def updatezobristkey(self, key, listpiece, whomoved):
+        newzobristkey = key
+        prevmove = listpiece.moves[-2]
+        move = listpiece.moves[-1]
+        if whomoved != move.iswhiteturn:
+            newzobristkey ^= self.zblackmove
+        for i in range(0, 4):
+            if listpiece.arecastlingrightschanged[i]:
+                newzobristkey ^= self.zcastle[i]
+        if self._istwostepsmove(prevmove):
+            column = move.fromcell.getfile() - 1
+            newzobristkey ^= self.zenpassant[column]
+        if self._istwostepsmove(move):
+            column = move.fromcell.getfile() - 1
+            newzobristkey ^= self.zenpassant[column]
+        if move.iswhiteturn:
+            color = 0
+        else:
+            color = 1
+        if move.iskingcastling or move.isqueencastling:
+            kingtype = self._getpiecetype(listpiece.whiteking)
+            # TODO da mettere a posto questo hardcoding
+            rooktype = 3
+            kingfromnumber, kingtonumber, rookfromnumber, rooktonumber = self._getcastlingcells(move)
+            newzobristkey ^= self.zarray[color][kingtype][kingfromnumber]
+            newzobristkey ^= self.zarray[color][kingtype][kingtonumber]
+            newzobristkey ^= self.zarray[color][rooktype][rookfromnumber]
+            newzobristkey ^= self.zarray[color][rooktype][rooktonumber]
+        else:
+            piece = move.capturedpiece
+            if piece:
+                cellnumber = self._getcellnumber(piece)
+                piecetype = self._getpiecetype(piece)
+                newzobristkey ^= self.zarray[color][piecetype][cellnumber]
+            piece = move.promotionto
+            if piece:
+                cellnumber = self._getcellnumber(piece)
+                piecetype = self._getpiecetype(piece)
+                newzobristkey ^= self.zarray[color][piecetype][cellnumber]
+            piece = move.piece
+            cellnumber = alg.celllist.index(move.fromcell)
+            piecetype = self._getpiecetype(piece)
+            newzobristkey ^= self.zarray[color][piecetype][cellnumber]
+            if move.promotionto is None:
+                cellnumber = self._getcellnumber(piece)
+                newzobristkey ^= self.zarray[color][piecetype][cellnumber]
+
     def __str__(self):
         msg = "zArray\n"
         msg += str(self.zarray)
