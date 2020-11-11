@@ -60,27 +60,6 @@ def startpos_factory(enginecolor, algorithm):
     return gameposition
 
 
-def debug_pos_factory():
-    wc = mvm.CastlingRights()
-    bc = mvm.CastlingRights()
-    whiteKing = pcsm.WhiteKing(e1, wc)
-    blackKing = pcsm.BlackKing(e8, bc)
-    whitepieces = [whiteKing, pcsm.WhiteRook(a1, whiteKing, blackKing),
-                   pcsm.WhiteKnight(h5, whiteKing, blackKing)]
-    whitepawns = [pcsm.WhitePawn(a2, whiteKing, blackKing), pcsm.WhitePawn(b2, whiteKing, blackKing),
-                  pcsm.WhitePawn(c2, whiteKing, blackKing), pcsm.WhitePawn(d2, whiteKing, blackKing),
-                  pcsm.WhitePawn(e2, whiteKing, blackKing), pcsm.WhitePawn(f2, whiteKing, blackKing),
-                  pcsm.WhitePawn(g2, whiteKing, blackKing), pcsm.WhitePawn(h2, whiteKing, blackKing)]
-    blackpieces = [blackKing, pcsm.BlackRook(a8, blackKing, whiteKing),
-                   pcsm.BlackKnight(g7, blackKing, whiteKing)]
-    blackpawns = [pcsm.BlackPawn(a7, blackKing, whiteKing), pcsm.BlackPawn(b7, blackKing, whiteKing),
-                  pcsm.BlackPawn(c7, blackKing, whiteKing), pcsm.BlackPawn(d7, blackKing, whiteKing),
-                  pcsm.BlackPawn(e7, blackKing, whiteKing), pcsm.BlackPawn(f7, blackKing, whiteKing),
-                  pcsm.BlackPawn(g7, blackKing, whiteKing), pcsm.BlackPawn(h7, blackKing, whiteKing)]
-    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns)
-    return pcsm.listpiece
-
-
 class UciMoveSetter:
     def __init__(self, gameposition, strmoves):
         self.gameposition = gameposition
@@ -642,6 +621,21 @@ class GameThread(threading.Thread):
         return self.bestmove
 
 
+def debug_pos_factory():
+    wc = mvm.CastlingRights(True, True, False, True, False, False)
+    bc = mvm.CastlingRights(True, True, False, True, False, False)
+    whiteKing = pcsm.WhiteKing(e1, wc)
+    blackKing = pcsm.BlackKing(e8, bc)
+    whitepieces = [whiteKing, pcsm.WhiteRook(a1, whiteKing, blackKing),
+                   pcsm.WhiteKnight(h5, whiteKing, blackKing)]
+    whitepawns = [pcsm.WhitePawn(b7, whiteKing, blackKing)]
+    blackpieces = [blackKing, pcsm.BlackRook(a8, blackKing, whiteKing),
+                   pcsm.BlackKnight(g7, blackKing, whiteKing)]
+    blackpawns = [pcsm.BlackPawn(b2, blackKing, whiteKing)]
+    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns)
+    return pcsm.listpiece, whiteKing, blackKing
+
+
 if __name__ == '__main__':
     """"
     fen = FenStrParser('black')
@@ -672,20 +666,25 @@ if __name__ == '__main__':
     print(ev)
     """
 
-    fen = FenStrParser('black', 'alphabeta')
-    gameposition = fen("2r1k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
-    print(pcsm.listpiece)
+    listpiece, whiteking, blackking = debug_pos_factory()
+    gameposition = MinMaxWhiteGamePosition(listpiece)
+    print("Tocca a bianco: \n", pcsm.listpiece)
     z = trsp.Zobrist()
     key = z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn)
-    gameposition = fen("2r1k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
-    print(pcsm.listpiece)
+    # move = mvm.whiteMoveCapturePromotionFactory(listpiece.whitepawns[0], b7, a8, listpiece.blackpieces[1],
+    #                                            listpiece.whitepawns[0].mypromotionto(a8, whiteking, blackking), False)
+    move = mvm.whiteMovePromotionFactory(listpiece.whitepawns[0], b7, b8,
+                                         listpiece.whitepawns[0].mypromotionto(b8, whiteking, blackking), False)
+    listpiece.applymove(move)
+    print("Tocca a bianco: \n", pcsm.listpiece)
     newkey = z.updatezobristkey(key, gameposition.listpiece, not gameposition.iswhiteturn)
-    print("update key:", newkey)
-    print("get zobrist key: ", z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
+    rightkey = z.getzobristhash(gameposition.listpiece, not gameposition.iswhiteturn)
+    print("Zobrist key from scratch: ", rightkey, "\nZobrist key from update:  ", newkey)
 
     """
     gameposition = fen("2r1k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
     print(pcsm.listpiece)
-    print(z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
-    print(z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
+    newkey = z.updatezobristkey(key, gameposition.listpiece)
+    print("update key:", newkey)
+    print("get zobrist key: ", z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
     """

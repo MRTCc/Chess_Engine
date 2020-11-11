@@ -49,6 +49,9 @@ class AlgebraicNotation(str):
     def getrank(self):
         return self.coordinate[0]
 
+    def getrankvalue(self):
+        return self.rankint
+
     def getfile(self):
         return int(self.coordinate[1])
 

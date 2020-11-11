@@ -103,6 +103,7 @@ class ListPiece:
         self.blackdxrook = None
         self._setrooks()
         self.arecastlingrightschanged = [False, False, False, False]
+        self.areenpassantchanged = [False, False, False, False, False, False, False, False]
 
     def _setrooks(self):
         whitedxrook = self.board[h1]
@@ -210,6 +211,32 @@ class ListPiece:
         self.arecastlingrightschanged[2] = blackcastlingrights.ispossiblekingcastling()
         self.arecastlingrightschanged[3] = blackcastlingrights.ispossiblequeencastling()
 
+    def _initenpassantbeforemove(self, enpassantbeforemove):
+        whitelist = [False, False, False, False, False, False, False, False]
+        blacklist = [False, False, False, False, False, False, False, False]
+        for pawn in self.whitepawns:
+            if pawn.enpassantthreat:
+                column = pawn.coordinate.getrankvalue() - 1
+                whitelist[column] = True
+        for pawn in self.blackpawns:
+            if pawn.enpassantthreat:
+                column = pawn.coordinate.getrankvalue() - 1
+                blacklist[column] = True
+        enpassantbeforemove.append(whitelist)
+        enpassantbeforemove.append(blacklist)
+
+    def _updateareenpassantchanged(self, enpassantbeforemove):
+        whitelist = enpassantbeforemove[0]
+        blacklist = enpassantbeforemove[1]
+        for pawn in self.whitepawns:
+            column = pawn.coordinate.getrankvalue() - 1
+            if pawn.enpassantthreat != whitelist[column]:
+                self.areenpassantchanged[column] = True
+        for pawn in self.blackpawns:
+            column = pawn.coordinate.getrankvalue() - 1
+            if pawn.enpassantthreat != blacklist[column]:
+                self.areenpassantchanged[column] = True
+
     def _updatearecastlingrightschanged(self, whitecastlingrights, blackcastlingrights):
         if whitecastlingrights.ispossiblekingcastling() == self.arecastlingrightschanged[0]:
             self.arecastlingrightschanged[0] = False
@@ -224,6 +251,8 @@ class ListPiece:
         whitecastlingrights = self.whiteking.castlingrights
         blackcastlingrights = self.blackking.castlingrights
         self._initarecastlingrightschanged(whitecastlingrights, blackcastlingrights)
+        enpassantbeforemove = []
+        self._initenpassantbeforemove(enpassantbeforemove)
         if move.iskingcastling:
             self._applykingcastling(move)
         elif move.isqueencastling:
@@ -255,6 +284,7 @@ class ListPiece:
         if lastmove.isenpassant:
             lastmove.piece.enpassantthreat = True
         self._updatearecastlingrightschanged(whitecastlingrights, blackcastlingrights)
+        self._updateareenpassantchanged(enpassantbeforemove)
 
     def _undokingcastling(self, move):
         if move.iswhiteturn:
@@ -1053,6 +1083,44 @@ class BlackKing(King):
         self.allyindex = 1
         self.kingsidelinecoordinates = (f8, g8)
         self.queensidelinecoordinates = (d8, c8, b8)
+
+    def _delta_0_2(self, delta):
+        for i in range(1, 8):
+            targetcell = self.coordinate.sumcoordinate(delta[0] * i, delta[1] * i)
+            allypiece = self.isthereallypiece(targetcell)
+            if allypiece is not None:
+                raise AllyOccupationException
+            enemypiece = self.isthereenemypiece(targetcell)
+            if i == 1:
+                if isinstance(enemypiece, (Bishop, Queen, King)):
+                    return True
+                elif isinstance(enemypiece, (Pawn, Rook, Knight)):
+                    break
+            else:
+                if isinstance(enemypiece, (Bishop, Queen)):
+                    return True
+                elif isinstance(enemypiece, (Rook, Knight, Pawn, King)):
+                    break
+        return False
+
+    def _delta_4_6(self, delta):
+        for i in range(1, 8):
+            targetcell = self.coordinate.sumcoordinate(delta[0] * i, delta[1] * i)
+            allypiece = self.isthereallypiece(targetcell)
+            if allypiece is not None:
+                raise AllyOccupationException
+            enemypiece = self.isthereenemypiece(targetcell)
+            if i == 1:
+                if isinstance(enemypiece, (Pawn, Bishop, Queen, King)):
+                    return True
+                elif isinstance(enemypiece, (Knight, Rook)):
+                    break
+            else:
+                if isinstance(enemypiece, (Bishop, Queen)):
+                    return True
+                elif isinstance(enemypiece, (Pawn, Knight, Rook, King)):
+                    break
+        return False
 
 
 class WhiteKingFactory:

@@ -13,10 +13,12 @@ class Zobrist:
         self.zcastle = [self._getrandomnumber() for i in range(0, 4)]
         self.zblackmove = self._getrandomnumber()
 
-    def _getrandomnumber(self):
+    @staticmethod
+    def _getrandomnumber():
         return random.randint(MIN64INT, MAX64INT)
 
-    def _getpiecetype(self, piece):
+    @staticmethod
+    def _getpiecetype(piece):
         if isinstance(piece, pcsm.Pawn):
             return 0
         elif isinstance(piece, pcsm.Knight):
@@ -32,15 +34,16 @@ class Zobrist:
         else:
             raise ValueError("Zobrist --> _getpiecetype : Not a valid piece!!!")
 
-    def _getcellnumber(self, piece):
+    @staticmethod
+    def _getcellnumber(piece):
         return alg.celllist.index(piece.coordinate)
 
     def getzobristhash(self, listpiece, iswhiteturn):
         zobristkey = 0
-        if iswhiteturn:
+        if not iswhiteturn:
             zobristkey ^= self.zblackmove
+        color = 0
         for pieces in (listpiece.whitepieces, listpiece.blackpieces):
-            color = 0
             for piece in pieces:
                 piecetype = self._getpiecetype(piece)
                 cellnumber = self._getcellnumber(piece)
@@ -52,29 +55,25 @@ class Zobrist:
                         zobristkey ^= self.zcastle[1 + 2 * color]
                 zobristkey ^= self.zarray[color][piecetype][cellnumber]
             color += 1
+        color = 0
         for pieces in (listpiece.whitepawns, listpiece.blackpawns):
-            color = 0
-            for pawn in listpiece.whitepawns + listpiece.blackpawns:
-                color = 0
+            for pawn in pieces:
                 piecetype = self._getpiecetype(pawn)
                 cellnumber = self._getcellnumber(pawn)
-                if pawn.isenpassantthreat:
+                if pawn.enpassantthreat:
                     column = pawn.coordinate.getfile() - 1
                     zobristkey ^= self.zenpassant[column]
                 zobristkey ^= self.zarray[color][piecetype][cellnumber]
             color += 1
         return zobristkey
 
-    def _istwostepsmove(self, move):
-        if not isinstance(move.piece, pcsm.Pawn):
-            return False
-        filesteps = move.fromcell.absfiledifference(move.tocell)
-        if filesteps == 2:
-            return True
-        else:
-            return False
+    def _getcastlingpiecestype(self):
+        kingtype = self._getpiecetype(pcsm.King(alg.a1, None))
+        rooktype = self._getpiecetype(pcsm.Rook(alg.a1, None, None))
+        return kingtype, rooktype
 
-    def _getcastlingcells(self, move):
+    @staticmethod
+    def _getcastlingcells(move):
         if move.iskingcastling:
             if move.iswhiteturn:
                 kingfrom = alg.celllist.index(alg.e1)
@@ -101,29 +100,27 @@ class Zobrist:
             raise ValueError("Zobrist --> _getcastlingcells : Invalid castling move!!!")
         return kingfrom, kingto, rookfrom, rookto
 
-    def updatezobristkey(self, key, listpiece, whomoved):
+    def updatezobristkey(self, key, listpiece, iswhiteturn):
         newzobristkey = key
-        prevmove = listpiece.moves[-2]
+        if len(listpiece.moves) < 1:
+            raise ValueError("Zobrist --> updatezobristkey : no update needed, because there are no moves applied!!!")
         move = listpiece.moves[-1]
-        if whomoved != move.iswhiteturn:
+        if move.iswhiteturn != iswhiteturn:
             newzobristkey ^= self.zblackmove
+        for i in range(0, 8):
+            if listpiece.areenpassantchanged[i]:
+                newzobristkey ^= self.zenpassant[i]
         for i in range(0, 4):
             if listpiece.arecastlingrightschanged[i]:
                 newzobristkey ^= self.zcastle[i]
-        if self._istwostepsmove(prevmove):
-            column = move.fromcell.getfile() - 1
-            newzobristkey ^= self.zenpassant[column]
-        if self._istwostepsmove(move):
-            column = move.fromcell.getfile() - 1
-            newzobristkey ^= self.zenpassant[column]
         if move.iswhiteturn:
             color = 0
+            capturepiececolor = 1
         else:
             color = 1
+            capturepiececolor = 0
         if move.iskingcastling or move.isqueencastling:
-            kingtype = self._getpiecetype(listpiece.whiteking)
-            # TODO da mettere a posto questo hardcoding
-            rooktype = 3
+            kingtype, rooktype = self._getcastlingpiecestype()
             kingfromnumber, kingtonumber, rookfromnumber, rooktonumber = self._getcastlingcells(move)
             newzobristkey ^= self.zarray[color][kingtype][kingfromnumber]
             newzobristkey ^= self.zarray[color][kingtype][kingtonumber]
@@ -134,7 +131,7 @@ class Zobrist:
             if piece:
                 cellnumber = self._getcellnumber(piece)
                 piecetype = self._getpiecetype(piece)
-                newzobristkey ^= self.zarray[color][piecetype][cellnumber]
+                newzobristkey ^= self.zarray[capturepiececolor][piecetype][cellnumber]
             piece = move.promotionto
             if piece:
                 cellnumber = self._getcellnumber(piece)
@@ -147,6 +144,7 @@ class Zobrist:
             if move.promotionto is None:
                 cellnumber = self._getcellnumber(piece)
                 newzobristkey ^= self.zarray[color][piecetype][cellnumber]
+        return newzobristkey
 
     def __str__(self):
         msg = "zArray\n"
@@ -158,6 +156,11 @@ class Zobrist:
         msg += "\nzBlackMove\n"
         msg += str(self.zblackmove)
         return msg
+
+
+class TranspositionTable:
+    def __init__(self):
+        self.zobrist = Zobrist()
 
 
 if __name__ == '__main__':
