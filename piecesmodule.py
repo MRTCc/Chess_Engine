@@ -102,8 +102,6 @@ class ListPiece:
         self.blacksxrook = None
         self.blackdxrook = None
         self._setrooks()
-        self.arecastlingrightschanged = [False, False, False, False]
-        self.areenpassantchanged = [False, False, False, False, False, False, False, False]
 
     def _setrooks(self):
         whitedxrook = self.board[h1]
@@ -205,54 +203,7 @@ class ListPiece:
         king.isstartpos = False
         rook.isstartpos = False
 
-    def _initarecastlingrightschanged(self, whitecastlingrights, blackcastlingrights):
-        self.arecastlingrightschanged[0] = whitecastlingrights.ispossiblekingcastling()
-        self.arecastlingrightschanged[1] = whitecastlingrights.ispossiblequeencastling()
-        self.arecastlingrightschanged[2] = blackcastlingrights.ispossiblekingcastling()
-        self.arecastlingrightschanged[3] = blackcastlingrights.ispossiblequeencastling()
-
-    def _initenpassantbeforemove(self, enpassantbeforemove):
-        whitelist = [False, False, False, False, False, False, False, False]
-        blacklist = [False, False, False, False, False, False, False, False]
-        for pawn in self.whitepawns:
-            if pawn.enpassantthreat:
-                column = pawn.coordinate.getrankvalue() - 1
-                whitelist[column] = True
-        for pawn in self.blackpawns:
-            if pawn.enpassantthreat:
-                column = pawn.coordinate.getrankvalue() - 1
-                blacklist[column] = True
-        enpassantbeforemove.append(whitelist)
-        enpassantbeforemove.append(blacklist)
-
-    def _updateareenpassantchanged(self, enpassantbeforemove):
-        whitelist = enpassantbeforemove[0]
-        blacklist = enpassantbeforemove[1]
-        for pawn in self.whitepawns:
-            column = pawn.coordinate.getrankvalue() - 1
-            if pawn.enpassantthreat != whitelist[column]:
-                self.areenpassantchanged[column] = True
-        for pawn in self.blackpawns:
-            column = pawn.coordinate.getrankvalue() - 1
-            if pawn.enpassantthreat != blacklist[column]:
-                self.areenpassantchanged[column] = True
-
-    def _updatearecastlingrightschanged(self, whitecastlingrights, blackcastlingrights):
-        if whitecastlingrights.ispossiblekingcastling() == self.arecastlingrightschanged[0]:
-            self.arecastlingrightschanged[0] = False
-        if whitecastlingrights.ispossiblequeencastling() == self.arecastlingrightschanged[1]:
-            self.arecastlingrightschanged[1] = False
-        if blackcastlingrights.ispossiblekingcastling() == self.arecastlingrightschanged[2]:
-            self.arecastlingrightschanged[2] = False
-        if blackcastlingrights.ispossiblequeencastling() == self.arecastlingrightschanged[3]:
-            self.arecastlingrightschanged[3] = False
-
     def applymove(self, move):
-        whitecastlingrights = self.whiteking.castlingrights
-        blackcastlingrights = self.blackking.castlingrights
-        self._initarecastlingrightschanged(whitecastlingrights, blackcastlingrights)
-        enpassantbeforemove = []
-        self._initenpassantbeforemove(enpassantbeforemove)
         if move.iskingcastling:
             self._applykingcastling(move)
         elif move.isqueencastling:
@@ -283,8 +234,6 @@ class ListPiece:
         lastmove = self.moves[-1]
         if lastmove.isenpassant:
             lastmove.piece.enpassantthreat = True
-        self._updatearecastlingrightschanged(whitecastlingrights, blackcastlingrights)
-        self._updateareenpassantchanged(enpassantbeforemove)
 
     def _undokingcastling(self, move):
         if move.iswhiteturn:
@@ -376,7 +325,8 @@ class ListPiece:
         else:
             return piece
 
-    def _updatekingcastlingrights(self, king, sxrook, dxrook):
+    @staticmethod
+    def _updatekingcastlingrights(king, sxrook, dxrook):
         castlingrights = king.castlingrights
         castlingrights.kinginstartpos = king.isstartpos
         if sxrook:
@@ -404,6 +354,137 @@ class ListPiece:
                   "|%s|%s|%s|%s|%s|%s|%s|%s|\n") % tuple(strlist)
 
         return result
+
+
+class ListPieceHashValue(ListPiece):
+    def __init__(self, hashgenerator, whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking):
+        super().__init__(whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking)
+        self.hashgenerator = hashgenerator
+        # TODO completare questa inizializzazione dell'hash value
+        self.orginhasvalue = None
+        self.hashvalues = []
+        self.arecastlingrightschanged = [False, False, False, False]
+        self.areenpassantchanged = [False, False, False, False, False, False, False, False]
+
+    def _initarecastlingrightschanged(self, whitecastlingrights, blackcastlingrights):
+        self.arecastlingrightschanged[0] = whitecastlingrights.ispossiblekingcastling()
+        self.arecastlingrightschanged[1] = whitecastlingrights.ispossiblequeencastling()
+        self.arecastlingrightschanged[2] = blackcastlingrights.ispossiblekingcastling()
+        self.arecastlingrightschanged[3] = blackcastlingrights.ispossiblequeencastling()
+
+    def _initenpassantbeforemove(self, enpassantbeforemove):
+        whitelist = [False, False, False, False, False, False, False, False]
+        blacklist = [False, False, False, False, False, False, False, False]
+        for pawn in self.whitepawns:
+            if pawn.enpassantthreat:
+                column = pawn.coordinate.getrankvalue() - 1
+                whitelist[column] = True
+        for pawn in self.blackpawns:
+            if pawn.enpassantthreat:
+                column = pawn.coordinate.getrankvalue() - 1
+                blacklist[column] = True
+        enpassantbeforemove.append(whitelist)
+        enpassantbeforemove.append(blacklist)
+
+    def _updateareenpassantchanged(self, enpassantbeforemove):
+        whitelist = enpassantbeforemove[0]
+        blacklist = enpassantbeforemove[1]
+        for pawn in self.whitepawns:
+            column = pawn.coordinate.getrankvalue() - 1
+            if pawn.enpassantthreat != whitelist[column]:
+                self.areenpassantchanged[column] = True
+        for pawn in self.blackpawns:
+            column = pawn.coordinate.getrankvalue() - 1
+            if pawn.enpassantthreat != blacklist[column]:
+                self.areenpassantchanged[column] = True
+
+    def _updatearecastlingrightschanged(self, whitecastlingrights, blackcastlingrights):
+        if whitecastlingrights.ispossiblekingcastling() == self.arecastlingrightschanged[0]:
+            self.arecastlingrightschanged[0] = False
+        if whitecastlingrights.ispossiblequeencastling() == self.arecastlingrightschanged[1]:
+            self.arecastlingrightschanged[1] = False
+        if blackcastlingrights.ispossiblekingcastling() == self.arecastlingrightschanged[2]:
+            self.arecastlingrightschanged[2] = False
+        if blackcastlingrights.ispossiblequeencastling() == self.arecastlingrightschanged[3]:
+            self.arecastlingrightschanged[3] = False
+
+    def applymove(self, move):
+        whitecastlingrights = self.whiteking.castlingrights
+        blackcastlingrights = self.blackking.castlingrights
+        self._initarecastlingrightschanged(whitecastlingrights, blackcastlingrights)
+        enpassantbeforemove = []
+        self._initenpassantbeforemove(enpassantbeforemove)
+        if move.iskingcastling:
+            self._applykingcastling(move)
+        elif move.isqueencastling:
+            self._applyqueencastling(move)
+        elif move.capturedpiece is not None:
+            if move.promotionto is not None:
+                self._captureandpromotion(move)
+                pass
+            else:
+                self._capturepiece(move)
+                pass
+        elif move.promotionto is not None:
+            self._promotepawn(move)
+            pass
+        else:
+            self.movepiece(move.piece, move.tocell)
+            pass
+        if move.piece:
+            move.piece.movescounter += 1
+            move.piece.isstartpos = False
+        if self.moves:
+            lastmove = self.moves[-1]
+            if lastmove.isenpassant:
+                lastmove.piece.enpassantthreat = False
+        self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
+        self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
+        self.moves.append(move)
+        lastmove = self.moves[-1]
+        if lastmove.isenpassant:
+            lastmove.piece.enpassantthreat = True
+        self._updatearecastlingrightschanged(whitecastlingrights, blackcastlingrights)
+        self._updateareenpassantchanged(enpassantbeforemove)
+        # TODO mettere a posto l'interfaccia tra LISTPIECE e HASHGENERATOR
+        newhashvalue = self.hashgenerator.updatekey()
+        self.hashvalues.append(newhashvalue)
+
+    def undomove(self, move):
+        if move.iskingcastling:
+            self._undokingcastling(move)
+        elif move.isqueencastling:
+            self._undoqueencastling(move)
+        elif move.capturedpiece is not None:
+            if move.promotionto is not None:
+                self._undocaptureandpromotion(move)
+            else:
+                self._undocapturepiece(move)
+        elif move.promotionto is not None:
+            self._undopromotepawn(move)
+        else:
+            self.movepiece(move.piece, move.fromcell)
+        if move.piece:
+            move.piece.movescounter -= 1
+            if move.piece.movescounter == 0:
+                move.piece.isstartpos = True
+        self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
+        self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
+        if move.isenpassant:
+            move.piece.enpassantthreat = False
+        self.moves.remove(move)
+        if self.moves:
+            lastmove = self.moves[-1]
+            if lastmove.isenpassant:
+                lastmove.piece.enpassantthreat = True
+        self.hashvalues.pop(-1)
+
+    def gethashvalue(self):
+        return self.hashvalues[-1]
+    
+
+class ListPieceNoHashValue(ListPiece):
+    pass
 
 
 listpiece = None
@@ -561,7 +642,8 @@ class Pawn(RealPiece):
                 raise TakenKingException
             if tocell.fileint == self.promotionfile:
                 promotionto = self.mypromotionto(tocell, self.allyking, self.enemyking)
-                move = self.moveCapturePromotionFactory(self, self.coordinate, tocell, capturedpiece, promotionto, False)
+                move = self.moveCapturePromotionFactory(self, self.coordinate, tocell, capturedpiece, promotionto,
+                                                        False)
             else:
                 move = self.moveCaptureFactory(self, self.coordinate, tocell, capturedpiece, False)
         else:
@@ -864,7 +946,7 @@ class Queen(RealPiece):
                         moves.append(move)
                         if move.capturedpiece is not None:
                             break
-                    except(TakenKingException):
+                    except TakenKingException:
                         pass
             except(CoordinateException, AllyOccupationException):
                 pass
@@ -1163,6 +1245,7 @@ def black_generator_moves(listpiece):
 
 
 if __name__ == '__main__':
+    """
     import movemodule
     wc = movemodule.CastlingRights(False)
     bc = movemodule.CastlingRights(False)
@@ -1178,3 +1261,4 @@ if __name__ == '__main__':
     moves = blackKing.generatemoves()
     for move in moves:
         print(move)
+    """
