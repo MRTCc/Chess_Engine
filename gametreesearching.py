@@ -683,7 +683,9 @@ if __name__ == '__main__':
     import hashingalgorithms as has
     rightkey = has.zobristgenerator.gethashkey(listpiece, listpiece.getcurrentactivecolor())
     print("Zobrist key from scratch: ", rightkey, "\nZobrist key from update:  ", newkey)
-
+    move = mvm.whiteMoveFactory(listpiece.whitepieces[0], e1, f1, False)
+    listpiece.applymove(move)
+    print(listpiece)
     """
     gameposition = fen("2r1k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
     print(pcsm.listpiece)
