@@ -6,6 +6,7 @@ Created on Thu Oct  1 11:05:52 2020
 """
 import movemodule
 from algebraicnotationmodule import CoordinateException
+import hashingalgorithms as hsa
 from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
                                      a7, b7, c7, d7, e7, f7, g7, h7,
                                      a6, b6, c6, d6, e6, f6, g6, h6,
@@ -42,7 +43,9 @@ class TakenKingException(Exception):
 
 
 class ListPieceFactory:
-    def __call__(self, whitepieces, whitepawns, blackpieces, blackpawns):
+    def __call__(self, whitepieces, whitepawns, blackpieces, blackpawns, hashingmethod, activecolor):
+        whiteking = None
+        blackking = None
         kingcount = 0
         for piece in whitepieces:
             if kingcount > 1:
@@ -76,8 +79,14 @@ class ListPieceFactory:
                 break
         if wrongcolor:
             raise AttributeError("blackpieces and blackpawns contains a not Black piece")
-
-        listpiece = ListPiece(whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking)
+        if hashingmethod == 'zobrist':
+            listpiece = ListPieceHashValue(hsa.zobristgenerator, whitepieces, whitepawns, blackpieces, blackpawns,
+                                           whiteking, blackking, activecolor)
+        elif hashingmethod == 'none':
+            listpiece = ListPieceNoHashValue(whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking,
+                                             activecolor)
+        else:
+            raise ValueError("ListpieceFactory --> __call__ : not a valid hashingmethod value")
         return listpiece
 
 
@@ -85,7 +94,8 @@ listpiecefactory = ListPieceFactory()
 
 
 class ListPiece:
-    def __init__(self, whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking):
+    def __init__(self, whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking, activecolor):
+        self.originactivecolor = activecolor
         self.whitepieces = whitepieces
         self.whitepawns = whitepawns
         self.blackpieces = blackpieces
@@ -341,6 +351,12 @@ class ListPiece:
         self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
         self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
 
+    def getcurrentactivecolor(self):
+        if len(self.moves) < 1:
+            return self.originactivecolor
+        else:
+            return not self.moves[-1].iswhiteturn
+
     def __str__(self):
         keys = self.board.keys()
         strlist = [str(self.board[coordinate]) for coordinate in coordinatelist]
@@ -357,11 +373,11 @@ class ListPiece:
 
 
 class ListPieceHashValue(ListPiece):
-    def __init__(self, hashgenerator, whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking):
-        super().__init__(whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking)
+    def __init__(self, hashgenerator, whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking,
+                 activecolor):
+        super().__init__(whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking, activecolor)
         self.hashgenerator = hashgenerator
-        # TODO completare questa inizializzazione dell'hash value
-        self.orginhasvalue = None
+        self.originhashvalue = hashgenerator.gethashkey(self, activecolor)
         self.hashvalues = []
         self.arecastlingrightschanged = [False, False, False, False]
         self.areenpassantchanged = [False, False, False, False, False, False, False, False]
@@ -446,8 +462,7 @@ class ListPieceHashValue(ListPiece):
             lastmove.piece.enpassantthreat = True
         self._updatearecastlingrightschanged(whitecastlingrights, blackcastlingrights)
         self._updateareenpassantchanged(enpassantbeforemove)
-        # TODO mettere a posto l'interfaccia tra LISTPIECE e HASHGENERATOR
-        newhashvalue = self.hashgenerator.updatekey()
+        newhashvalue = self.hashgenerator.updatehashkey(self.gethashvalue(), self, self.getcurrentactivecolor())
         self.hashvalues.append(newhashvalue)
 
     def undomove(self, move):
@@ -480,8 +495,11 @@ class ListPieceHashValue(ListPiece):
         self.hashvalues.pop(-1)
 
     def gethashvalue(self):
-        return self.hashvalues[-1]
-    
+        if len(self.hashvalues) < 1:
+            return self.originhashvalue
+        else:
+            return self.hashvalues[-1]
+
 
 class ListPieceNoHashValue(ListPiece):
     pass

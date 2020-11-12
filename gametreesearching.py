@@ -16,6 +16,7 @@ from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
 
 checkmatevalue = 10000
 nposition = 0
+hashingmethod = 'zobrist'
 
 
 def startpos_factory(enginecolor, algorithm):
@@ -39,7 +40,7 @@ def startpos_factory(enginecolor, algorithm):
                   pcsm.BlackPawn(c7, blackKing, whiteKing), pcsm.BlackPawn(d7, blackKing, whiteKing),
                   pcsm.BlackPawn(e7, blackKing, whiteKing), pcsm.BlackPawn(f7, blackKing, whiteKing),
                   pcsm.BlackPawn(g7, blackKing, whiteKing), pcsm.BlackPawn(h7, blackKing, whiteKing)]
-    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns)
+    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, hashingmethod, True)
     pcsm.listpiece.updatecastlingrights()
     if algorithm == 'minmax':
         if enginecolor == 'white':
@@ -290,11 +291,12 @@ class FenStrParser:
         wcastlingrights, bcastlingrights = self._parsecastlingrights(tokens[2])
         whiteking, blackking = self._parsekings(tokens[0], wcastlingrights, bcastlingrights)
         whitepieces, whitepawns, blackpieces, blackpawns = self._parsepieces(tokens[0], whiteking, blackking)
-        pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns)
+        self._parseactivecolor(tokens[1])
+        pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, hashingmethod,
+                                               self.activecolor)
         pcsm.listpiece.updatecastlingrights()
         self._parserenpassant(tokens[3], pcsm.listpiece)
         gameposition = self._parsergameposition(pcsm.listpiece)
-        self._parseactivecolor(tokens[1])
         # print(gameposition)
         # TODO al momento, ignoro gli altri due campi fen
         return gameposition
@@ -632,7 +634,7 @@ def debug_pos_factory():
     blackpieces = [blackKing, pcsm.BlackRook(a8, blackKing, whiteKing),
                    pcsm.BlackKnight(g7, blackKing, whiteKing)]
     blackpawns = [pcsm.BlackPawn(b2, blackKing, whiteKing)]
-    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns)
+    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, hashingmethod, True)
     return pcsm.listpiece, whiteKing, blackKing
 
 
@@ -669,16 +671,17 @@ if __name__ == '__main__':
     listpiece, whiteking, blackking = debug_pos_factory()
     gameposition = MinMaxWhiteGamePosition(listpiece)
     print("Tocca a bianco: \n", pcsm.listpiece)
-    z = trsp.Zobrist()
-    key = z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn)
+    key = listpiece.gethashvalue()
+    print(key)
     # move = mvm.whiteMoveCapturePromotionFactory(listpiece.whitepawns[0], b7, a8, listpiece.blackpieces[1],
     #                                            listpiece.whitepawns[0].mypromotionto(a8, whiteking, blackking), False)
     move = mvm.whiteMovePromotionFactory(listpiece.whitepawns[0], b7, b8,
                                          listpiece.whitepawns[0].mypromotionto(b8, whiteking, blackking), False)
     listpiece.applymove(move)
     print("Tocca a bianco: \n", pcsm.listpiece)
-    newkey = z.updatezobristkey(key, gameposition.listpiece, not gameposition.iswhiteturn)
-    rightkey = z.getzobristhash(gameposition.listpiece, not gameposition.iswhiteturn)
+    newkey = listpiece.gethashvalue()
+    import hashingalgorithms as has
+    rightkey = has.zobristgenerator.gethashkey(listpiece, listpiece.getcurrentactivecolor())
     print("Zobrist key from scratch: ", rightkey, "\nZobrist key from update:  ", newkey)
 
     """
