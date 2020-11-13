@@ -213,12 +213,7 @@ class ListPiece:
         king.isstartpos = False
         rook.isstartpos = False
 
-    def _ismovevalid(self, move):
-        if self.getcurrentactivecolor() == move.iswhiteturn:
-            raise ValueError("ListPiece --> applymove : not possible: the a color mustn't move two times in a row!!!")
-
     def applymove(self, move):
-        self._ismovevalid(move)
         if move.iskingcastling:
             self._applykingcastling(move)
         elif move.isqueencastling:
@@ -430,7 +425,6 @@ class ListPieceHashValue(ListPiece):
             self.arecastlingrightschanged[3] = False
 
     def applymove(self, move):
-        self._ismovevalid(move)
         whitecastlingrights = self.whiteking.castlingrights
         blackcastlingrights = self.blackking.castlingrights
         self._initarecastlingrightschanged(whitecastlingrights, blackcastlingrights)
@@ -468,7 +462,7 @@ class ListPieceHashValue(ListPiece):
             lastmove.piece.enpassantthreat = True
         self._updatearecastlingrightschanged(whitecastlingrights, blackcastlingrights)
         self._updateareenpassantchanged(enpassantbeforemove)
-        newhashvalue = self.hashgenerator.updatehashkey(self.gethashvalue(), self, self.getcurrentactivecolor())
+        newhashvalue = self.hashgenerator.updatehashkey(self.gethashkey(), self, self.getcurrentactivecolor())
         self.hashvalues.append(newhashvalue)
 
     def undomove(self, move):
@@ -500,7 +494,7 @@ class ListPieceHashValue(ListPiece):
                 lastmove.piece.enpassantthreat = True
         self.hashvalues.pop(-1)
 
-    def gethashvalue(self):
+    def gethashkey(self):
         if len(self.hashvalues) < 1:
             return self.originhashvalue
         else:
