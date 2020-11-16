@@ -45,6 +45,8 @@ class TranspositionTable:
 
 class Record:
     def __init__(self, key, score, depthleft, board):
+        if key is None or score is None or depthleft is None or board is None:
+            raise AttributeError("Record --> __init__ : 'None' attribute value!!!")
         self.key = key
         self.score = score
         self.depthleft = depthleft
@@ -69,6 +71,8 @@ class MinMaxRecord(Record):
 class AlphaBetaRecord(Record):
     def __init__(self, key, score, isalphacutoff, isbetacutoff, depthleft, board):
         super().__init__(key, score, depthleft, board)
+        if isalphacutoff is None or isbetacutoff is None:
+            raise AttributeError("Record --> __init__ : 'None' attribute value!!!")
         self.isalphacutoff = isalphacutoff
         self.isbetacutoff = isbetacutoff
         if self.isalphacutoff and self.isbetacutoff:
@@ -80,7 +84,7 @@ class AlphaBetaRecord(Record):
 
     def __str__(self):
         msg = ("key: " + str(self.key) + "\tscore: " + str(self.score) + "\tdepth left: " + str(self.depthleft) +
-               "\talpha cutoff: " + str(self.isalphacutoff) + "\tbeta cutoff: " + str(self.isbetacutoff))
+               "\t\talpha cutoff: " + str(self.isalphacutoff) + "\t\tbeta cutoff: " + str(self.isbetacutoff))
         return msg
 
 

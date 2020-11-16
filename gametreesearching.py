@@ -369,7 +369,7 @@ class GamePosition:
             return False
 
     def calcbestmove(self, ply):
-        pass
+        raise Exception("GamePosition --> calcbestmove : not implemented!!!")
 
     def _outputmoves(self):
         msg = ""
@@ -435,7 +435,7 @@ class MinMaxGamePosition(GamePosition):
         bestvalue = self.childrenevaluationfunc(values)
         self.value = bestvalue
         """
-        pass
+        raise Exception("MinMaxGamePosition --> builtplytreevalue : not implemented!!!")
 
     def calcbestmove(self, ply):
         self.builtplytreevalue(ply)
@@ -702,7 +702,7 @@ class AlphaBetaGamePosition(GamePosition):
         return move.priority
 
     def alphabeta(self, alpha, beta, ply):
-        pass
+        raise Exception("AlphaBetaGamePosition --> alphabeta : not implemented!!!")
 
     def calcbestmove(self, ply):
         self.value = self.alphabeta(-10000000, +10000000, ply)
@@ -752,14 +752,16 @@ class AlphaBetaWhiteGamePosition(AlphaBetaGamePosition):
             child = self.enemy_game_position_func(self.listpiece, self)
             child.value = child.alphabeta(alpha, beta, depthleft - 1)
             if child.value >= beta:
+                self.value = beta
                 msg = self._outputmoves()
-                testfile.write(msg + "\n")
+                testfile.write(msg + "---------- beta cut-off -----------" + "\n")
                 self.listpiece.undomove(move)
                 return beta
             if child.value > alpha:
                 alpha = child.value
             self.children.append(child)
             self.listpiece.undomove(move)
+        self.value = alpha
         return alpha
 
     def __str__(self):
@@ -816,15 +818,17 @@ class AlphaBetaWhiteGamePositionTable(AlphaBetaWhiteGamePosition):
             child = self.enemy_game_position_func(self.transpositiontable, self.listpiece, self)
             child.value = child.alphabeta(alpha, beta, depthleft - 1)
             if child.value >= beta:
+                self.value = beta
                 msg = self._outputmoves()
                 self._updatetranspositiontable(positionkey, False, True, depthleft)
-                testfile.write(msg + "\n")
+                testfile.write(msg + "---------- beta cut-off -----------" + "\n")
                 self.listpiece.undomove(move)
                 return beta
             if child.value > alpha:
                 alpha = child.value
             self.children.append(child)
             self.listpiece.undomove(move)
+        self.value = alpha
         self._updatetranspositiontable(positionkey, False, False, depthleft)
         return alpha
 
@@ -867,14 +871,16 @@ class AlphaBetaBlackGamePosition(AlphaBetaGamePosition):
             child = self.enemy_game_position_func(self.listpiece, self)
             child.value = child.alphabeta(alpha, beta, depthleft - 1)
             if child.value <= alpha:
+                self.value = alpha
                 msg = self._outputmoves()
-                testfile.write(msg + "\n")
+                testfile.write(msg + "---------- alpha cut-off -----------" + "\n")
                 self.listpiece.undomove(move)
                 return alpha
             if child.value < beta:
                 beta = child.value
             self.children.append(child)
             self.listpiece.undomove(move)
+        self.value = beta
         return beta
 
     def __str__(self):
@@ -931,15 +937,17 @@ class AlphaBetaBlackGamePositionTable(AlphaBetaBlackGamePosition):
             child = self.enemy_game_position_func(self.transpositiontable, self.listpiece, self)
             child.value = child.alphabeta(alpha, beta, depthleft - 1)
             if child.value <= alpha:
+                self.value = alpha
                 msg = self._outputmoves()
                 self._updatetranspositiontable(positionkey, True, False, depthleft)
-                testfile.write(msg + "\n")
+                testfile.write(msg + "---------- alpha cut-off -----------" + "\n")
                 self.listpiece.undomove(move)
                 return alpha
             if child.value < beta:
                 beta = child.value
             self.children.append(child)
             self.listpiece.undomove(move)
+        self.value = beta
         self._updatetranspositiontable(positionkey, False, False, depthleft)
         return beta
 
@@ -1012,14 +1020,14 @@ if __name__ == '__main__':
     """
 
     table = trsp.TranspositionTable(trsp.AlphaBetaRecord)
-    fen = FenStrParser('white', 'alphabeta', None)
+    fen = FenStrParser('white', 'alphabeta', table)
     gameposition = fen("8/8/8/8/k2K4/2Q5/8/8 w - - 0 0".split())
     print(pcsm.listpiece)
-    bestmove = gameposition.calcbestmove(3)
+    bestmove = gameposition.calcbestmove(8)
     print(nposition)
     print(bestmove)
     nposition = 0
-    # print(len(table.records))
+    print(len(table.records))
 
     """
     fen = FenStrParser('white')
