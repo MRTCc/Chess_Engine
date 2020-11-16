@@ -20,21 +20,18 @@ class TranspositionTable:
         try:
             record = self.records[key]
         except KeyError:
-            # TODO Sistemare l'unpacking in alphabeta table
-            # return self.record_class.getnulldata()
-            pass
-        return record.getrecorddata()
+            record = None
+        return record
 
     def insertnewrecord(self, key, *args):
         newrecord = self.record_class(key, *args)
         if key in self.records.keys():
-            self._collisionmanagement(newrecord)
+            self._collisionmanagement(newrecord, self.records[key])
         else:
             self.records[key] = newrecord
 
-    def _collisionmanagement(self, newrecord):
-        oldrecord = self.records[newrecord.key]
-        if oldrecord.dephtleft < newrecord.depthleft:
+    def _collisionmanagement(self, newrecord, oldrecord):
+        if oldrecord.depthleft < newrecord.depthleft:
             self.records[newrecord.key] = newrecord
 
     def __str__(self):

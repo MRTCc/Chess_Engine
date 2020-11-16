@@ -516,9 +516,9 @@ class MinMaxWhiteGamePositionTable(MinMaxWhiteGamePosition):
         global nposition
         nposition += 1
         positionkey = self.listpiece.gethashkey()
-        value = self.transpositiontable.getrecordfromkey(positionkey, str(self.listpiece))
-        if value is not None:
-            self.value = value
+        record = self.transpositiontable.getrecordfromkey(positionkey, str(self.listpiece))
+        if record is not None:
+            self.value = record.score
             msg = self._outputmoves()
             testfile.write(msg + "________ Transposition Table match ___________" + "\n")
             return
@@ -633,9 +633,9 @@ class MinMaxBlackGamePositionTable(MinMaxBlackGamePosition):
         global nposition
         nposition += 1
         positionkey = self.listpiece.gethashkey()
-        value = self.transpositiontable.getrecordfromkey(positionkey, str(self.listpiece))
-        if value is not None:
-            self.value = value
+        record = self.transpositiontable.getrecordfromkey(positionkey, str(self.listpiece))
+        if record is not None:
+            self.value = record.score
             msg = self._outputmoves()
             testfile.write(msg + "________ Transposition Table match ___________" + "\n")
             return
@@ -784,9 +784,9 @@ class AlphaBetaWhiteGamePositionTable(AlphaBetaWhiteGamePosition):
         global nposition
         nposition += 1
         positionkey = self.listpiece.gethashkey()
-        value, isalphacutoff, isbetacutoff = self.transpositiontable.getrecordfromkey(positionkey, str(self.listpiece))
-        if value is not None and isbetacutoff:
-            self.value = value
+        record = self.transpositiontable.getrecordfromkey(positionkey, str(self.listpiece))
+        if record is not None:
+            self.value = record.score
             msg = self._outputmoves()
             testfile.write(msg + "________ Transposition table match ______________" + "\n")
             return self.value
@@ -815,7 +815,7 @@ class AlphaBetaWhiteGamePositionTable(AlphaBetaWhiteGamePosition):
         self.moves.sort(key=AlphaBetaGamePosition._moveorderingkey, reverse=True)
         for move in self.moves:
             self.listpiece.applymove(move)
-            child = self.enemy_game_position_func(self.listpiece, self)
+            child = self.enemy_game_position_func(self.transpositiontable, self.listpiece, self)
             child.value = child.alphabeta(alpha, beta, depthleft - 1)
             if child.value >= beta:
                 tmp = self.value
@@ -903,9 +903,9 @@ class AlphaBetaBlackGamePositionTable(AlphaBetaBlackGamePosition):
         global nposition
         nposition += 1
         positionkey = self.listpiece.gethashkey()
-        value, isalphacutoff, isbetacutoff = self.transpositiontable.getrecordfromkey(positionkey, str(self.listpiece))
-        if value is not None and isalphacutoff:
-            self.value = value
+        record = self.transpositiontable.getrecordfromkey(positionkey, str(self.listpiece))
+        if record is not None:
+            self.value = record.score
             msg = self._outputmoves()
             testfile.write(msg + "________ Transposition table match ___________" + "\n")
             return self.value
@@ -934,7 +934,7 @@ class AlphaBetaBlackGamePositionTable(AlphaBetaBlackGamePosition):
         self.moves.sort(key=AlphaBetaGamePosition._moveorderingkey, reverse=True)
         for move in self.moves:
             self.listpiece.applymove(move)
-            child = self.enemy_game_position_func(self.listpiece, self)
+            child = self.enemy_game_position_func(self.transpositiontable, self.listpiece, self)
             child.value = child.alphabeta(alpha, beta, depthleft - 1)
             if child.value <= alpha:
                 tmp = self.value
@@ -1019,11 +1019,11 @@ if __name__ == '__main__':
     print(gamethread.getbestmove())
     """
 
-    table = trsp.TranspositionTable(trsp.MinMaxRecord)
+    table = trsp.TranspositionTable(trsp.AlphaBetaRecord)
     fen = FenStrParser('white', 'alphabeta', table)
     gameposition = fen("8/8/8/8/k2K4/2Q5/8/8 w - - 0 0".split())
     print(pcsm.listpiece)
-    bestmove = gameposition.calcbestmove(2)
+    bestmove = gameposition.calcbestmove(4)
     print(nposition)
     print(bestmove)
     nposition = 0
