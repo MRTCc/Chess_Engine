@@ -245,24 +245,6 @@ class FenStrParser:
         return whitepieces, whitepawns, blackpieces, blackpawns
 
     def _parsergameposition(self, listpiece):
-        """
-        if self.algorithm == 'minmax':
-            if self.enginecolor == 'white':
-                gameposition = MinMaxWhiteGamePosition(listpiece)
-            elif self.enginecolor == 'black':
-                gameposition = MinMaxBlackGamePosition(listpiece)
-            else:
-                raise ValueError('Not a valid enginecolor value!!!')
-        elif self.algorithm == 'alphabeta':
-            if self.enginecolor == 'white':
-                gameposition = AlphaBetaWhiteGamePosition(listpiece)
-            elif self.enginecolor == 'black':
-                gameposition = AlphaBetaBlackGamePosition(listpiece)
-            else:
-                raise ValueError('Not a valid enginecolor value!!!')
-        else:
-            raise ValueError('Not a valid algorithm!!!')
-        """
         if self.algorithm == 'minmax' and self.transpositiontable:
             if self.enginecolor == 'white':
                 gameposition = MinMaxWhiteGamePositionTable(self.transpositiontable, pcsm.listpiece)
