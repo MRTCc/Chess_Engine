@@ -5,6 +5,7 @@ import ctypes
 import evaluationmodule as evm
 import transpositionmodule as trsp
 import algebraicnotationmodule as algn
+import hashingalgorithms as hsa
 from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
                                      a7, b7, c7, d7, e7, f7, g7, h7,
                                      a6, b6, c6, d6, e6, f6, g6, h6,
@@ -18,9 +19,50 @@ checkmatevalue = 10000
 nposition = 0
 hashingmethod = 'zobrist'
 isactivetraspositiontable = True
+algorithm = 'alphabeta'
+maxply = 30
+transpositiontable = None
+hashgenerator = None
+rootposition = None
 
 
-def startpos_factory(enginecolor, algorithm, transpositiontable):
+def initnewgame():
+    global transpositiontable
+    global hashgenerator
+    if isactivetraspositiontable:
+        if hashingmethod == 'zobrist':
+            hashgenerator = hsa.Zobrist()
+        transpositiontable = trsp.transpositiontablefactory(algorithm)
+
+
+def initgameposition(tokens):
+    global rootposition
+    strmoves = []
+    activecolor = ''
+    if tokens[0] == 'startpos':
+        rootposition = startpos_factory('white', algorithm, transpositiontable, hashgenerator)
+        strmoves = tokens[2:]
+        activecolor = 'white'
+    else:
+        # TODO sistemare enginecolor
+        fenparser = FenStrParser('white', algorithm, transpositiontable, hashgenerator)
+        fenstr = []
+        isfenstr = True
+        for token in tokens:
+            if token == 'moves':
+                isfenstr = False
+                break
+            if isfenstr:
+                fenstr.append(token)
+            else:
+                strmoves.append(token)
+        rootposition = fenparser(fenstr)
+        activecolor = fenparser.activecolor
+    movesetter = UciMoveSetter(rootposition, strmoves)
+    movesetter(activecolor)
+
+
+def startpos_factory(enginecolor, algorithm, transpositiontable, hashgenerator):
     """ N.B. Suppone che enginecolor e algorithm abbiano valori validi!!!!"""
     wc = mvm.CastlingRights()
     bc = mvm.CastlingRights()
@@ -42,7 +84,7 @@ def startpos_factory(enginecolor, algorithm, transpositiontable):
                   pcsm.BlackPawn(c7, blackKing, whiteKing), pcsm.BlackPawn(d7, blackKing, whiteKing),
                   pcsm.BlackPawn(e7, blackKing, whiteKing), pcsm.BlackPawn(f7, blackKing, whiteKing),
                   pcsm.BlackPawn(g7, blackKing, whiteKing), pcsm.BlackPawn(h7, blackKing, whiteKing)]
-    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, hashingmethod, True)
+    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, hashgenerator, True)
     pcsm.listpiece.updatecastlingrights()
     if algorithm == 'minmax' and transpositiontable:
         if enginecolor == 'white':
@@ -134,13 +176,14 @@ class UciMoveSetter:
 
 
 class FenStrParser:
-    def __init__(self, enginecolor, algorithm, transpositiontable):
+    def __init__(self, enginecolor, algorithm, transpositiontable, hashgenerator):
         self.whiteletters = ('R', 'N', 'B', 'Q', 'K', 'P')
         self.blackletters = ('r', 'n', 'b', 'q', 'k', 'p')
         self.enginecolor = enginecolor
         self.activecolor = None
         self.algorithm = algorithm
         self.transpositiontable = transpositiontable
+        self.hashgenerator = hashgenerator
 
     def _parsecastlingrights(self, fencastling):
         if '-' in fencastling:
@@ -307,7 +350,7 @@ class FenStrParser:
         whiteking, blackking = self._parsekings(tokens[0], wcastlingrights, bcastlingrights)
         whitepieces, whitepawns, blackpieces, blackpawns = self._parsepieces(tokens[0], whiteking, blackking)
         self._parseactivecolor(tokens[1])
-        pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, hashingmethod,
+        pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, self.hashgenerator,
                                                self.activecolor)
         pcsm.listpiece.updatecastlingrights()
         self._parserenpassant(tokens[3], pcsm.listpiece)
@@ -972,7 +1015,7 @@ class GameThread(threading.Thread):
         return self.bestmove
 
 
-def debug_pos_factory():
+def debug_pos_factory(hashgenerator):
     wc = mvm.CastlingRights(True, True, False, True, False, False)
     bc = mvm.CastlingRights(True, True, False, True, False, False)
     whiteKing = pcsm.WhiteKing(e1, wc)
@@ -983,7 +1026,7 @@ def debug_pos_factory():
     blackpieces = [blackKing, pcsm.BlackRook(a8, blackKing, whiteKing),
                    pcsm.BlackKnight(g7, blackKing, whiteKing)]
     blackpawns = [pcsm.BlackPawn(b2, blackKing, whiteKing)]
-    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, hashingmethod, True)
+    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, hashgenerator, True)
     return pcsm.listpiece, whiteKing, blackKing
 
 

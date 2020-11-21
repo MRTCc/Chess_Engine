@@ -6,7 +6,6 @@ Created on Thu Oct  1 11:05:52 2020
 """
 import movemodule
 from algebraicnotationmodule import CoordinateException
-import hashingalgorithms as hsa
 from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
                                      a7, b7, c7, d7, e7, f7, g7, h7,
                                      a6, b6, c6, d6, e6, f6, g6, h6,
@@ -43,7 +42,7 @@ class TakenKingException(Exception):
 
 
 class ListPieceFactory:
-    def __call__(self, whitepieces, whitepawns, blackpieces, blackpawns, hashingmethod, activecolor):
+    def __call__(self, whitepieces, whitepawns, blackpieces, blackpawns, hashinggenerator, activecolor):
         whiteking = None
         blackking = None
         kingcount = 0
@@ -79,14 +78,12 @@ class ListPieceFactory:
                 break
         if wrongcolor:
             raise AttributeError("blackpieces and blackpawns contains a not Black piece")
-        if hashingmethod == 'zobrist':
-            listpiece = ListPieceHashValue(hsa.zobristgenerator, whitepieces, whitepawns, blackpieces, blackpawns,
+        if hashinggenerator is not None:
+            listpiece = ListPieceHashValue(hashinggenerator, whitepieces, whitepawns, blackpieces, blackpawns,
                                            whiteking, blackking, activecolor)
-        elif hashingmethod == 'none':
+        else:
             listpiece = ListPieceNoHashValue(whitepieces, whitepawns, blackpieces, blackpawns, whiteking, blackking,
                                              activecolor)
-        else:
-            raise ValueError("ListpieceFactory --> __call__ : not a valid hashingmethod value")
         return listpiece
 
 
