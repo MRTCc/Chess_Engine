@@ -40,7 +40,6 @@ def stream_in_manager():
 class SearchThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.daemon = True
         self.strbestmove = None
 
     def getbestmove(self):
@@ -177,7 +176,6 @@ class UciManager:
                     self.isconnectionstate = False
                     self.isinitnewgamestate = True
                 elif keyword == 'quit':
-                    # bisogna aggiungere roba
                     break
                 elif keyword == 'showstate':
                     self._showstate()

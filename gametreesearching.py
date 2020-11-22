@@ -1,7 +1,5 @@
 import movemodule as mvm
 import piecesmodule as pcsm
-import threading
-import ctypes
 import random
 import evaluationmodule as evm
 import transpositionmodule as trsp
@@ -66,55 +64,6 @@ def initgameposition(tokens):
                 movestr.append(token)
     fenparser = FenStrParser(algorithm, transpositiontable, hashgenerator)
     rootposition = fenparser(fenstr, movestr)
-
-
-def startpos_factory(enginecolor, algorithm, transpositiontable, hashgenerator):
-    """ N.B. Suppone che enginecolor e algorithm abbiano valori validi!!!!"""
-    wc = mvm.CastlingRights()
-    bc = mvm.CastlingRights()
-    whiteKing = pcsm.WhiteKing(e1, wc)
-    blackKing = pcsm.BlackKing(e8, bc)
-    whitepieces = [pcsm.WhiteRook(a1, whiteKing, blackKing), pcsm.WhiteKnight(b1, whiteKing, blackKing),
-                   pcsm.WhiteBishop(c1, whiteKing, blackKing), pcsm.WhiteQueen(d1, whiteKing, blackKing),
-                   whiteKing, pcsm.WhiteBishop(f1, whiteKing, blackKing), pcsm.WhiteKnight(g1, whiteKing, blackKing),
-                   pcsm.WhiteRook(h1, whiteKing, blackKing)]
-    whitepawns = [pcsm.WhitePawn(a2, whiteKing, blackKing), pcsm.WhitePawn(b2, whiteKing, blackKing),
-                  pcsm.WhitePawn(c2, whiteKing, blackKing), pcsm.WhitePawn(d2, whiteKing, blackKing),
-                  pcsm.WhitePawn(e2, whiteKing, blackKing), pcsm.WhitePawn(f2, whiteKing, blackKing),
-                  pcsm.WhitePawn(g2, whiteKing, blackKing), pcsm.WhitePawn(h2, whiteKing, blackKing)]
-    blackpieces = [pcsm.BlackRook(a8, blackKing, whiteKing), pcsm.BlackKnight(b8, blackKing, whiteKing),
-                   pcsm.BlackBishop(c8, blackKing, whiteKing), pcsm.BlackQueen(d8, blackKing, whiteKing),
-                   blackKing, pcsm.BlackBishop(f8, blackKing, whiteKing), pcsm.BlackKnight(g8, blackKing, whiteKing),
-                   pcsm.BlackRook(h8, blackKing, whiteKing)]
-    blackpawns = [pcsm.BlackPawn(a7, blackKing, whiteKing), pcsm.BlackPawn(b7, blackKing, whiteKing),
-                  pcsm.BlackPawn(c7, blackKing, whiteKing), pcsm.BlackPawn(d7, blackKing, whiteKing),
-                  pcsm.BlackPawn(e7, blackKing, whiteKing), pcsm.BlackPawn(f7, blackKing, whiteKing),
-                  pcsm.BlackPawn(g7, blackKing, whiteKing), pcsm.BlackPawn(h7, blackKing, whiteKing)]
-    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, hashgenerator, True)
-    pcsm.listpiece.updatecastlingrights()
-    if algorithm == 'minmax' and transpositiontable:
-        if enginecolor == 'white':
-            gameposition = MinMaxWhiteGamePositionTable(transpositiontable, pcsm.listpiece)
-        else:
-            gameposition = MinMaxBlackGamePositionTable(transpositiontable, pcsm.listpiece)
-    elif algorithm == 'minmax' and transpositiontable is None:
-        if enginecolor == 'white':
-            gameposition = MinMaxWhiteGamePosition(pcsm.listpiece)
-        else:
-            gameposition = MinMaxBlackGamePosition(pcsm.listpiece)
-    elif algorithm == 'alphabeta' and transpositiontable:
-        if enginecolor == 'white':
-            gameposition = AlphaBetaWhiteGamePositionTable(transpositiontable, pcsm.listpiece)
-        else:
-            gameposition = AlphaBetaBlackGamePositionTable(transpositiontable, pcsm.listpiece)
-    elif algorithm == 'alphabeta' and transpositiontable is None:
-        if enginecolor == 'white':
-            gameposition = AlphaBetaWhiteGamePosition(pcsm.listpiece)
-        else:
-            gameposition = AlphaBetaBlackGamePosition(pcsm.listpiece)
-    else:
-        raise Exception("startpos_factory --> something wrong!!!")
-    return gameposition
 
 
 class UciMoveSetter:
@@ -370,7 +319,7 @@ class FenStrParser:
         whitepieces, whitepawns, blackpieces, blackpawns = self._parsepieces(tokens[0], whiteking, blackking)
         self._parsestartingcolor(tokens[1])
         pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, self.hashgenerator,
-                                          self.startingcolor)
+                                               self.startingcolor)
         pcsm.listpiece.updatecastlingrights()
         self._parserenpassant(tokens[3], pcsm.listpiece)
         movesetter = UciMoveSetter(pcsm.listpiece, movestr)
@@ -1004,44 +953,6 @@ class AlphaBetaBlackGamePositionTable(AlphaBetaBlackGamePosition):
         return beta
 
 
-class GameThread(threading.Thread):
-    def __init__(self, gameposition, maxply):
-        super().__init__()
-        self.gameposition = gameposition
-        self.bestmove = None
-        self.maxply = maxply
-        self.start()
-
-    def run(self):
-        try:
-            self.bestmove = self.gameposition.builtplytreevalue(self.maxply)
-        except Exception:
-            print('GameThread ended')
-
-    def get_id(self):
-
-        # returns id of the respective thread
-        if hasattr(self, '_thread_id'):
-            return self._thread_id
-        for id, thread in threading._active.items():
-            if thread is self:
-                return id
-
-    def killthread(self):
-        thread_id = self.get_id()
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,
-                                                         ctypes.py_object(SystemExit))
-        if res > 1:
-            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
-            print('Exception raise failure')
-
-    def randommove(self):
-        self.bestmove = self.gameposition.movegeneratorfunc(self.gameposition.listpiece)
-
-    def getbestmove(self):
-        return self.bestmove
-
-
 def debug_pos_factory(hashgenerator):
     wc = mvm.CastlingRights(True, True, False, True, False, False)
     bc = mvm.CastlingRights(True, True, False, True, False, False)
@@ -1058,19 +969,6 @@ def debug_pos_factory(hashgenerator):
 
 
 if __name__ == '__main__':
-    """"
-    fen = FenStrParser('black')
-    gameposition = fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".split())
-    setter = UciMoveSetter(gameposition, ['e2e4'])
-    setter(False)
-    gamethread = GameThread(gameposition, 5)
-    print("started")
-    import time
-    time.sleep(5)
-    gamethread.killthread()
-    print(gamethread.getbestmove())
-    """
-
     """
     table = trsp.TranspositionTable(trsp.AlphaBetaRecord)
     fen = FenStrParser('white', 'alphabeta', table)
@@ -1084,9 +982,8 @@ if __name__ == '__main__':
     """
 
     initnewgame()
-    initgameposition("1k6/8/8/8/8/3R4/2Q5/1K6 w - - 0 0 moves d3d7 b8a8 c2c3 a8b8".split())
+    initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".split())
     print(rootposition)
-
 
     """
     listpiece, whiteking, blackking = debug_pos_factory()
