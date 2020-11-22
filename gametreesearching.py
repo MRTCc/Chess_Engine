@@ -38,29 +38,34 @@ def initnewgame():
 
 def initgameposition(tokens):
     global rootposition
-    strmoves = []
-    activecolor = ''
+    movestr = []
+    fenstr = []
     if tokens[0] == 'startpos':
-        rootposition = startpos_factory('white', algorithm, transpositiontable, hashgenerator)
-        strmoves = tokens[2:]
-        activecolor = 'white'
+        fenstr.append('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR')
+        fenstr.append('w')
+        fenstr.append('-')
+        fenstr.append('-')
+        fenstr.append('0')
+        fenstr.append('0')
+        isamove = False
+        for token in tokens:
+            if token == 'moves':
+                isamove = True
+                continue
+            if isamove:
+                movestr.append(token)
     else:
-        # TODO sistemare enginecolor
-        fenparser = FenStrParser('white', algorithm, transpositiontable, hashgenerator)
-        fenstr = []
         isfenstr = True
         for token in tokens:
             if token == 'moves':
                 isfenstr = False
-                break
+                continue
             if isfenstr:
                 fenstr.append(token)
             else:
-                strmoves.append(token)
-        rootposition = fenparser(fenstr)
-        activecolor = fenparser.activecolor
-    movesetter = UciMoveSetter(rootposition, strmoves)
-    movesetter(activecolor)
+                movestr.append(token)
+    fenparser = FenStrParser(algorithm, transpositiontable, hashgenerator)
+    rootposition = fenparser(fenstr, movestr)
 
 
 def startpos_factory(enginecolor, algorithm, transpositiontable, hashgenerator):
@@ -113,11 +118,12 @@ def startpos_factory(enginecolor, algorithm, transpositiontable, hashgenerator):
 
 
 class UciMoveSetter:
-    def __init__(self, gameposition, strmoves):
-        self.gameposition = gameposition
+    def __init__(self, listpiece, strmoves):
+        self.listpiece = listpiece
         self.strmoves = strmoves
 
-    def movefactory(self, piece, fromcell, tocell, capturedpiece, iswhiteturn):
+    @staticmethod
+    def movefactory(piece, fromcell, tocell, capturedpiece, iswhiteturn):
         if isinstance(piece, pcsm.WhiteKing) and fromcell == e1 and tocell == g1:
             # arrocco corto re bianco
             move = mvm.whiteKingsideCastlingFactory()
@@ -169,24 +175,25 @@ class UciMoveSetter:
         for strmove in self.strmoves:
             fromcell = algn.str_to_algebraic(strmove[0:2])
             tocell = algn.str_to_algebraic(strmove[2:4])
-            piece = self.gameposition.listpiece.getpiecefromcoordinate(fromcell)
-            capturedpiece = self.gameposition.listpiece.getpiecefromcoordinate(tocell)
+            piece = self.listpiece.getpiecefromcoordinate(fromcell)
+            capturedpiece = self.listpiece.getpiecefromcoordinate(tocell)
             move = self.movefactory(piece, fromcell, tocell, capturedpiece, activecolor)
-            self.gameposition.listpiece.applymove(move)
+            self.listpiece.applymove(move)
             activecolor = not activecolor
 
 
 class FenStrParser:
-    def __init__(self, enginecolor, algorithm, transpositiontable, hashgenerator):
+    def __init__(self, algorithm, transpositiontable, hashgenerator):
         self.whiteletters = ('R', 'N', 'B', 'Q', 'K', 'P')
         self.blackletters = ('r', 'n', 'b', 'q', 'k', 'p')
-        self.enginecolor = enginecolor
-        self.activecolor = None
+        self.enginecolor = None
+        self.startingcolor = None
         self.algorithm = algorithm
         self.transpositiontable = transpositiontable
         self.hashgenerator = hashgenerator
 
-    def _parsecastlingrights(self, fencastling):
+    @staticmethod
+    def _parsecastlingrights(fencastling):
         if '-' in fencastling:
             wcastlingrights = mvm.CastlingRights(False, False, False, False, False, False)
             bcastlingrights = mvm.CastlingRights(False, False, False, False, False, False)
@@ -231,7 +238,8 @@ class FenStrParser:
             else:
                 raise ValueError("Not valid character in first field's string")
 
-    def _parsekings(self, boardstring, wcastlingrights, bcastlingrights):
+    @staticmethod
+    def _parsekings(boardstring, wcastlingrights, bcastlingrights):
         index = 0
         whitekingcoordinate = None
         blackkingcoordinate = None
@@ -251,7 +259,8 @@ class FenStrParser:
         blackking = pcsm.BlackKing(blackkingcoordinate, bcastlingrights)
         return whiteking, blackking
 
-    def _parsepieces(self, boardstring, whiteking, blackking):
+    @staticmethod
+    def _parsepieces(boardstring, whiteking, blackking):
         index = 0
         whitepieces = []
         whitepawns = []
@@ -295,17 +304,17 @@ class FenStrParser:
             else:
                 gameposition = MinMaxBlackGamePositionTable(self.transpositiontable, pcsm.listpiece)
         elif self.algorithm == 'minmax' and self.transpositiontable is None:
-            if self.enginecolor == 'white':
+            if self.enginecolor:
                 gameposition = MinMaxWhiteGamePosition(pcsm.listpiece)
             else:
                 gameposition = MinMaxBlackGamePosition(pcsm.listpiece)
         elif self.algorithm == 'alphabeta' and self.transpositiontable:
-            if self.enginecolor == 'white':
+            if self.enginecolor:
                 gameposition = AlphaBetaWhiteGamePositionTable(self.transpositiontable, pcsm.listpiece)
             else:
                 gameposition = AlphaBetaBlackGamePositionTable(self.transpositiontable, pcsm.listpiece)
         elif self.algorithm == 'alphabeta' and self.transpositiontable is None:
-            if self.enginecolor == 'white':
+            if self.enginecolor:
                 gameposition = AlphaBetaWhiteGamePosition(pcsm.listpiece)
             else:
                 gameposition = AlphaBetaBlackGamePosition(pcsm.listpiece)
@@ -313,15 +322,8 @@ class FenStrParser:
             raise Exception("FenStrParser --> something wrong!!!")
         return gameposition
 
-    def _parseactivecolor(self, colorstring):
-        if colorstring not in ('w', 'b'):
-            raise ValueError('Not a valid string fen color!!!')
-        if colorstring == 'w':
-            self.activecolor = True
-        else:
-            self.activecolor = False
-
-    def _parserenpassant(self, enpassantstr, listpiece):
+    @staticmethod
+    def _parserenpassant(enpassantstr, listpiece):
         if enpassantstr == '-':
             return
         enpcoordinate = algn.str_to_algebraic(enpassantstr)
@@ -342,19 +344,38 @@ class FenStrParser:
         piece.enpassantthreat = True
         # print("En passant pawn: ", piece, "at :", piece.coordinate)
 
-    def __call__(self, fenstr):
+    def _parsestartingcolor(self, colorstring):
+        if colorstring not in ('w', 'b'):
+            raise ValueError('Not a valid string fen color!!!')
+        if colorstring == 'w':
+            self.startingcolor = True
+        else:
+            self.startingcolor = False
+
+    @staticmethod
+    def _getactivecolor(startingcolor, nummoves):
+        if nummoves % 2 == 0:
+            return startingcolor
+        else:
+            return not startingcolor
+
+    def __call__(self, fenstr, movestr):
         tokens = fenstr
+        # TODO vedere cosa invia ARENA GUI
         if len(tokens) != 6:
             raise ValueError("Invalid FEN string!!!")
         self._isboardvalid(tokens[0])
         wcastlingrights, bcastlingrights = self._parsecastlingrights(tokens[2])
         whiteking, blackking = self._parsekings(tokens[0], wcastlingrights, bcastlingrights)
         whitepieces, whitepawns, blackpieces, blackpawns = self._parsepieces(tokens[0], whiteking, blackking)
-        self._parseactivecolor(tokens[1])
+        self._parsestartingcolor(tokens[1])
         pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, self.hashgenerator,
-                                               self.activecolor)
+                                          self.startingcolor)
         pcsm.listpiece.updatecastlingrights()
         self._parserenpassant(tokens[3], pcsm.listpiece)
+        movesetter = UciMoveSetter(pcsm.listpiece, movestr)
+        movesetter(self.startingcolor)
+        self.enginecolor = self._getactivecolor(self.startingcolor, len(movestr))
         gameposition = self._parsergameposition(pcsm.listpiece)
         # print(gameposition)
         # TODO al momento, ignoro gli altri due campi fen
@@ -1050,6 +1071,7 @@ if __name__ == '__main__':
     print(gamethread.getbestmove())
     """
 
+    """
     table = trsp.TranspositionTable(trsp.AlphaBetaRecord)
     fen = FenStrParser('white', 'alphabeta', table)
     gameposition = fen("8/8/8/8/k2K4/2Q5/8/8 w - - 0 0".split())
@@ -1059,14 +1081,12 @@ if __name__ == '__main__':
     print(bestmove)
     nposition = 0
     print(len(table.records))
+    """
 
-    """
-    fen = FenStrParser('white')
-    gameposition = fen("8/8/8/8/k2K4/2Q5/8/8 w - - 0 0".split())
-    ev = evm.Evaluator(gameposition.listpiece)
-    evaluation = ev()
-    print(ev)
-    """
+    initnewgame()
+    initgameposition("1k6/8/8/8/8/3R4/2Q5/1K6 w - - 0 0 moves d3d7 b8a8 c2c3 a8b8".split())
+    print(rootposition)
+
 
     """
     listpiece, whiteking, blackking = debug_pos_factory()
