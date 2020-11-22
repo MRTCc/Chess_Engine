@@ -22,7 +22,14 @@ class Move:
         self.ischeck = ischeck  # per ora lo metto, forse può servire a qualche ottimizzazione
 
     def short__str__(self):
-        return str(self.fromcell) + str(self.tocell)
+        msg = ''
+        msg += str(self.fromcell) + str(self.tocell)
+        if self.promotionto:
+            promotion = 'q'
+        else:
+            promotion = ''
+        msg += promotion
+        return msg
 
     def __str__(self):
         result = "Move: \n"

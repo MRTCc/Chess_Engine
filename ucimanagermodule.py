@@ -41,15 +41,18 @@ class SearchThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.daemon = True
-        self.isrequestactive = False
-        self.bestmove = None
+        self.strbestmove = None
 
     def getbestmove(self):
-        pass
+        if self.strbestmove is not None and not self.is_alive():
+            return self.strbestmove
+        if self.strbestmove is None and self.is_alive():
+            self.strbestmove = gm.rootposition.getrandomoutmove()
+            return self.strbestmove
 
     def run(self):
-        # stdprinter("Thread finito!!!")
-        pass
+        bestmove = gm.rootposition.calcbestmove(gm.maxply)
+        self.strbestmove = bestmove.short__str__()
 
 
 class UciManager:
@@ -61,6 +64,10 @@ class UciManager:
         self.streaminthread = threading.Thread(target=stream_in_manager, args=())
         self.searchthread = SearchThread()
         self.stdprinter = StdPrinter()
+        self.stdprinter("id name MRTuCc\nid author MRTuCc\noption isactivetraspositiontable type check default true\n"
+                        "option hashingmethod type string default zobrist\n"
+                        "option algorithm type string default alphabeta\n"
+                        "option maxply type spin min 1 max 20 default 5\nuciok\n")
 
     def _setoption(self, parameter, value):
         try:
@@ -97,8 +104,9 @@ class UciManager:
         gm.initnewgame()
 
     def _searchfinished(self):
-        # TODO da implementare come si deve
-        pass
+        bestmove = self.searchthread.getbestmove()
+        self.stdprinter('bestmove ' + bestmove + '\n')
+        self.searchthread = SearchThread()
 
     def _showstate(self):
         msg = ""
@@ -117,7 +125,7 @@ class UciManager:
         again = True
         while again:
             time.sleep(sleeptime)
-            if self.searchthread.is_alive():
+            if self.searchthread.strbestmove is not None:
                 self._searchfinished()
             try:
                 tokens = streaminqueue.get(block=False)
@@ -142,7 +150,6 @@ class UciManager:
                     if not self.isgostate:
                         continue
                     self._searchfinished()
-                    self.searchthread = SearchThread()
                 elif keyword == 'setoption':
                     if self.ispositionstate or self.isgostate:
                         continue
@@ -156,7 +163,6 @@ class UciManager:
                     elif self.ispositionstate:
                         self._setnewgame()
                     elif self.isgostate and not self.searchthread.is_alive():
-                        # TODO vedere bene searchthread.is_alive a searchthread.isrequestactive
                         self._setnewgame()
                         self.isgostate = False
                     elif self.isinitnewgamestate:
@@ -167,6 +173,7 @@ class UciManager:
                 elif keyword == 'isready':
                     if not self.isconnectionstate:
                         continue
+                    self.stdprinter("readyok")
                     self.isconnectionstate = False
                     self.isinitnewgamestate = True
                 elif keyword == 'quit':
@@ -189,10 +196,6 @@ def protocol_launcher():
     stdprinter = StdPrinter()
     protocol = input("Insert protocol:")   # per debug ok, ma alla fine non ci dovrà essere nessun msg in out
     if protocol == 'uci':
-        stdprinter("id name MRTuCc\nid author MRTuCc\noption isactivetraspositiontable type check default true\n"
-                   "option hashingmethod type string default zobrist\n"
-                   "option algorithm type string default minmax\n"
-                   "option maxply type spin min 1 max 20 default 5\nuciok\n")
         return UciManager()
     else:
         # altri eventuali protocolli

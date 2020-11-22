@@ -2,6 +2,7 @@ import movemodule as mvm
 import piecesmodule as pcsm
 import threading
 import ctypes
+import random
 import evaluationmodule as evm
 import transpositionmodule as trsp
 import algebraicnotationmodule as algn
@@ -20,7 +21,7 @@ nposition = 0
 hashingmethod = 'zobrist'
 isactivetraspositiontable = True
 algorithm = 'alphabeta'
-maxply = 30
+maxply = 3                  # per ora la lascio a valori bassi, così posso fare un debug più comodo
 transpositiontable = None
 hashgenerator = None
 rootposition = None
@@ -402,6 +403,11 @@ class GamePosition:
             msg += move.short__str__() + " "
         msg += str(self.value)
         return msg
+
+    def getrandomoutmove(self):
+        index = random.randint(0, len(self.moves))
+        strmove = self.moves[index].short__str__()
+        return strmove
 
 
 class MinMaxGamePosition(GamePosition):
