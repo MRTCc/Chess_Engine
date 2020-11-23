@@ -34,6 +34,14 @@ class TranspositionTable:
         if oldrecord.depthleft < newrecord.depthleft:
             self.records[newrecord.key] = newrecord
 
+    def updatetonewposition(self):
+        keytodelete = []
+        for key, record in self.records.items():
+            if record.isold:
+                keytodelete.append(key)
+        for key in keytodelete:
+            self.records.pop(key)
+
     def __str__(self):
         length = str(len(self.records))
         msg = "Transposition table (n. of elements: " + length + " ):\n{\n"
@@ -44,33 +52,39 @@ class TranspositionTable:
 
 
 class Record:
-    def __init__(self, key, score, depthleft, board):
+    def __init__(self, key, score, depthleft, bestmove, ishorizonleaf, board):
         if key is None or score is None or depthleft is None or board is None:
             raise AttributeError("Record --> __init__ : 'None' attribute value!!!")
         self.key = key
         self.score = score
         self.depthleft = depthleft
         self.board = board
+        self.bestmove = bestmove
+        self.ishorizonleaf = ishorizonleaf
+        self.isold = False
 
     def getrecorddata(self):
         pass
 
+
+class MinMaxRecord(Record):
+    def __init__(self, key, score, depthleft, bestmove, ishorizonleaf, board):
+        super().__init__(key, score, depthleft, bestmove, ishorizonleaf, board)
+        if self.ishorizonleaf:
+            self.isold = True
+
+    def getrecorddata(self):
+        return self.score, self.bestmove, self.ishorizonleaf
+
     def __str__(self):
-        msg = "key: " + str(self.key) + "\tscore: " + str(self.score) + "\tdepth left: " + str(self.depthleft)
+        msg = ("key: " + str(self.key) + "\tscore: " + str(self.score) + "\tdepth left: " + str(self.depthleft) +
+               "\thorizon leaf: " + str(self.ishorizonleaf) + "\tbestmove" + str(self.bestmove.short__str__()))
         return msg
 
 
-class MinMaxRecord(Record):
-    def __init__(self, key, score, depthleft, board):
-        super().__init__(key, score, depthleft, board)
-
-    def getrecorddata(self):
-        return self.score
-
-
 class AlphaBetaRecord(Record):
-    def __init__(self, key, score, isalphacutoff, isbetacutoff, depthleft, board):
-        super().__init__(key, score, depthleft, board)
+    def __init__(self, key, score, isalphacutoff, isbetacutoff, depthleft, bestmove, ishorizonleaf, board):
+        super().__init__(key, score, depthleft, bestmove, ishorizonleaf, board)
         if isalphacutoff is None or isbetacutoff is None:
             raise AttributeError("Record --> __init__ : 'None' attribute value!!!")
         self.isalphacutoff = isalphacutoff
@@ -78,13 +92,16 @@ class AlphaBetaRecord(Record):
         if self.isalphacutoff and self.isbetacutoff:
             raise ValueError("AlphaBetaRecord --> __init__ : invalid request: it's not possible alpha and beta cutoff "
                              "at the same time")
+        if self.ishorizonleaf or self.isalphacutoff or self.isbetacutoff:
+            self.isold = True
 
     def getrecorddata(self):
-        return self.score, self.isalphacutoff, self.isbetacutoff
+        return self.score, self.isalphacutoff, self.isbetacutoff, self.bestmove, self.ishorizonleaf
 
     def __str__(self):
         msg = ("key: " + str(self.key) + "\tscore: " + str(self.score) + "\tdepth left: " + str(self.depthleft) +
-               "\t\talpha cutoff: " + str(self.isalphacutoff) + "\t\tbeta cutoff: " + str(self.isbetacutoff))
+               "\talpha cutoff: " + str(self.isalphacutoff) + "\tbeta cutoff: " + str(self.isbetacutoff) +
+               "\thorizon leaf: " + str(self.ishorizonleaf) + "\tbestmove" + str(self.bestmove.short__str__()))
         return msg
 
 

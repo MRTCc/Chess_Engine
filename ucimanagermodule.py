@@ -191,7 +191,7 @@ class UciManager:
                     self.stdprinter(str(gm.rootposition))
                 else:
                     # gestire eventuali cose andate storte
-                    pass
+                    raise ValueError("UciManager --> not a known command!!!")
             except Exception as e:
                 # TODO da sistemare la lista dei tipi di eccezioni da intercettare
                 self.stdprinter(str(e.args))
