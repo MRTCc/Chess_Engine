@@ -262,7 +262,7 @@ class GoState(State):
             if not self.gamethread.is_alive():
                 break
         self.gamethread.join()
-        self.bestmove = self.gamethread.getbestmove()
+        self.bestmove = self.gamethread.getstrbestmove()
         self.printer.send(str(self.bestmove) + '\n')
         self._log(command=self.command, response="Evaluation going on!")
 

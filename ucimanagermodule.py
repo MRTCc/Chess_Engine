@@ -41,17 +41,21 @@ class SearchThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.strbestmove = None
+        self.isrequestactive = False
+        self.iscorrectlycompleted = False
 
-    def getbestmove(self):
-        if self.strbestmove is not None and not self.is_alive():
+    def getstrbestmove(self):
+        if self.isrequestactive and self.iscorrectlycompleted:
             return self.strbestmove
-        if self.strbestmove is None and self.is_alive():
+        else:
             self.strbestmove = gm.rootposition.getrandomoutmove()
             return self.strbestmove
 
     def run(self):
+        self.isrequestactive = True
         bestmove = gm.rootposition.calcbestmove(gm.maxply)
         self.strbestmove = bestmove.short__str__()
+        self.iscorrectlycompleted = True
 
 
 class UciManager:
@@ -103,7 +107,7 @@ class UciManager:
         gm.initnewgame()
 
     def _searchfinished(self):
-        bestmove = self.searchthread.getbestmove()
+        bestmove = self.searchthread.getstrbestmove()
         self.stdprinter('bestmove ' + bestmove + '\n')
         self.searchthread = SearchThread()
 
@@ -124,8 +128,10 @@ class UciManager:
         again = True
         while again:
             time.sleep(sleeptime)
-            if self.searchthread.strbestmove is not None:
+            if self.searchthread.isrequestactive and self.searchthread.iscorrectlycompleted:
                 self._searchfinished()
+                self.ispositionstate = True
+                self.isgostate = False
             try:
                 tokens = streaminqueue.get(block=False)
             except queue.Empty:
@@ -149,6 +155,8 @@ class UciManager:
                     if not self.isgostate:
                         continue
                     self._searchfinished()
+                    self.isgostate = False
+                    self.ispositionstate = True
                 elif keyword == 'setoption':
                     if self.ispositionstate or self.isgostate:
                         continue
