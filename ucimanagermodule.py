@@ -25,7 +25,7 @@ def stream_in_manager():
     stdprinter = StdPrinter()
     again = True
     while again:
-        stdprinter("Insert command: \n")  # solo per debug
+        # stdprinter("Insert command:")
         msg = input()
         commandintokens = msg.split()
         command = commandintokens[0]
@@ -70,37 +70,36 @@ class UciManager:
         self.stdprinter("id name MRTuCc\nid author MRTuCc\noption isactivetraspositiontable type check default true\n"
                         "option hashingmethod type string default zobrist\n"
                         "option algorithm type string default alphabeta\n"
-                        "option maxply type spin min 1 max 20 default 5\nuciok\n")
+                        "option maxply type spin min 1 max 20 default 5\nuciok")
 
-    def _setoption(self, parameter, value):
-        try:
-            if parameter == 'isactivetranspositiontable':
-                if value == 'true' or value == 'True':
-                    gm.isactivetraspositiontable = True
-                elif value == 'false' or value == 'False':
-                    gm.isactivetraspositiontable = False
-                else:
-                    raise ValueError("UciManager --> _setoption : invalid value ", value, "for parameter ", parameter)
-            elif parameter == 'hashingmethod':
-                if value == 'zobrist':
-                    gm.hashingmethod = value
-                else:
-                    raise ValueError("UciManager --> _setoption : invalid value ", value, "for parameter ", parameter)
-            elif parameter == 'algorithm':
-                if value == 'minmax' or value == 'alphabeta':
-                    gm.algorithm = value
-                else:
-                    raise ValueError("UciManager --> _setoption : invalid value ", value, "for parameter ", parameter)
-            elif parameter == 'maxply':
-                try:
-                    ply = int(value)
-                    gm.maxply = ply
-                except ValueError:
-                    raise ValueError("UciManager --> _setoption : invalid value ", value, "for parameter ", parameter)
+    @staticmethod
+    def _setoption(parameter, value):
+        if parameter == 'isactivetranspositiontable':
+            if value == 'true' or value == 'True':
+                gm.isactivetraspositiontable = True
+            elif value == 'false' or value == 'False':
+                gm.isactivetraspositiontable = False
             else:
-                raise ValueError("UciManager --> _setoption : invalid parameter ", parameter)
-        except ValueError as e:
-            self.stdprinter(str(e.args))
+                raise ValueError("UciManager --> _setoption : invalid value ", value, "for parameter ", parameter)
+        elif parameter == 'hashingmethod':
+            if value == 'zobrist':
+                gm.hashingmethod = value
+            else:
+                raise ValueError("UciManager --> _setoption : invalid value ", value, "for parameter ", parameter)
+        elif parameter == 'algorithm':
+            if value == 'minmax' or value == 'alphabeta':
+                gm.algorithm = value
+            else:
+                raise ValueError("UciManager --> _setoption : invalid value ", value, "for parameter ", parameter)
+        elif parameter == 'maxply':
+            try:
+                ply = int(value)
+                gm.maxply = ply
+            except ValueError:
+                raise ValueError("UciManager --> _setoption : invalid value ", value, "for parameter ", parameter)
+        else:
+            raise ValueError("UciManager --> _setoption : invalid parameter ", parameter)
+
 
     @staticmethod
     def _setnewgame():
@@ -108,7 +107,7 @@ class UciManager:
 
     def _searchfinished(self):
         bestmove = self.searchthread.getstrbestmove()
-        self.stdprinter('bestmove ' + bestmove + '\n')
+        self.stdprinter('bestmove ' + bestmove )
         self.searchthread = SearchThread()
 
     def _showstate(self):
@@ -160,9 +159,9 @@ class UciManager:
                 elif keyword == 'setoption':
                     if self.ispositionstate or self.isgostate:
                         continue
-                    if tokens[1] != 'name' or len(tokens) != 4:
+                    if len(tokens) < 5 or tokens[1] != 'name' or tokens[3] != 'value':
                         raise ValueError("UciManager --> setoption invalid syntax!!!")
-                    self._setoption(tokens[2], tokens[3])
+                    self._setoption(tokens[2], tokens[4])
                 elif keyword == 'ucinewgame':
                     if self.isconnectionstate:
                         self.stdprinter("UciManager --> not ready to start game!")
@@ -191,7 +190,7 @@ class UciManager:
                     self.stdprinter(str(gm.rootposition))
                 else:
                     # gestire eventuali cose andate storte
-                    raise ValueError("UciManager --> not a known command!!!")
+                    pass
             except Exception as e:
                 # TODO da sistemare la lista dei tipi di eccezioni da intercettare
                 self.stdprinter(str(e.args))

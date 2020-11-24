@@ -253,9 +253,15 @@ class Evaluator:
 
     def _setcontrolledcells(self):
         for move in pcsm.white_generator_moves(self.listpiece):
+            if move.iskingcastling or move.isqueencastling:
+                self.mobility += 3
+                continue
             self.controlledcells[move.tocell] += 10
             self.mobility += 0.5
         for move in pcsm.black_generator_moves(self.listpiece):
+            if move.iskingcastling or move.isqueencastling:
+                self.mobility -= 3
+                continue
             self.controlledcells[move.tocell] -= 10
             self.mobility -= 0.5
         for cell in self.controlledcells.values():

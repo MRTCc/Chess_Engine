@@ -663,7 +663,7 @@ class Pawn(RealPiece):
                 move = self.moveCaptureFactory(self, self.coordinate, tocell, capturedpiece, False)
         else:
             if isinstance(enpiece, Pawn) and enpiece.enpassantthreat:
-                iskingtaken = self.allyking.imincheck(self, tocell, enpiece)
+                iskingtaken = self.allyking.iminchecksetup(self, tocell, enpiece)
                 if iskingtaken:
                     raise TakenKingException
                 move = self.moveCaptureFactory(self, self.coordinate, tocell, enpiece, False)

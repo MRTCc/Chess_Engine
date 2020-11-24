@@ -17,9 +17,9 @@ from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
 checkmatevalue = 10000
 nposition = 0
 hashingmethod = 'zobrist'
-isactivetraspositiontable = True
-algorithm = 'minmax'
-maxply = 2                  # per ora la lascio a valori bassi, così posso fare un debug più comodo
+isactivetraspositiontable = False     # default True
+algorithm = 'minmax'                    # default alphabeta
+maxply = 2                           # default 5
 transpositiontable = None
 hashgenerator = None
 rootposition = None
@@ -473,8 +473,12 @@ class MinMaxWhiteGamePosition(MinMaxGamePosition):
             self.moves.append(move)
         for move in self.moves:
             self.listpiece.applymove(move)
+            debugmeasurebefore = (len(self.listpiece.whitepieces) + len(self.listpiece.whitepawns) +
+                                  len(self.listpiece.blackpieces) + len(self.listpiece.blackpawns))
             child = self.enemy_game_position_func(self.listpiece, self)
             child.builtplytreevalue(depthleft - 1)
+            debugmeasureafter = (len(self.listpiece.whitepieces) + len(self.listpiece.whitepawns) +
+                                 len(self.listpiece.blackpieces) + len(self.listpiece.blackpawns))
             self.children.append(child)
             self.listpiece.undomove(move)
         if self.imincheckmate():
@@ -596,8 +600,12 @@ class MinMaxBlackGamePosition(MinMaxGamePosition):
             self.moves.append(move)
         for move in self.moves:
             self.listpiece.applymove(move)
+            debugmeasurebefore = (len(self.listpiece.whitepieces) + len(self.listpiece.whitepawns) +
+                                  len(self.listpiece.blackpieces) + len(self.listpiece.blackpawns))
             child = self.enemy_game_position_func(self.listpiece, self)
             child.builtplytreevalue(depthleft - 1)
+            debugmeasureafter = (len(self.listpiece.whitepieces) + len(self.listpiece.whitepawns) +
+                                 len(self.listpiece.blackpieces) + len(self.listpiece.blackpawns))
             self.children.append(child)
             self.listpiece.undomove(move)
         if self.imincheckmate():
