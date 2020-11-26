@@ -17,9 +17,9 @@ from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
 checkmatevalue = 10000
 nposition = 0
 hashingmethod = 'zobrist'
-isactivetraspositiontable = False     # default True
-algorithm = 'minmax'                    # default alphabeta
-maxply = 2                           # default 5
+isactivetraspositiontable = True     # default True
+algorithm = 'alphabeta'                    # default alphabeta
+maxply = 4                          # default 5
 transpositiontable = None
 hashgenerator = None
 rootposition = None
@@ -377,7 +377,7 @@ class GamePosition:
         return msg
 
     def getrandomoutmove(self):
-        index = random.randint(0, len(self.moves))
+        index = random.randint(0, len(self.moves) - 1)
         strmove = self.moves[index].short__str__()
         return strmove
 
@@ -473,12 +473,8 @@ class MinMaxWhiteGamePosition(MinMaxGamePosition):
             self.moves.append(move)
         for move in self.moves:
             self.listpiece.applymove(move)
-            debugmeasurebefore = (len(self.listpiece.whitepieces) + len(self.listpiece.whitepawns) +
-                                  len(self.listpiece.blackpieces) + len(self.listpiece.blackpawns))
             child = self.enemy_game_position_func(self.listpiece, self)
             child.builtplytreevalue(depthleft - 1)
-            debugmeasureafter = (len(self.listpiece.whitepieces) + len(self.listpiece.whitepawns) +
-                                 len(self.listpiece.blackpieces) + len(self.listpiece.blackpawns))
             self.children.append(child)
             self.listpiece.undomove(move)
         if self.imincheckmate():
@@ -600,12 +596,8 @@ class MinMaxBlackGamePosition(MinMaxGamePosition):
             self.moves.append(move)
         for move in self.moves:
             self.listpiece.applymove(move)
-            debugmeasurebefore = (len(self.listpiece.whitepieces) + len(self.listpiece.whitepawns) +
-                                  len(self.listpiece.blackpieces) + len(self.listpiece.blackpawns))
             child = self.enemy_game_position_func(self.listpiece, self)
             child.builtplytreevalue(depthleft - 1)
-            debugmeasureafter = (len(self.listpiece.whitepieces) + len(self.listpiece.whitepawns) +
-                                 len(self.listpiece.blackpieces) + len(self.listpiece.blackpawns))
             self.children.append(child)
             self.listpiece.undomove(move)
         if self.imincheckmate():

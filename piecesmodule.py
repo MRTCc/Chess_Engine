@@ -154,7 +154,7 @@ class ListPiece:
         lst.remove(piece)
         self.board[piece.coordinate] = self.nullpiece
 
-    def _builtboard(self, ):
+    def _builtboard(self):
         board = {}
         for pieces in (self.whitepieces, self.whitepawns, self.blackpieces, self.blackpawns):
             for piece in pieces:
@@ -238,7 +238,7 @@ class ListPiece:
         self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
         self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
         self.moves.append(move)
-        lastmove = self.moves[-1]
+        lastmove = self.moves[-1]     # TODO questa istruzione mi sa che è ridondante, si può togliere
         if lastmove.isenpassant:
             lastmove.piece.enpassantthreat = True
 
@@ -279,8 +279,7 @@ class ListPiece:
             king.isstartpos = True
 
     def _undocaptureandpromotion(self, move):
-        self.addpiece(move.piece)
-        self.removepiece(move.promotionto)
+        self._undopromotepawn(move)
         self.addpiece(move.capturedpiece)
 
     def _undocapturepiece(self, move):
@@ -1233,13 +1232,13 @@ def white_generator_moves(listpiece):
     for piece in listpiece.whitepieces:
         moves = piece.generatemoves()
         for move in moves:
-            if listpiece.blackking.iminchecksetup(piece, move.tocell):
+            if listpiece.blackking.iminchecksetup(piece, move.tocell, move.capturedpiece):
                 move.ischeck = True
             yield move
     for pawn in listpiece.whitepawns:
         moves = pawn.generatemoves()
         for move in moves:
-            if listpiece.blackking.iminchecksetup(pawn, move.tocell):
+            if listpiece.blackking.iminchecksetup(pawn, move.tocell, move.capturedpiece):
                 move.ischeck = True
             yield move
 
@@ -1248,13 +1247,13 @@ def black_generator_moves(listpiece):
     for piece in listpiece.blackpieces:
         moves = piece.generatemoves()
         for move in moves:
-            if listpiece.whiteking.iminchecksetup(piece, move.tocell):
+            if listpiece.whiteking.iminchecksetup(piece, move.tocell, move.capturedpiece):
                 move.ischeck = True
             yield move
     for pawn in listpiece.blackpawns:
         moves = pawn.generatemoves()
         for move in moves:
-            if listpiece.whiteking.iminchecksetup(pawn, move.tocell):
+            if listpiece.whiteking.iminchecksetup(pawn, move.tocell, move.capturedpiece):
                 move.ischeck = True
             yield move
 
