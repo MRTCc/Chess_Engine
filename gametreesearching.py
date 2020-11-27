@@ -14,6 +14,11 @@ from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
                                      a2, b2, c2, d2, e2, f2, g2, h2,
                                      a1, b1, c1, d1, e1, f1, g1, h1)
 
+
+class StopSearchSystemExit(SystemExit):
+    pass
+
+
 checkmatevalue = 10000
 nposition = 0
 hashingmethod = 'zobrist'
@@ -23,6 +28,7 @@ maxply = 4                          # default 5
 transpositiontable = None
 hashgenerator = None
 rootposition = None
+isrunning = True
 
 
 def initnewgame():
@@ -37,6 +43,8 @@ def initnewgame():
 def initgameposition(tokens):
     if transpositiontable:
         transpositiontable.updatetonewposition()
+    global isrunning
+    isrunning = True
     global rootposition
     movestr = []
     fenstr = []
@@ -463,6 +471,8 @@ class MinMaxWhiteGamePosition(MinMaxGamePosition):
     def builtplytreevalue(self, depthleft):
         global nposition
         nposition += 1
+        if not isrunning:
+            raise StopSearchSystemExit
         if depthleft == 0:
             evaluator = evm.Evaluator(self.listpiece)
             self.value = evaluator()
@@ -474,7 +484,11 @@ class MinMaxWhiteGamePosition(MinMaxGamePosition):
         for move in self.moves:
             self.listpiece.applymove(move)
             child = self.enemy_game_position_func(self.listpiece, self)
-            child.builtplytreevalue(depthleft - 1)
+            try:
+                child.builtplytreevalue(depthleft - 1)
+            except StopSearchSystemExit:
+                self.listpiece.undomove(move)
+                raise StopSearchSystemExit
             self.children.append(child)
             self.listpiece.undomove(move)
         if self.imincheckmate():
@@ -519,6 +533,8 @@ class MinMaxWhiteGamePositionTable(MinMaxWhiteGamePosition):
     def builtplytreevalue(self, depthleft):
         global nposition
         nposition += 1
+        if not isrunning:
+            raise StopSearchSystemExit
         positionkey = self.listpiece.gethashkey()
         record = self.transpositiontable.getrecordfromkey(positionkey, str(self.listpiece))
         if record is not None:
@@ -539,7 +555,11 @@ class MinMaxWhiteGamePositionTable(MinMaxWhiteGamePosition):
         for move in self.moves:
             self.listpiece.applymove(move)
             child = self.enemy_game_position_func(self.transpositiontable, self.listpiece, self)
-            child.builtplytreevalue(depthleft - 1)
+            try:
+                child.builtplytreevalue(depthleft - 1)
+            except StopSearchSystemExit:
+                self.listpiece.undomove(move)
+                raise StopSearchSystemExit
             self.children.append(child)
             self.listpiece.undomove(move)
         if self.imincheckmate():
@@ -586,6 +606,8 @@ class MinMaxBlackGamePosition(MinMaxGamePosition):
     def builtplytreevalue(self, depthleft):
         global nposition
         nposition += 1
+        if not isrunning:
+            raise StopSearchSystemExit
         if depthleft == 0:
             evaluator = evm.Evaluator(self.listpiece)
             self.value = evaluator()
@@ -597,7 +619,11 @@ class MinMaxBlackGamePosition(MinMaxGamePosition):
         for move in self.moves:
             self.listpiece.applymove(move)
             child = self.enemy_game_position_func(self.listpiece, self)
-            child.builtplytreevalue(depthleft - 1)
+            try:
+                child.builtplytreevalue(depthleft - 1)
+            except StopSearchSystemExit:
+                self.listpiece.undomove(move)
+                raise StopSearchSystemExit
             self.children.append(child)
             self.listpiece.undomove(move)
         if self.imincheckmate():
@@ -642,6 +668,8 @@ class MinMaxBlackGamePositionTable(MinMaxBlackGamePosition):
     def builtplytreevalue(self, depthleft):
         global nposition
         nposition += 1
+        if not isrunning:
+            raise StopSearchSystemExit
         positionkey = self.listpiece.gethashkey()
         record = self.transpositiontable.getrecordfromkey(positionkey, str(self.listpiece))
         if record is not None:
@@ -662,7 +690,11 @@ class MinMaxBlackGamePositionTable(MinMaxBlackGamePosition):
         for move in self.moves:
             self.listpiece.applymove(move)
             child = self.enemy_game_position_func(self.transpositiontable, self.listpiece, self)
-            child.builtplytreevalue(depthleft - 1)
+            try:
+                child.builtplytreevalue(depthleft - 1)
+            except StopSearchSystemExit:
+                self.listpiece.undomove(move)
+                raise StopSearchSystemExit
             self.children.append(child)
             self.listpiece.undomove(move)
         if self.imincheckmate():
@@ -742,6 +774,9 @@ class AlphaBetaWhiteGamePosition(AlphaBetaGamePosition):
     def alphabeta(self, alpha, beta, depthleft):
         global nposition
         nposition += 1
+        global  isrunning
+        if not isrunning:
+            raise StopSearchSystemExit
         if depthleft == 0:
             evaluator = evm.Evaluator(self.listpiece)
             self.value = evaluator()
@@ -765,7 +800,11 @@ class AlphaBetaWhiteGamePosition(AlphaBetaGamePosition):
         for move in self.moves:
             self.listpiece.applymove(move)
             child = self.enemy_game_position_func(self.listpiece, self)
-            child.value = child.alphabeta(alpha, beta, depthleft - 1)
+            try:
+                child.value = child.alphabeta(alpha, beta, depthleft - 1)
+            except StopSearchSystemExit:
+                self.listpiece.undomove(move)
+                raise StopSearchSystemExit
             if child.value >= beta:
                 self.value = beta
                 msg = self._outputmoves()
@@ -799,6 +838,8 @@ class AlphaBetaWhiteGamePositionTable(AlphaBetaWhiteGamePosition):
     def alphabeta(self, alpha, beta, depthleft):
         global nposition
         nposition += 1
+        if not isrunning:
+            raise StopSearchSystemExit
         positionkey = self.listpiece.gethashkey()
         record = self.transpositiontable.getrecordfromkey(positionkey, str(self.listpiece))
         if record is not None:
@@ -833,7 +874,11 @@ class AlphaBetaWhiteGamePositionTable(AlphaBetaWhiteGamePosition):
         for move in self.moves:
             self.listpiece.applymove(move)
             child = self.enemy_game_position_func(self.transpositiontable, self.listpiece, self)
-            child.value = child.alphabeta(alpha, beta, depthleft - 1)
+            try:
+                child.value = child.alphabeta(alpha, beta, depthleft - 1)
+            except StopSearchSystemExit:
+                self.listpiece.undomove(move)
+                raise StopSearchSystemExit
             if child.value >= beta:
                 self.value = beta
                 msg = self._outputmoves()
@@ -876,6 +921,9 @@ class AlphaBetaBlackGamePosition(AlphaBetaGamePosition):
     def alphabeta(self, alpha, beta, depthleft):
         global nposition
         nposition += 1
+        global isrunning
+        if not isrunning:
+            raise StopSearchSystemExit
         if depthleft == 0:
             evaluator = evm.Evaluator(self.listpiece)
             self.value = evaluator()
@@ -899,7 +947,11 @@ class AlphaBetaBlackGamePosition(AlphaBetaGamePosition):
         for move in self.moves:
             self.listpiece.applymove(move)
             child = self.enemy_game_position_func(self.listpiece, self)
-            child.value = child.alphabeta(alpha, beta, depthleft - 1)
+            try:
+                child.value = child.alphabeta(alpha, beta, depthleft - 1)
+            except StopSearchSystemExit:
+                self.listpiece.undomove(move)
+                raise StopSearchSystemExit
             if child.value <= alpha:
                 self.value = alpha
                 msg = self._outputmoves()
@@ -933,6 +985,8 @@ class AlphaBetaBlackGamePositionTable(AlphaBetaBlackGamePosition):
     def alphabeta(self, alpha, beta, depthleft):
         global nposition
         nposition += 1
+        if not isrunning:
+            raise StopSearchSystemExit
         positionkey = self.listpiece.gethashkey()
         record = self.transpositiontable.getrecordfromkey(positionkey, str(self.listpiece))
         if record is not None:
@@ -967,7 +1021,11 @@ class AlphaBetaBlackGamePositionTable(AlphaBetaBlackGamePosition):
         for move in self.moves:
             self.listpiece.applymove(move)
             child = self.enemy_game_position_func(self.transpositiontable, self.listpiece, self)
-            child.value = child.alphabeta(alpha, beta, depthleft - 1)
+            try:
+                child.value = child.alphabeta(alpha, beta, depthleft - 1)
+            except StopSearchSystemExit:
+                self.listpiece.undomove(move)
+                raise StopSearchSystemExit
             if child.value <= alpha:
                 self.value = alpha
                 msg = self._outputmoves()

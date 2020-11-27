@@ -46,6 +46,7 @@ class SearchThread(threading.Thread):
         self.daemon = True
 
     def getstrbestmove(self):
+        gm.isrunning = False
         if self.isrequestactive and self.iscorrectlycompleted:
             return self.strbestmove
         else:
@@ -108,7 +109,9 @@ class UciManager:
 
     def _searchfinished(self):
         bestmove = self.searchthread.getstrbestmove()
-        self.stdprinter('bestmove ' + bestmove )
+        self.stdprinter('bestmove ' + bestmove)
+        if gm.isrunning == True:
+            raise Exception("IMPOSSIBLE!!!!!!!")
         self.searchthread = SearchThread()
 
     def _showstate(self):
