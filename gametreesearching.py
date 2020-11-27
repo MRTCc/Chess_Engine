@@ -278,7 +278,7 @@ class FenStrParser:
             else:
                 gameposition = AlphaBetaBlackGamePosition(pcsm.listpiece)
         else:
-            raise Exception("FenStrParser --> something wrong!!!")
+            raise TypeError("FenStrParser --> invalid gameposition creation... data not valid!!!")
         return gameposition
 
     @staticmethod

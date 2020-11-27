@@ -226,7 +226,6 @@ class GoState(State):
             else:
                 resultstate = PositionState(self.printer, self.logger, msg, self.engine_color)
         elif "stop" == command:
-            # TODO al momento implemento STOP in maniera semplificata, poi metterò a posto
             self._log(command=self.command, response="I'm stopping")
             resultstate = PassState(self)
             self.gamethread.killthread()

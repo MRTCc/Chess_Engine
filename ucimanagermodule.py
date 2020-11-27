@@ -28,6 +28,8 @@ def stream_in_manager():
         # stdprinter("Insert command:")
         msg = input()
         commandintokens = msg.split()
+        if len(commandintokens) < 1:
+            continue
         command = commandintokens[0]
         if command not in legalucicommands:
             stdprinter("stream_in_manager --> Not a legal uci commands!!!")
@@ -62,6 +64,11 @@ class SearchThread(threading.Thread):
 
 class UciManager:
     def __init__(self):
+        self.defaultinitmsg = ("id name MRTuCc\nid author MRTuCc\noption isactivetraspositiontable type check default "
+                               "true\n"
+                               "option hashingmethod type string default zobrist\n"
+                               "option algorithm type string default alphabeta\n"
+                               "option maxply type spin min 1 max 20 default 5\nuciok")
         self.isconnectionstate = True
         self.isinitnewgamestate = False
         self.ispositionstate = False
@@ -69,10 +76,7 @@ class UciManager:
         self.streaminthread = threading.Thread(target=stream_in_manager, args=())
         self.searchthread = SearchThread()
         self.stdprinter = StdPrinter()
-        self.stdprinter("id name MRTuCc\nid author MRTuCc\noption isactivetraspositiontable type check default true\n"
-                        "option hashingmethod type string default zobrist\n"
-                        "option algorithm type string default alphabeta\n"
-                        "option maxply type spin min 1 max 20 default 5\nuciok")
+        self.stdprinter(self.defaultinitmsg)
 
     @staticmethod
     def _setoption(parameter, value):
@@ -110,7 +114,7 @@ class UciManager:
     def _searchfinished(self):
         bestmove = self.searchthread.getstrbestmove()
         self.stdprinter('bestmove ' + bestmove)
-        if gm.isrunning == True:
+        if gm.isrunning is True:
             raise Exception("IMPOSSIBLE!!!!!!!")
         self.searchthread = SearchThread()
 
@@ -198,19 +202,34 @@ class UciManager:
                     # gestire eventuali cose andate storte
                     pass
             except Exception as e:
-                # TODO da sistemare la lista dei tipi di eccezioni da intercettare
                 self.stdprinter(str(e.args))
-                raise e
+                if self.isconnectionstate:
+                    continue
+                elif self.isinitnewgamestate:
+                    self.stdprinter(self.defaultinitmsg)
+                    self.isinitnewgamestate = False
+                    self.isconnectionstate = True
+                elif self.ispositionstate:
+                    self.stdprinter("Something goes wrong! Please, insert again the position!\n\n")
+                elif self.isgostate:
+                    self.stdprinter("Something goes wrong! Search not correctly finished...\n\n")
+                    self.ispositionstate = True
+                    self.isgostate = False
 
 
 def protocol_launcher():
     stdprinter = StdPrinter()
-    protocol = input("Insert protocol:")   # per debug ok, ma alla fine non ci dovrà essere nessun msg in out
-    if protocol == 'uci':
-        return UciManager()
-    else:
-        # altri eventuali protocolli
-        raise Exception("protocol_launcher --> Not yet implemented!!!")
+    while True:
+        try:
+            protocol = input("Insert protocol:")   # per debug ok, ma alla fine non ci dovrà essere nessun msg in out
+            if protocol == 'uci':
+                return UciManager()
+            else:
+                # altri eventuali protocolli
+                raise ValueError("protocol_launcher --> protocol " + protocol + " not supported!!!")
+        except ValueError as e:
+            stdprinter(str(e))
+            continue
 
 
 if __name__ == '__main__':
