@@ -353,6 +353,44 @@ class ListPiece:
         else:
             return not self.moves[-1].iswhiteturn
 
+    def isstalemate(self):
+        insufficientmaterialtables = [(1, 1, 0, 0, 0, 0, 0, 0), (0, 0, 1, 1, 0, 0, 0, 0), (0, 0, 0, 0, 2, 0, 0, 0),
+                                      (0, 0, 0, 0, 0, 2, 0, 0), (0, 0, 0, 0, 0, 0, 1, 1), (0, 0, 0, 0, 0, 0, 1, 0),
+                                      (0, 0, 0, 0, 0, 0, 0, 1), (0, 0, 0, 0, 1, 0, 0, 0), (0, 0, 0, 0, 0, 1, 0, 0),
+                                      (0, 0, 0, 0, 0, 0, 0, 0)]
+        if len(self.whitepawns) > 0 or len(self.blackpawns) > 0:
+            return False
+        whitequeencount = 0
+        blackqueencount = 0
+        whiterookcount = 0
+        blackrookcount = 0
+        whiteknightcount = 0
+        blackknightcount = 0
+        whitebishopcount = 0
+        blackbishopcount = 0
+        for piece in self.whitepieces + self.blackpieces:
+            if isinstance(piece, WhiteKnight):
+                whiteknightcount += 1
+            elif isinstance(piece, BlackKnight):
+                blackknightcount += 1
+            elif isinstance(piece, WhiteBishop):
+                whitebishopcount += 1
+            elif isinstance(piece, BlackBishop):
+                blackbishopcount += 1
+            elif isinstance(piece, WhiteQueen):
+                whitequeencount += 1
+            elif isinstance(piece, BlackQueen):
+                blackqueencount += 1
+            elif isinstance(piece, WhiteRook):
+                whiterookcount += 1
+            elif isinstance(piece, BlackRook):
+                blackrookcount += 1
+        if (whitequeencount, blackqueencount, whiterookcount, blackrookcount, whiteknightcount, blackknightcount,
+                whitebishopcount, blackbishopcount) in insufficientmaterialtables:
+            return True
+        else:
+            return False
+
     def __str__(self):
         keys = self.board.keys()
         strlist = [str(self.board[coordinate]) for coordinate in coordinatelist]

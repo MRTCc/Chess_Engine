@@ -372,13 +372,11 @@ class GamePosition:
             return False
 
     def isstalemate(self):
-        if (len(self.listpiece.whitepieces) + len(self.listpiece.whitepawns) == 1 and
-                len(self.listpiece.blackpieces) + len(self.listpiece.blackpawns) == 1):
-            return True
         if len(self.moves) < 1 and not self.ischeckfunc():
             return True
-        else:
-            return False
+        if self.listpiece.isstalemate():
+            return True
+        return False
 
     def calcbestmove(self, ply):
         raise Exception("GamePosition --> calcbestmove : not implemented!!!")
@@ -1177,6 +1175,7 @@ if __name__ == '__main__':
     print(bestmove)
     """
 
+    """
     initnewgame()
     initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves".split())
     rootposition.builtplytreevalue(5)
@@ -1186,25 +1185,9 @@ if __name__ == '__main__':
     initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves".split())
     rootposition.builtplytreevalue(4)
     print("minmax nposition : ", nposition)
-
-
     """
-    listpiece, whiteking, blackking = debug_pos_factory()
-    gameposition = MinMaxWhiteGamePosition(listpiece)
-    print("Tocca a bianco: \n", pcsm.listpiece)
-    key = listpiece.gethashvalue()
-    print(key)
-    # move = mvm.whiteMoveCapturePromotionFactory(listpiece.whitepawns[0], b7, a8, listpiece.blackpieces[1],
-    #                                            listpiece.whitepawns[0].mypromotionto(a8, whiteking, blackking), False)
-    move = mvm.whiteMovePromotionFactory(listpiece.whitepawns[0], b7, b8,
-                                         listpiece.whitepawns[0].mypromotionto(b8, whiteking, blackking), False)
-    listpiece.applymove(move)
-    print("Tocca a bianco: \n", pcsm.listpiece)
-    newkey = listpiece.gethashvalue()
-    import hashingalgorithms as has
-    rightkey = has.zobristgenerator.gethashkey(listpiece, listpiece.getcurrentactivecolor())
-    print("Zobrist key from scratch: ", rightkey, "\nZobrist key from update:  ", newkey)
-    move = mvm.whiteMoveFactory(listpiece.whitepieces[0], e1, f1, False)
-    listpiece.applymove(move)
-    print(listpiece)
-    """
+
+    initnewgame()
+    initgameposition("8/3qk3/8/8/8/2Q5/8/1K6 w - - 0 1 moves".split())
+    isstale = rootposition.listpiece.isstalemate()
+    print(isstale)
