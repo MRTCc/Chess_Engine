@@ -21,9 +21,10 @@ class StopSearchSystemExit(SystemExit):
 
 checkmatevalue = 10000
 nposition = 0
+perfposition = 0
 hashingmethod = 'zobrist'
-isactivetraspositiontable = True     # default True
-algorithm = 'alphabeta'                    # default alphabeta
+isactivetraspositiontable = False     # default True
+algorithm = 'perf'                    # default alphabeta
 maxply = 4                          # default 5
 transpositiontable = None
 hashgenerator = None
@@ -277,6 +278,11 @@ class FenStrParser:
                 gameposition = AlphaBetaWhiteGamePosition(pcsm.listpiece)
             else:
                 gameposition = AlphaBetaBlackGamePosition(pcsm.listpiece)
+        elif self.algorithm == 'perf':
+            if self.enginecolor:
+                gameposition = MinMaxWhitePerfGamePosition(pcsm.listpiece)
+            else:
+                gameposition = MinMaxBlackPerfGamePosition(pcsm.listpiece)
         else:
             raise TypeError("FenStrParser --> invalid gameposition creation... data not valid!!!")
         return gameposition
@@ -593,6 +599,44 @@ class MinMaxWhiteGamePositionTable(MinMaxWhiteGamePosition):
         return msg
 
 
+class MinMaxWhitePerfGamePosition(MinMaxWhiteGamePosition):
+    def __init__(self, listpiece, parent=None):
+        super().__init__(listpiece, parent)
+        self.enemy_game_position_func = MinMaxBlackPerfGamePosition
+
+    def builtplytreevalue(self, depthleft):
+        global nposition
+        nposition += 1
+        global perfposition
+        if not isrunning:
+            raise StopSearchSystemExit
+        if depthleft == 0:
+            perfposition += 1
+            msg = self._outputmoves()
+            testfile.write(msg + "\n")
+            return
+        for move in self.movegeneratorfunc(self.listpiece):
+            self.moves.append(move)
+        for move in self.moves:
+            self.listpiece.applymove(move)
+            child = self.enemy_game_position_func(self.listpiece, self)
+            try:
+                child.builtplytreevalue(depthleft - 1)
+            except StopSearchSystemExit:
+                self.listpiece.undomove(move)
+                raise StopSearchSystemExit
+            self.children.append(child)
+            self.listpiece.undomove(move)
+        if self.imincheckmate():
+            msg = self._outputmoves()
+            testfile.write(msg + "****** CHECKMATE - GAME ENDED ******\n")
+            return
+        if self.isstalemate():
+            msg = self._outputmoves()
+            testfile.write(msg + "****** DRAW - GAME ENDED ******\n")
+            return
+
+
 class MinMaxBlackGamePosition(MinMaxGamePosition):
     def __init__(self, listpiece, parent=None):
         super().__init__(listpiece, parent)
@@ -726,6 +770,44 @@ class MinMaxBlackGamePositionTable(MinMaxBlackGamePosition):
             msg += move.short__str__() + " "
         msg += str(self.value)
         return msg
+
+
+class MinMaxBlackPerfGamePosition(MinMaxBlackGamePosition):
+    def __init__(self, listpiece, parent=None):
+        super().__init__(listpiece, parent)
+        self.enemy_game_position_func = MinMaxWhitePerfGamePosition
+
+    def builtplytreevalue(self, depthleft):
+        global nposition
+        nposition += 1
+        global perfposition
+        if not isrunning:
+            raise StopSearchSystemExit
+        if depthleft == 0:
+            perfposition += 1
+            msg = self._outputmoves()
+            testfile.write(msg + "\n")
+            return
+        for move in self.movegeneratorfunc(self.listpiece):
+            self.moves.append(move)
+        for move in self.moves:
+            self.listpiece.applymove(move)
+            child = self.enemy_game_position_func(self.listpiece, self)
+            try:
+                child.builtplytreevalue(depthleft - 1)
+            except StopSearchSystemExit:
+                self.listpiece.undomove(move)
+                raise StopSearchSystemExit
+            self.children.append(child)
+            self.listpiece.undomove(move)
+        if self.imincheckmate():
+            msg = self._outputmoves()
+            testfile.write(msg + "****** CHECKMATE - GAME ENDED ******\n")
+            return
+        if self.isstalemate():
+            msg = self._outputmoves()
+            testfile.write(msg + "****** DRAW - GAME ENDED ******\n")
+            return
 
 
 class AlphaBetaGamePosition(GamePosition):
@@ -1083,8 +1165,9 @@ if __name__ == '__main__':
     print(len(table.records))
     """
 
+    """
     initnewgame()
-    initgameposition("1k6/8/8/8/8/3R4/2Q5/1K6 w - - 0 0 moves".split())
+    initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves".split())
     bestmove = rootposition.calcbestmove(maxply)
     print(rootposition)
     print(bestmove)
@@ -1092,6 +1175,18 @@ if __name__ == '__main__':
     bestmove = rootposition.calcbestmove(maxply)
     print(rootposition)
     print(bestmove)
+    """
+
+    initnewgame()
+    initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves".split())
+    rootposition.builtplytreevalue(5)
+    print("perf positions : ", perfposition, "nposition : ", nposition)
+    nposition = 0
+    algorithm = 'minmax'
+    initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves".split())
+    rootposition.builtplytreevalue(4)
+    print("minmax nposition : ", nposition)
+
 
     """
     listpiece, whiteking, blackking = debug_pos_factory()
@@ -1112,12 +1207,4 @@ if __name__ == '__main__':
     move = mvm.whiteMoveFactory(listpiece.whitepieces[0], e1, f1, False)
     listpiece.applymove(move)
     print(listpiece)
-    """
-
-    """
-    gameposition = fen("2r1k3/3r4/8/8/8/8/K7/8 b - - 0 0".split())
-    print(pcsm.listpiece)
-    newkey = z.updatezobristkey(key, gameposition.listpiece)
-    print("update key:", newkey)
-    print("get zobrist key: ", z.getzobristhash(gameposition.listpiece, gameposition.iswhiteturn))
     """
