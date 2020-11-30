@@ -58,6 +58,9 @@ class AlgebraicNotation(str):
     def absfiledifference(self, other):
         return abs(self.fileint - other.fileint)
 
+    def absrankdifference(self, other):
+        return abs(self.rankint - other.rankint)
+
     def __str__(self):
         return self.coordinate
 

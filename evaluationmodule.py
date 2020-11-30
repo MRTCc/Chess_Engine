@@ -16,8 +16,8 @@ bishopvalue = 3
 queenvalue = 9
 doublepawnvalue = 0.5
 isolatedpawnvalue = 0.5
-blockedpawnvalue = 0.5
-kingvalue = 800
+blockedpawnvalue = 0.75
+kingvalue = 1000
 
 whitepawntable = {a8: 0,    b8: 0,      c8: 0,      d8: 0,      e8: 0,      f8: 0,      g8: 0,      h8: 0,
                   a7: 50,   b7: 50,     c7: 50,     d7: 50,     e7: 50,     f7: 50,     g7: 50,     h7: 50,
@@ -254,21 +254,39 @@ class Evaluator:
     def _setcontrolledcells(self):
         for move in pcsm.white_generator_moves(self.listpiece):
             if move.iskingcastling or move.isqueencastling:
-                self.mobility += 3
+                self.mobility += 10
                 continue
-            self.controlledcells[move.tocell] += 10
-            self.mobility += 0.5
+            if move.ischeck:
+                self.mobility += 1
+            if isinstance(move.piece, (pcsm.WhiteQueen, pcsm.WhiteRook)):
+                self.mobility += 0.2
+                self.controlledcells[move.tocell] += 20
+            elif isinstance(move.piece, (pcsm.WhiteKnight, pcsm.WhiteBishop)):
+                self.mobility += 0.1
+                self.controlledcells[move.tocell] += 15
+            else:
+                self.mobility += 0.08
+                self.controlledcells[move.tocell] += 10
         for move in pcsm.black_generator_moves(self.listpiece):
             if move.iskingcastling or move.isqueencastling:
-                self.mobility -= 3
+                self.mobility -= 10
                 continue
-            self.controlledcells[move.tocell] -= 10
-            self.mobility -= 0.5
+            if move.ischeck:
+                self.mobility -= 1
+            if isinstance(move.piece, (pcsm.BlackQueen, pcsm.BlackRook)):
+                self.mobility -= 0.2
+                self.controlledcells[move.tocell] -= 20
+            elif isinstance(move.piece, (pcsm.BlackKnight, pcsm.BlackBishop)):
+                self.mobility -= 0.1
+                self.controlledcells[move.tocell] -= 15
+            else:
+                self.mobility -= 0.08
+                self.controlledcells[move.tocell] -= 10
         for cell in self.controlledcells.values():
             if cell > 0:
-                self.mobility += 7
+                self.mobility += 4
             elif cell < 0:
-                self.mobility -= 7
+                self.mobility -= 4
 
     def _setevaluationparameters(self, piece):
         if isinstance(piece, pcsm.WhitePawn):
@@ -319,6 +337,11 @@ class Evaluator:
 
     def _positionalevaluation(self, piece):
         evaluationtable, piecevalue = self._setevaluationparameters(piece)
+        coordination = self.controlledcells[piece.coordinate]
+        if isinstance(piece.allyking, pcsm.WhiteKing) and coordination < -10:
+            return -1
+        if isinstance(piece.allyking, pcsm.BlackKing) and coordination > 10:
+            return 1
         percent = evaluationtable[piece.coordinate] + self.controlledcells[piece.coordinate]
         return piecevalue + (piecevalue * (percent * 0.01))
 

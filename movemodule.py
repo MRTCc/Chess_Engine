@@ -23,6 +23,20 @@ class Move:
 
     def short__str__(self):
         msg = ''
+        if self.iswhiteturn:
+            if self.iskingcastling:
+                msg += 'e1g1'
+                return msg
+            elif self.isqueencastling:
+                msg += 'e1c1'
+                return msg
+        else:
+            if self.iskingcastling:
+                msg += 'e8g8'
+                return msg
+            elif self.isqueencastling:
+                msg += 'e8c8'
+                return msg
         msg += str(self.fromcell) + str(self.tocell)
         if self.promotionto:
             promotion = 'q'
@@ -131,10 +145,8 @@ class BlackMoveCapturePromotionFactory(MoveCapturePromotionFactory):
         self.iswhiteturn = False
 
 
-class MoveEnpassantFactory(MoveFactory):
-    def __call__(self, piece, fromcell, tocell, ischeck):
-        self.isenpassant = True
-        return super().__call__(piece, fromcell, tocell, ischeck)
+class MoveEnpassantFactory(MoveCaptureFactory):
+    pass
 
 
 class WhiteMoveEnpassantFactory(MoveEnpassantFactory):

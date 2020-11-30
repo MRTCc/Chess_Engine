@@ -23,8 +23,8 @@ checkmatevalue = 10000
 nposition = 0
 perfposition = 0
 hashingmethod = 'zobrist'
-isactivetraspositiontable = False     # default True
-algorithm = 'perf'                    # default alphabeta
+isactivetraspositiontable = True     # default True
+algorithm = 'alphabeta'                    # default alphabeta
 maxply = 4                          # default 5
 transpositiontable = None
 hashgenerator = None
@@ -82,8 +82,7 @@ class UciMoveSetter:
         self.listpiece = listpiece
         self.strmoves = strmoves
 
-    @staticmethod
-    def movefactory(piece, fromcell, tocell, capturedpiece, iswhiteturn):
+    def movefactory(self, piece, fromcell, tocell, capturedpiece, iswhiteturn):
         if isinstance(piece, pcsm.WhiteKing) and fromcell == e1 and tocell == g1:
             # arrocco corto re bianco
             move = mvm.whiteKingsideCastlingFactory()
@@ -110,12 +109,31 @@ class UciMoveSetter:
                 move = mvm.whiteMovePromotionFactory(piece, fromcell, tocell, promotionto, False)
             else:
                 move = mvm.blackMovePromotionFactory(piece, fromcell, tocell, promotionto, False)
-        elif isinstance(piece, pcsm.Pawn) and fromcell.absfiledifference(tocell) == 2:
+        elif (isinstance(piece, pcsm.Pawn) and fromcell.absrankdifference(tocell) == 1 and
+              fromcell.absfiledifference(tocell) == 1 and capturedpiece is None):
             # enpassant
             if iswhiteturn:
-                move = mvm.whiteMoveEnpassantFactory(piece, fromcell, tocell, False)
+                targetcoordinatesx = fromcell.sumcoordinate(-1, 0)
+                targetpiecesx = self.listpiece.getpiecefromcoordinate(targetcoordinatesx)
+                targetcoordinatedx = fromcell.sumcoordinate(1, 0)
+                targetpiecedx = self.listpiece.getpiecefromcoordinate(targetcoordinatedx)
+                if isinstance(targetpiecesx, pcsm.BlackPawn):
+                    move = mvm.whiteMoveEnpassantFactory(piece, fromcell, tocell, targetpiecesx, False)
+                elif isinstance(targetpiecedx, pcsm.BlackPawn):
+                    move = mvm.whiteMoveEnpassantFactory(piece, fromcell, tocell, targetpiecedx, False)
+                else:
+                    raise ValueError("UciMoveSetter --> invalid uci move : not possible enpassant!!!")
             else:
-                move = mvm.blackMoveEnpassantFactory(piece, fromcell, tocell, False)
+                targetcoordinatesx = fromcell.sumcoordinate(-1, 0)
+                targetpiecesx = self.listpiece.getpiecefromcoordinate(targetcoordinatesx)
+                targetcoordinatedx = fromcell.sumcoordinate(1, 0)
+                targetpiecedx = self.listpiece.getpiecefromcoordinate(targetcoordinatedx)
+                if isinstance(targetpiecesx, pcsm.WhitePawn):
+                    move = mvm.blackMoveEnpassantFactory(piece, fromcell, tocell, targetpiecesx, False)
+                elif isinstance(targetpiecedx, pcsm.WhitePawn):
+                    move = mvm.blackMoveEnpassantFactory(piece, fromcell, tocell, targetpiecedx, False)
+                else:
+                    raise ValueError("UciMoveSetter --> invalid uci move : not possible enpassant!!!")
         elif capturedpiece is not None:
             # cattura
             if iswhiteturn:
@@ -812,9 +830,12 @@ class AlphaBetaGamePosition(GamePosition):
     @staticmethod
     def _movepriority(move):
         if move.ischeck:
-            move.priority = 6
+            move.priority = 7
         elif move.capturedpiece:
-            move.priority = 5
+            if isinstance(move.capturedpiece, (pcsm.Queen, pcsm.Rook, pcsm.Bishop, pcsm.Knight)):
+                move.priority = 6
+            else:
+                move.priority = 5
         elif move.iskingcastling:
             move.priority = 4
         elif move.isqueencastling:
@@ -1188,6 +1209,8 @@ if __name__ == '__main__':
     """
 
     initnewgame()
-    initgameposition("8/3qk3/8/8/8/2Q5/8/1K6 w - - 0 1 moves".split())
-    isstale = rootposition.listpiece.isstalemate()
-    print(isstale)
+    initgameposition("rn1kqbnr/pp3ppp/2pp4/1B2p3/6b1/4P3/PPPP1PPP/RNB1K1NR w - - 0 1 moves".split())
+    eval = evm.Evaluator(rootposition.listpiece)
+    value = eval()
+    print(value)
+    rootposition.calcbestmove(2)

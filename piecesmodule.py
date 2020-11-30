@@ -664,7 +664,7 @@ class Pawn(RealPiece):
             raise OccupationException
         if self.allyking.iminchecksetup(self, tocell):
             raise TakenKingException
-        return self.moveEnpassantFactory(self, self.coordinate, tocell, False)
+        return self.moveFactory(self, self.coordinate, tocell, False)
 
     def _onestepmove(self):
         tocell = self.coordinate.sumcoordinate(0, self.filestep)

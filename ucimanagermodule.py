@@ -106,7 +106,6 @@ class UciManager:
         else:
             raise ValueError("UciManager --> _setoption : invalid parameter ", parameter)
 
-
     @staticmethod
     def _setnewgame():
         gm.initnewgame()
