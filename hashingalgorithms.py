@@ -1,4 +1,5 @@
 import piecesmodule as pcsm
+import movemodule as mvm
 import algebraicnotationmodule as alg
 import random
 
@@ -77,7 +78,7 @@ class Zobrist(HashingAlgorithm):
         return zobristkey
 
     def _getcastlingpiecestype(self):
-        kingtype = self._getpiecetype(pcsm.King(alg.a1, None))
+        kingtype = self._getpiecetype(pcsm.King(alg.a1, mvm.CastlingRights()))
         rooktype = self._getpiecetype(pcsm.Rook(alg.a1, None, None))
         return kingtype, rooktype
 
