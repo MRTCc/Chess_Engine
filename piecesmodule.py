@@ -256,9 +256,9 @@ class ListPiece:
         king.movescounter -= 1
         rook.movescounter -= 1
         if rook.movescounter == 0:
-            rook.isstartpos = True
+            rook.isstartpos = rook.setisstartpos()
         if king.movescounter == 0:
-            king.isstartpos = True
+            king.isstartpos = king.setisstartpos()
 
     def _undoqueencastling(self, move):
         if move.iswhiteturn:
@@ -274,9 +274,9 @@ class ListPiece:
         king.movescounter -= 1
         rook.movescounter -= 1
         if rook.movescounter == 0:
-            rook.isstartpos = True
+            rook.isstartpos = rook.setisstartpos()
         if king.movescounter == 0:
-            king.isstartpos = True
+            king.isstartpos = king.setisstartpos()
 
     def _undocaptureandpromotion(self, move):
         self._undopromotepawn(move)
@@ -307,7 +307,7 @@ class ListPiece:
         if move.piece:
             move.piece.movescounter -= 1
             if move.piece.movescounter == 0:
-                move.piece.isstartpos = True
+                move.piece.isstartpos = move.piece.setisstartpos()
         self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
         self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
         if move.isenpassant:
@@ -516,7 +516,7 @@ class ListPieceHashValue(ListPiece):
         if move.piece:
             move.piece.movescounter -= 1
             if move.piece.movescounter == 0:
-                move.piece.isstartpos = True
+                move.piece.isstartpos = move.piece.setisstartpos()
         self._updatekingcastlingrights(self.whiteking, self.whitesxrook, self.whitedxrook)
         self._updatekingcastlingrights(self.blackking, self.blacksxrook, self.blackdxrook)
         if move.isenpassant:
@@ -564,7 +564,7 @@ class RealPiece(Piece):
     def __init__(self, coordinate):
         super().__init__(coordinate)
         self.movescounter = 0
-        self.isstartpos = True
+        self.isstartpos = self.setisstartpos()
         self.letters = "xx"
         self.moveFactory = movemodule.whiteMoveFactory
         self.moveCaptureFactory = movemodule.whiteMoveCaptureFactory
@@ -573,8 +573,11 @@ class RealPiece(Piece):
         self.enemyindex = 1
         self.allyindex = 0
 
+    def setisstartpos(self):
+        raise Exception("RealPiece --> setisstartpos : not possible; children must override")
+
     def generatemoves(self):
-        pass
+        raise Exception("RealPiece --> generatemoves : not possible; children must override")
 
     def isthereenemypiece(self, coordinate):
         pieces = listpiece.piecesingame[self.enemyindex]
@@ -629,6 +632,12 @@ class Pawn(RealPiece):
         self.movePromotionFactory = movemodule.whiteMovePromotionFactory
         self.moveCapturePromotionFactory = movemodule.whiteMoveCapturePromotionFactory
         self.moveEnpassantFactory = movemodule.whiteMoveEnpassantFactory
+
+    def setisstartpos(self):
+        if self.coordinate in (a2, b2, c2, d2, e2, f2, g2, h2):
+            return True
+        else:
+            return False
 
     def generatemoves(self):
         moves = []
@@ -739,6 +748,12 @@ class BlackPawn(Pawn, Black):
         self.moveEnpassantFactory = movemodule.blackMoveEnpassantFactory
         self.movePromotionFactory = movemodule.blackMovePromotionFactory
 
+    def setisstartpos(self):
+        if self.coordinate in (a7, b7, c7, d7, e7, f7, g7, h7):
+            return True
+        else:
+            return False
+
 
 class WhitePawn(Pawn):
     def __init__(self, coordinate, allyking, enemyking):
@@ -754,6 +769,12 @@ class Rook(RealPiece):
         self.rookdeltas = ((0, 1), (1, 0), (0, -1), (-1, 0))
         self.kingcastlingcoordinate = f1
         self.queencastlingcoordinate = d1
+
+    def setisstartpos(self):
+        if self.coordinate in (a1, h1):
+            return True
+        else:
+            return False
 
     def rookgeneratemove(self, delta, factor):
         """
@@ -810,6 +831,12 @@ class BlackRook(Black, Rook):
         self.queencastlingcoordinate = d8
         self.letters = "bR"
 
+    def setisstartpos(self):
+        if self.coordinate in (a8, h8):
+            return True
+        else:
+            return False
+
 
 class Knight(RealPiece):
     def __init__(self, coordinate, allyking, enemyking):
@@ -818,6 +845,12 @@ class Knight(RealPiece):
         self.enemyking = enemyking
         self.deltas = ((-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2),
                        (-2, 1), (-2, -1))
+
+    def setisstartpos(self):
+        if self.coordinate in (b1, g1):
+            return True
+        else:
+            return False
 
     def generatemove(self, rankstep, filestep):
         tocell = self.coordinate.sumcoordinate(rankstep, filestep)
@@ -858,6 +891,12 @@ class BlackKnight(Black, Knight):
         super().setblackparameters()
         self.letters = "bN"
 
+    def setisstartpos(self):
+        if self.coordinate in (b8, g8):
+            return True
+        else:
+            return False
+
 
 class Bishop(RealPiece):
     def __init__(self, coordinate, allyking, enemyking):
@@ -865,6 +904,12 @@ class Bishop(RealPiece):
         self.enemyking = enemyking
         self.allyking = allyking
         self.bishopdeltas = ((-1, 1), (1, 1), (1, -1), (-1, -1))
+
+    def setisstartpos(self):
+        if self.coordinate in (c1, f1):
+            return True
+        else:
+            return False
 
     def bishopgeneratemove(self, delta, factor):
         """
@@ -920,6 +965,12 @@ class BlackBishop(Black, Bishop):
         super().setblackparameters()
         self.letters = "bB"
 
+    def setisstartpos(self):
+        if self.coordinate in (c8, f8):
+            return True
+        else:
+            return False
+
 
 class Queen(RealPiece):
     def __init__(self, coordinate, allyking, enemyking):
@@ -929,6 +980,12 @@ class Queen(RealPiece):
         self.enemyking = enemyking
         self.rookdeltas = ((0, 1), (1, 0), (0, -1), (-1, 0))
         self.bishopdeltas = ((-1, 1), (1, 1), (1, -1), (-1, -1))
+
+    def setisstartpos(self):
+        if self.coordinate == d1:
+            return True
+        else:
+            return False
 
     def rookgeneratemove(self, delta, factor):
         """
@@ -1024,6 +1081,12 @@ class BlackQueen(Black, Queen):
         super().setblackparameters()
         self.letters = "bQ"
 
+    def setisstartpos(self):
+        if self.coordinate == d8:
+            return True
+        else:
+            return False
+
 
 class King(RealPiece):
     def __init__(self, coordinate, castlingrights):
@@ -1034,6 +1097,7 @@ class King(RealPiece):
         self.knightdeltas = ((-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2),
                              (-2, 1), (-2, -1))
         self.castlingrights = castlingrights
+        self.castlingrights.kinginstartpos = self.isstartpos
         self.moveKingCastlingFactory = movemodule.whiteKingsideCastlingFactory
         self.moveQueenCastlingFactory = movemodule.whiteQueensideCastlingFactory
         self.kingcastlingcoordinate = g1
@@ -1042,6 +1106,12 @@ class King(RealPiece):
         self.allyindex = 0
         self.kingsidelinecoordinates = None
         self.queensidelinecoordinates = None
+
+    def setisstartpos(self):
+        if self.coordinate == e1:
+            return True
+        else:
+            return False
 
     def _delta_0_2(self, delta):
         for i in range(1, 8):
@@ -1217,6 +1287,12 @@ class BlackKing(King):
         self.allyindex = 1
         self.kingsidelinecoordinates = (f8, g8)
         self.queensidelinecoordinates = (d8, c8, b8)
+
+    def setisstartpos(self):
+        if self.coordinate == e8:
+            return True
+        else:
+            return False
 
     def _delta_0_2(self, delta):
         for i in range(1, 8):

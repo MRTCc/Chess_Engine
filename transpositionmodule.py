@@ -35,12 +35,7 @@ class TranspositionTable:
             self.records[newrecord.key] = newrecord
 
     def updatetonewposition(self):
-        keytodelete = []
-        for key, record in self.records.items():
-            if record.isold:
-                keytodelete.append(key)
-        for key in keytodelete:
-            self.records.pop(key)
+        self.records = {}
 
     def __str__(self):
         length = str(len(self.records))
