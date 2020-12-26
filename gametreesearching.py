@@ -23,8 +23,8 @@ checkmatevalue = 10000
 nposition = 0
 perfposition = 0
 hashingmethod = 'zobrist'
-isactivetraspositiontable = True     # default True
-algorithm = 'alphabeta'                    # default alphabeta
+isactivetraspositiontable = False     # default True
+algorithm = 'minmax'                    # default alphabeta
 maxply = 3                          # default 5
 transpositiontable = None
 hashgenerator = None
@@ -875,7 +875,7 @@ class AlphaBetaWhiteGamePosition(AlphaBetaGamePosition):
     def alphabeta(self, alpha, beta, depthleft):
         global nposition
         nposition += 1
-        global  isrunning
+        global isrunning
         if not isrunning:
             raise StopSearchSystemExit
         if depthleft == 0:
@@ -1196,7 +1196,6 @@ if __name__ == '__main__':
     print(bestmove)
     """
 
-    """
     initnewgame()
     initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves".split())
     rootposition.builtplytreevalue(5)
@@ -1206,11 +1205,13 @@ if __name__ == '__main__':
     initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves".split())
     rootposition.builtplytreevalue(4)
     print("minmax nposition : ", nposition)
-    """
 
+
+    """
     initnewgame()
     initgameposition("rn1kqbnr/pp3ppp/2pp4/1B2p3/6b1/4P3/PPPP1PPP/RNB1K1NR w - - 0 1 moves".split())
     eval = evm.Evaluator(rootposition.listpiece)
     value = eval()
     print(value)
     rootposition.calcbestmove(2)
+    """
