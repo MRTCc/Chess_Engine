@@ -93,7 +93,7 @@ class UciManager:
             else:
                 raise ValueError("UciManager --> _setoption : invalid value ", value, "for parameter ", parameter)
         elif parameter == 'algorithm':
-            if value == 'minmax' or value == 'alphabeta':
+            if value in ('minmax', 'alphabeta', 'iterdeep'):
                 gm.algorithm = value
             else:
                 raise ValueError("UciManager --> _setoption : invalid value ", value, "for parameter ", parameter)

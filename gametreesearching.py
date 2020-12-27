@@ -23,9 +23,9 @@ checkmatevalue = 10000
 nposition = 0
 perfposition = 0
 hashingmethod = 'zobrist'
-isactivetraspositiontable = False     # default True
-algorithm = 'minmax'                    # default alphabeta
-maxply = 3                          # default 5
+isactivetraspositiontable = True     # default True
+algorithm = 'iterdeep'                    # default alphabeta
+maxply = 3                         # default 5
 transpositiontable = None
 hashgenerator = None
 rootposition = None
@@ -296,6 +296,16 @@ class FenStrParser:
                 gameposition = AlphaBetaWhiteGamePosition(pcsm.listpiece)
             else:
                 gameposition = AlphaBetaBlackGamePosition(pcsm.listpiece)
+        elif self.algorithm == 'iterdeep' and self.transpositiontable is None:
+            if self.enginecolor:
+                gameposition = IterativeDeepeningWhiteGamePosition(pcsm.listpiece)
+            else:
+                gameposition = IterativeDeepeningBlackGamePosition(pcsm.listpiece)
+        elif self.algorithm == 'iterdeep' and self.transpositiontable is not None:
+            if self.enginecolor:
+                gameposition = IterativeDeepeningWhiteGamePositionTable(self.transpositiontable, pcsm.listpiece)
+            else:
+                gameposition = IterativeDeepeningBlackGamePositionTable(self.transpositiontable, pcsm.listpiece)
         elif self.algorithm == 'perf':
             if self.enginecolor:
                 gameposition = MinMaxWhitePerfGamePosition(pcsm.listpiece)
@@ -1156,6 +1166,73 @@ class AlphaBetaBlackGamePositionTable(AlphaBetaBlackGamePosition):
         return bestmove
 
 
+class IterativeDeepeningGamePosition:
+    def __init__(self, listpiece):
+        self.listpiece = listpiece
+        self.position = None
+        self.value = None
+
+    def calcbestmove(self, maxply):
+        for ply in range(1, maxply + 1):
+            self._getnewposition()
+            self.value = self.position.alphabeta(-800, +800, ply)
+        bestmove = None
+        children = self.position.children
+        for index in range(0, len(children)):
+            if children[index].value == self.value:
+                bestmove = self.position.moves[index]
+                break
+        return bestmove
+
+    def _getnewposition(self):
+        raise Exception("gametreesearching.py : IterativeDeepeningGamePosition --> _getnewposition not implemented!!!")
+
+    def getrandomoutmove(self):
+        children = self.position.children
+        index = random.randint(0, len(children) - 1)
+        strmove = self.position.moves[index].short__str__()
+        return strmove
+
+    def __str__(self):
+        return str(self.position)
+
+
+class IterativeDeepeningWhiteGamePosition(IterativeDeepeningGamePosition):
+    def __init__(self, listpiece):
+        super().__init__(listpiece)
+
+    def _getnewposition(self):
+        self.position = AlphaBetaWhiteGamePosition(self.listpiece)
+
+
+class IterativeDeepeningWhiteGamePositionTable(IterativeDeepeningGamePosition):
+    def __init__(self, transpositiontable, listpiece):
+        super().__init__(listpiece)
+        self.transpositiontable = transpositiontable
+
+    def _getnewposition(self):
+        self.position = AlphaBetaWhiteGamePositionTable(self.transpositiontable, self.listpiece)
+        self.transpositiontable.updatetonewposition()
+
+
+class IterativeDeepeningBlackGamePosition(IterativeDeepeningGamePosition):
+    def __init__(self, listpiece):
+        super().__init__(listpiece)
+
+    def _getnewposition(self):
+        self.position = AlphaBetaBlackGamePosition(self.listpiece)
+
+
+class IterativeDeepeningBlackGamePositionTable(IterativeDeepeningGamePosition):
+    def __init__(self, transpositiontable, listpiece):
+        super().__init__(listpiece)
+        self.transpositiontable = transpositiontable
+
+    def _getnewposition(self):
+        self.position = AlphaBetaBlackGamePositionTable(self.transpositiontable, self.listpiece)
+        self.transpositiontable.updatetonewposition()
+
+
 def debug_pos_factory(hashgenerator):
     wc = mvm.CastlingRights(True, True, False, True, False, False)
     bc = mvm.CastlingRights(True, True, False, True, False, False)
@@ -1184,7 +1261,6 @@ if __name__ == '__main__':
     print(len(table.records))
     """
 
-    """
     initnewgame()
     initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves".split())
     bestmove = rootposition.calcbestmove(maxply)
@@ -1194,18 +1270,18 @@ if __name__ == '__main__':
     bestmove = rootposition.calcbestmove(maxply)
     print(rootposition)
     print(bestmove)
-    """
 
+    """
     initnewgame()
     initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves".split())
-    rootposition.builtplytreevalue(5)
+    rootposition.calcbestmove(3)
     print("perf positions : ", perfposition, "nposition : ", nposition)
     nposition = 0
     algorithm = 'minmax'
     initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves".split())
     rootposition.builtplytreevalue(4)
     print("minmax nposition : ", nposition)
-
+    """
 
     """
     initnewgame()

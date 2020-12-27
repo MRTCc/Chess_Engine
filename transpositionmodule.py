@@ -1,7 +1,7 @@
 def transpositiontablefactory(algorithm):
     if algorithm == 'minmax':
         transpositiontable = TranspositionTable(MinMaxRecord)
-    elif algorithm == 'alphabeta':
+    elif algorithm in ('alphabeta', 'iterdeep'):
         transpositiontable = TranspositionTable(AlphaBetaRecord)
     else:
         raise ValueError("Transpositiontablefactory --> algorithm not valid!!!")

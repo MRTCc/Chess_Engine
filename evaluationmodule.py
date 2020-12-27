@@ -146,7 +146,16 @@ blackkingendgametable = {a8: -50,    b8: -30,    c8: -30,    d8: -30,     e8: -3
                          a1: -50,    b1: -40,    c1: -30,    d1: -20,     e1: -20,      f1: -30,   g1: -40,  h1: -50}
 
 
-class Evaluator:
+def Evaluator(listpiece, functype=0):
+    if functype == 0:
+        return EvaluationFuncTable(listpiece)
+    elif functype == 1:
+        return EvaluationFuncLazy(listpiece)
+    else:
+        raise Exception("evaluationmodule.py : Evaluator --> invalid functype!!!")
+
+
+class EvaluationFuncTable:
     def __init__(self, listpiece):
         self.listpiece = listpiece
         self.wdoubledpawns = 0
@@ -399,6 +408,11 @@ class Evaluator:
         msg += "black blocked pawns:" + str(self.bblockedpawns) + "\n\t"
         msg += "position value: " + str(self.evaluation)
         return msg
+
+
+class EvaluationFuncLazy:
+    def __init__(self, listpiece):
+        pass
 
 
 if __name__ == '__main__':
