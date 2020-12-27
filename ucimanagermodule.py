@@ -68,7 +68,9 @@ class UciManager:
                                "true\n"
                                "option hashingmethod type string default zobrist\n"
                                "option algorithm type string default alphabeta\n"
-                               "option maxply type spin min 1 max 20 default 5\nuciok")
+                               "option maxply type spin min 1 max 20 default 5\n"
+                               "option evalfunctype type spin min 0 max 1 default 0\n"
+                               "uciok\n")
         self.isconnectionstate = True
         self.isinitnewgamestate = False
         self.ispositionstate = False
@@ -103,6 +105,8 @@ class UciManager:
                 gm.maxply = ply
             except ValueError:
                 raise ValueError("UciManager --> _setoption : invalid value ", value, "for parameter ", parameter)
+        elif parameter == 'evalfunctype':
+            gm.evalfunctype = int(value)
         else:
             raise ValueError("UciManager --> _setoption : invalid parameter ", parameter)
 

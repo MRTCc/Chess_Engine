@@ -145,8 +145,10 @@ blackkingendgametable = {a8: -50,    b8: -30,    c8: -30,    d8: -30,     e8: -3
                          a2: -30,    b2: -20,    c2: -10,    d2: 0,       e2: 0,        f2: -10,   g2: -20,  h2: -30,
                          a1: -50,    b1: -40,    c1: -30,    d1: -20,     e1: -20,      f1: -30,   g1: -40,  h1: -50}
 
+functype = 0
 
-def Evaluator(listpiece, functype=0):
+
+def Evaluator(listpiece):
     if functype == 0:
         return EvaluationFuncTable(listpiece)
     elif functype == 1:
@@ -155,7 +157,7 @@ def Evaluator(listpiece, functype=0):
         raise Exception("evaluationmodule.py : Evaluator --> invalid functype!!!")
 
 
-class EvaluationFuncTable:
+class EvaluationFunc:
     def __init__(self, listpiece):
         self.listpiece = listpiece
         self.wdoubledpawns = 0
@@ -170,20 +172,6 @@ class EvaluationFuncTable:
         self._countisolatedpawns(self.listpiece.whitepawns)
         self._countisolatedpawns(self.listpiece.blackpawns)
         self.evaluation = None
-        self.isendgamephase = True
-        self._setisendgamephase()
-        self.whitepieces = []
-        self.whitepawns = []
-        self.blackpieces = []
-        self.blackpawns = []
-        self.controlledcells = {a8: 0,  b8: 0,  c8: 0,  d8: 0,  e8: 0,  f8: 0,  g8: 0,  h8: 0,
-                                a7: 0,  b7: 0,  c7: 0,  d7: 0,  e7: 0,  f7: 0,  g7: 0,  h7: 0,
-                                a6: 0,  b6: 0,  c6: 0,  d6: 0,  e6: 0,  f6: 0,  g6: 0,  h6: 0,
-                                a5: 0,  b5: 0,  c5: 0,  d5: 0,  e5: 0,  f5: 0,  g5: 0,  h5: 0,
-                                a4: 0,  b4: 0,  c4: 0,  d4: 0,  e4: 0,  f4: 0,  g4: 0,  h4: 0,
-                                a3: 0,  b3: 0,  c3: 0,  d3: 0,  e3: 0,  f3: 0,  g3: 0,  h3: 0,
-                                a2: 0,  b2: 0,  c2: 0,  d2: 0,  e2: 0,  f2: 0,  g2: 0,  h2: 0,
-                                a1: 0,  b1: 0,  c1: 0,  d1: 0,  e1: 0,  f1: 0,  g1: 0,  h1: 0}
 
     def _countdoubledpawns(self):
         for column in algn.ranks:
@@ -240,6 +228,28 @@ class EvaluationFuncTable:
                     self.bisolatedpawns += 1
                 else:
                     raise AttributeError
+
+    def __call__(self):
+        raise Exception("evaluationmodule.py : EvaluationFunc --> __call__ --> not implemented!!!")
+
+
+class EvaluationFuncTable(EvaluationFunc):
+    def __init__(self, listpiece):
+        super().__init__(listpiece)
+        self.isendgamephase = True
+        self._setisendgamephase()
+        self.whitepieces = []
+        self.whitepawns = []
+        self.blackpieces = []
+        self.blackpawns = []
+        self.controlledcells = {a8: 0,  b8: 0,  c8: 0,  d8: 0,  e8: 0,  f8: 0,  g8: 0,  h8: 0,
+                                a7: 0,  b7: 0,  c7: 0,  d7: 0,  e7: 0,  f7: 0,  g7: 0,  h7: 0,
+                                a6: 0,  b6: 0,  c6: 0,  d6: 0,  e6: 0,  f6: 0,  g6: 0,  h6: 0,
+                                a5: 0,  b5: 0,  c5: 0,  d5: 0,  e5: 0,  f5: 0,  g5: 0,  h5: 0,
+                                a4: 0,  b4: 0,  c4: 0,  d4: 0,  e4: 0,  f4: 0,  g4: 0,  h4: 0,
+                                a3: 0,  b3: 0,  c3: 0,  d3: 0,  e3: 0,  f3: 0,  g3: 0,  h3: 0,
+                                a2: 0,  b2: 0,  c2: 0,  d2: 0,  e2: 0,  f2: 0,  g2: 0,  h2: 0,
+                                a1: 0,  b1: 0,  c1: 0,  d1: 0,  e1: 0,  f1: 0,  g1: 0,  h1: 0}
 
     def _setisendgamephase(self):
         whitepawns = self.listpiece.whitepawns
@@ -410,9 +420,66 @@ class EvaluationFuncTable:
         return msg
 
 
-class EvaluationFuncLazy:
+class EvaluationFuncLazy(EvaluationFunc):
     def __init__(self, listpiece):
-        pass
+        super().__init__(listpiece)
+
+    @staticmethod
+    def _setwhiteevaluationparameters(piece):
+        if isinstance(piece, pcsm.WhiteRook):
+            piecevalue = rookvalue
+        elif isinstance(piece, pcsm.WhiteKnight):
+            piecevalue = knightvalue
+        elif isinstance(piece, pcsm.WhiteBishop):
+            piecevalue = bishopvalue
+        elif isinstance(piece, pcsm.WhiteQueen):
+            piecevalue = queenvalue
+        elif isinstance(piece, pcsm.WhiteKing):
+            piecevalue = kingvalue
+        else:
+            raise ValueError("Not a valid piece!!!")
+        return piecevalue
+
+    @staticmethod
+    def _setblackevaluationparameters(piece):
+        if isinstance(piece, pcsm.BlackRook):
+            piecevalue = rookvalue
+        elif isinstance(piece, pcsm.BlackKnight):
+            piecevalue = knightvalue
+        elif isinstance(piece, pcsm.BlackBishop):
+            piecevalue = bishopvalue
+        elif isinstance(piece, pcsm.BlackQueen):
+            piecevalue = queenvalue
+        elif isinstance(piece, pcsm.BlackKing):
+            piecevalue = kingvalue
+        else:
+            raise ValueError("Not a valid piece!!!")
+        return piecevalue
+
+    def __call__(self):
+        self.evaluation = 0
+        whitevalue = 0
+        blackvalue = 0
+        for piece in self.listpiece.whitepieces:
+            value = self._setwhiteevaluationparameters(piece)
+            whitevalue += value
+        whitevalue += (pawnvalue * len(self.listpiece.whitepawns))
+        for piece in self.listpiece.blackpieces:
+            value = self._setblackevaluationparameters(piece)
+            blackvalue += value
+        blackvalue += (pawnvalue * len(self.listpiece.blackpawns))
+        self.evaluation = whitevalue - blackvalue
+        doubledpawns = (self.wdoubledpawns - self.bdoubledpawns) * doublepawnvalue
+        isolatedpawns = (self.wisolatedpawns - self.bisolatedpawns) * isolatedpawnvalue
+        blockedpawns = (self.wblockedpawns - self.bblockedpawns) * blockedpawnvalue
+        whitemalus = 0
+        blackmalus = 0
+        if self.listpiece.whiteking.coordinate in (d1, e1):
+            whitemalus = (-1) * kingvalue * 0.4
+        if self.listpiece.blackking.coordinate in (d8, e8):
+            blackmalus = kingvalue * 0.4
+        self.evaluation += doubledpawns + isolatedpawns + blockedpawns + whitemalus + blackmalus
+        return self.evaluation
 
 
 if __name__ == '__main__':

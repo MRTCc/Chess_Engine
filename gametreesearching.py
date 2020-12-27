@@ -24,9 +24,10 @@ nposition = 0
 perfposition = 0
 hashingmethod = 'zobrist'
 isactivetraspositiontable = True     # default True
-algorithm = 'iterdeep'                    # default alphabeta
-maxply = 3                         # default 5
+algorithm = 'alphabeta'                    # default alphabeta
+maxply = 2                        # default 5
 transpositiontable = None
+evalfunctype = 0
 hashgenerator = None
 rootposition = None
 isrunning = True
@@ -35,6 +36,7 @@ isrunning = True
 def initnewgame():
     global transpositiontable
     global hashgenerator
+    evm.functype = evalfunctype
     if isactivetraspositiontable:
         if hashingmethod == 'zobrist':
             hashgenerator = hsa.Zobrist()
@@ -1166,6 +1168,38 @@ class AlphaBetaBlackGamePositionTable(AlphaBetaBlackGamePosition):
         return bestmove
 
 
+class WhiteGamePosition(GamePosition):
+    def __init__(self, listpiece, parent=None):
+        super().__init__(listpiece, parent)
+        self.iswhiteturn = True
+        self.movegeneratorfunc = pcsm.white_generator_moves
+        self.enemy_game_position_func = BlackGamePosition
+        self.ischeckfunc = self.listpiece.iswhitekingincheck
+        self.imincheckmatevalue = -checkmatevalue
+        self.childrenevaluationfunc = max
+
+    def __str__(self):
+        msg = 'Active color: white\n'
+        msg += str(self.listpiece)
+        return msg
+
+
+class BlackGamePosition(GamePosition):
+    def __init__(self, listpiece, parent=None):
+        super().__init__(listpiece, parent)
+        self.iswhiteturn = False
+        self.movegeneratorfunc = pcsm.black_generator_moves
+        self.enemy_game_position_func = WhiteGamePosition
+        self.ischeckfunc = self.listpiece.isblackkingincheck
+        self.imincheckmatevalue = checkmatevalue
+        self.childrenevaluationfunc = min
+
+    def __str__(self):
+        msg = 'Active color: black\n'
+        msg += str(self.listpiece)
+        return msg
+
+
 class IterativeDeepeningGamePosition:
     def __init__(self, listpiece):
         self.listpiece = listpiece
@@ -1194,7 +1228,7 @@ class IterativeDeepeningGamePosition:
         return strmove
 
     def __str__(self):
-        return str(self.position)
+        return self.position.__str__()
 
 
 class IterativeDeepeningWhiteGamePosition(IterativeDeepeningGamePosition):
@@ -1202,17 +1236,7 @@ class IterativeDeepeningWhiteGamePosition(IterativeDeepeningGamePosition):
         super().__init__(listpiece)
 
     def _getnewposition(self):
-        self.position = AlphaBetaWhiteGamePosition(self.listpiece)
-
-
-class IterativeDeepeningWhiteGamePositionTable(IterativeDeepeningGamePosition):
-    def __init__(self, transpositiontable, listpiece):
-        super().__init__(listpiece)
-        self.transpositiontable = transpositiontable
-
-    def _getnewposition(self):
-        self.position = AlphaBetaWhiteGamePositionTable(self.transpositiontable, self.listpiece)
-        self.transpositiontable.updatetonewposition()
+        self.position = WhiteGamePosition(self.listpiece)
 
 
 class IterativeDeepeningBlackGamePosition(IterativeDeepeningGamePosition):
@@ -1221,16 +1245,6 @@ class IterativeDeepeningBlackGamePosition(IterativeDeepeningGamePosition):
 
     def _getnewposition(self):
         self.position = AlphaBetaBlackGamePosition(self.listpiece)
-
-
-class IterativeDeepeningBlackGamePositionTable(IterativeDeepeningGamePosition):
-    def __init__(self, transpositiontable, listpiece):
-        super().__init__(listpiece)
-        self.transpositiontable = transpositiontable
-
-    def _getnewposition(self):
-        self.position = AlphaBetaBlackGamePositionTable(self.transpositiontable, self.listpiece)
-        self.transpositiontable.updatetonewposition()
 
 
 def debug_pos_factory(hashgenerator):
@@ -1260,7 +1274,7 @@ if __name__ == '__main__':
     nposition = 0
     print(len(table.records))
     """
-
+    """
     initnewgame()
     initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves".split())
     bestmove = rootposition.calcbestmove(maxply)
@@ -1270,7 +1284,7 @@ if __name__ == '__main__':
     bestmove = rootposition.calcbestmove(maxply)
     print(rootposition)
     print(bestmove)
-
+    """
     """
     initnewgame()
     initgameposition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves".split())
@@ -1283,11 +1297,10 @@ if __name__ == '__main__':
     print("minmax nposition : ", nposition)
     """
 
-    """
     initnewgame()
-    initgameposition("rn1kqbnr/pp3ppp/2pp4/1B2p3/6b1/4P3/PPPP1PPP/RNB1K1NR w - - 0 1 moves".split())
-    eval = evm.Evaluator(rootposition.listpiece)
-    value = eval()
+    initgameposition("1brrknqn/8/8/1p6/2p5/8/6PP/1NRBKQRN w - - 0 1 moves".split())
+    evalu = evm.Evaluator(rootposition.listpiece)
+    value = evalu()
+    print(rootposition)
     print(value)
-    rootposition.calcbestmove(2)
-    """
+    # rootposition.calcbestmove(2)
