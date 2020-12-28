@@ -23,7 +23,7 @@ checkmatevalue = 10000
 nposition = 0
 perfposition = 0
 hashingmethod = 'zobrist'
-isactivetraspositiontable = False     # default True
+isactivetraspositiontable = True     # default True
 algorithm = 'iterdeep'                    # default alphabeta
 maxply = 4                     # default 5
 transpositiontable = None
@@ -280,9 +280,9 @@ class FenStrParser:
     def _parsergameposition(self, listpiece):
         if self.algorithm == 'minmax' and self.transpositiontable:
             if self.enginecolor:
-                gameposition = MinMaxWhiteGamePositionTable(self.transpositiontable, pcsm.listpiece)
+                gameposition = MinMaxWhiteGamePositionTable(self.transpositiontable, listpiece)
             else:
-                gameposition = MinMaxBlackGamePositionTable(self.transpositiontable, pcsm.listpiece)
+                gameposition = MinMaxBlackGamePositionTable(self.transpositiontable, listpiece)
         elif self.algorithm == 'minmax' and self.transpositiontable is None:
             if self.enginecolor:
                 gameposition = MinMaxWhiteGamePosition(pcsm.listpiece)
@@ -290,23 +290,23 @@ class FenStrParser:
                 gameposition = MinMaxBlackGamePosition(pcsm.listpiece)
         elif self.algorithm == 'alphabeta' and self.transpositiontable:
             if self.enginecolor:
-                gameposition = AlphaBetaWhiteGamePositionTable(self.transpositiontable, pcsm.listpiece)
+                gameposition = AlphaBetaWhiteGamePositionTable(self.transpositiontable, listpiece)
             else:
-                gameposition = AlphaBetaBlackGamePositionTable(self.transpositiontable, pcsm.listpiece)
+                gameposition = AlphaBetaBlackGamePositionTable(self.transpositiontable, listpiece)
         elif self.algorithm == 'alphabeta' and self.transpositiontable is None:
             if self.enginecolor:
-                gameposition = AlphaBetaWhiteGamePosition(pcsm.listpiece)
+                gameposition = AlphaBetaWhiteGamePosition(listpiece)
             else:
-                gameposition = AlphaBetaBlackGamePosition(pcsm.listpiece)
+                gameposition = AlphaBetaBlackGamePosition(listpiece)
         elif self.algorithm == 'iterdeep' and self.transpositiontable is None:
-            gameposition = IterativeDeepeningGamePosition(pcsm.listpiece, self.enginecolor)
+            gameposition = IterativeDeepeningGamePosition(listpiece, self.enginecolor)
         elif self.algorithm == 'iterdeep' and self.transpositiontable is not None:
-            gameposition = IterativeDeepeningGamePositionTable(self.transpositiontable, pcsm.listpiece, self.enginecolor)
+            gameposition = IterativeDeepeningGamePositionTable(self.transpositiontable, listpiece, self.enginecolor)
         elif self.algorithm == 'perf':
             if self.enginecolor:
-                gameposition = MinMaxWhitePerfGamePosition(pcsm.listpiece)
+                gameposition = MinMaxWhitePerfGamePosition(listpiece)
             else:
-                gameposition = MinMaxBlackPerfGamePosition(pcsm.listpiece)
+                gameposition = MinMaxBlackPerfGamePosition(listpiece)
         else:
             raise TypeError("FenStrParser --> invalid gameposition creation... data not valid!!!")
         return gameposition
@@ -350,7 +350,6 @@ class FenStrParser:
 
     def __call__(self, fenstr, movestr):
         tokens = fenstr
-        # TODO vedere cosa invia ARENA GUI
         if len(tokens) != 6:
             raise ValueError("Invalid FEN string!!!")
         self._isboardvalid(tokens[0])
@@ -1190,6 +1189,29 @@ class WhiteGamePosition(GamePosition):
         return msg
 
 
+class WhiteGamePositionTable(WhiteGamePosition):
+    def __init__(self, listpiece, transpositiontable, parent=None):
+        super().__init__(listpiece, parent)
+        self.enemy_game_position_func = BlackGamePositionTable
+        self.transpositiontable = transpositiontable
+
+    def gethashkey(self):
+        return self.listpiece.gethashkey()
+
+    def getrecord(self):
+        key = self.listpiece.gethashkey()
+        board = str(self.listpiece)
+        record = self.transpositiontable.getrecord(key, board)
+        return record
+
+    def updatetranspositiontable(self, isalphacutoff, isbetacutoff, depthleft, bestmove, ishorizonleaf):
+        self.transpositiontable.insertnewrecord(self.listpiece.gethashkey(), self.value, isalphacutoff, isbetacutoff,
+                                                depthleft, bestmove, ishorizonleaf, str(self.listpiece))
+
+    def refreshtranspositiontable(self):
+        self.transpositiontable.updatetonewposition()
+
+
 class BlackGamePosition(GamePosition):
     def __init__(self, listpiece, parent=None):
         super().__init__(listpiece, parent)
@@ -1216,6 +1238,29 @@ class BlackGamePosition(GamePosition):
         msg = 'Active color: black\n'
         msg += str(self.listpiece)
         return msg
+
+
+class BlackGamePositionTable(BlackGamePosition):
+    def __init__(self, listpiece, transpositiontable, parent=None):
+        super().__init__(listpiece, parent)
+        self.enemy_game_position_func = WhiteGamePositionTable
+        self.transpositiontable = transpositiontable
+
+    def gethashkey(self):
+        return self.listpiece.gethashkey()
+
+    def getrecord(self):
+        key = self.listpiece.gethashkey()
+        board = str(self.listpiece)
+        record = self.transpositiontable.getrecord(key, board)
+        return record
+
+    def updatetranspositiontable(self, isalphacutoff, isbetacutoff, depthleft, bestmove, ishorizonleaf):
+        self.transpositiontable.insertnewrecord(self.listpiece.gethashkey(), self.value, isalphacutoff, isbetacutoff,
+                                                depthleft, bestmove, ishorizonleaf, str(self.listpiece))
+
+    def refreshtranspositiontable(self):
+        self.transpositiontable.updatetonewposition()
 
 
 class IterativeDeepeningGamePosition:
@@ -1331,8 +1376,7 @@ class IterativeDeepeningGamePosition:
         return self.position.moves[0]
 
     def getrandomoutmove(self):
-        children = self.position.children
-        index = random.randint(0, len(children) - 1)
+        index = random.randint(0, len(self.position.moves) - 1)
         strmove = self.position.moves[index].short__str__()
         return strmove
 
@@ -1340,10 +1384,150 @@ class IterativeDeepeningGamePosition:
         return self.position.__str__()
 
 
-class IterativeDeepeningGamePositionTable(IterativeDeepeningGamePosition):
+class IterativeDeepeningGamePositionTable:
     def __init__(self, transpositiontable, listpiece, rootcolor):
-        super().__init__(listpiece, rootcolor)
-        self.transpositiontable = transpositiontable
+        self.listpiece = listpiece
+        self.rootcolor = rootcolor
+        if rootcolor:
+            self.position = WhiteGamePositionTable(listpiece, transpositiontable)
+        else:
+            self.position = BlackGamePositionTable(listpiece, transpositiontable)
+        self.value = None
+
+    def alphabetamax(self, position, alpha, beta, depthleft):
+        global nposition
+        nposition += 1
+        global isrunning
+        if not isrunning:
+            raise StopSearchSystemExit
+        record = position.getrecord()
+        if record is not None:
+            position.value = record.score
+            position.bestmove = record.bestmove
+            msg = position.outputmoves()
+            testfile.write(msg + "________ Transposition table match ______________" + "\n")
+            return position.value
+        if depthleft == 0:
+            evaluator = evm.Evaluator(position.listpiece)
+            position.value = evaluator()
+            position.updatetranspositiontable(False, False, depthleft, None, True)
+            msg = position.outputmoves()
+            testfile.write(msg + "\n")
+            return position.value
+        if position.imincheckmate():
+            position.value = position.imincheckmatevalue
+            position.updatetranspositiontable(False, False, depthleft, None, False)
+            msg = position.outputmoves()
+            testfile.write(msg + "********** CHECKMATE - GAME ENDED **********\n")
+            return position.value
+        if position.isstalemate():
+            position.value = 0
+            position.updatetranspositiontable(False, False, depthleft, None, False)
+            msg = position.outputmoves()
+            testfile.write(msg + "********** DRAW - GAME ENDED **********\n")
+            return position.value
+        for move in position.moves:
+            position.listpiece.applymove(move)
+            child = position.enemy_game_position_func(position.listpiece, transpositiontable, position)
+            try:
+                child.value = self.alphabetamin(child, alpha, beta, depthleft - 1)
+            except StopSearchSystemExit:
+                position.listpiece.undomove(move)
+                raise StopSearchSystemExit
+            if child.value >= beta:
+                position.value = beta
+                position.updatetranspositiontable(False, True, depthleft, None, False)
+                msg = position.outputmoves()
+                testfile.write(msg + "---------- beta cut-off -----------" + "\n")
+                position.listpiece.undomove(move)
+                return beta
+            if child.value > alpha:
+                alpha = child.value
+            position.children.append(child)
+            position.listpiece.undomove(move)
+        position.value = alpha
+        position.updatetranspositiontable(False, False, depthleft, None, False)
+        return alpha
+
+    def alphabetamin(self, position, alpha, beta, depthleft):
+        global nposition
+        nposition += 1
+        global isrunning
+        if not isrunning:
+            raise StopSearchSystemExit
+        record = position.getrecord()
+        if record is not None:
+            position.value = record.score
+            position.bestmove = record.bestmove
+            msg = position.outputmoves()
+            testfile.write(msg + "________ Transposition table match ______________" + "\n")
+            return position.value
+        if depthleft == 0:
+            evaluator = evm.Evaluator(position.listpiece)
+            position.value = evaluator()
+            position.updatetranspositiontable(False, False, depthleft, None, True)
+            msg = position.outputmoves()
+            testfile.write(msg + "\n")
+            return position.value
+        if position.imincheckmate():
+            position.value = position.imincheckmatevalue
+            position.updatetranspositiontable(False, False, depthleft, None, False)
+            msg = position.outputmoves()
+            testfile.write(msg + "********** CHECKMATE - GAME ENDED **********\n")
+            return position.value
+        if position.isstalemate():
+            position.value = 0
+            position.updatetranspositiontable(False, False, depthleft, None, False)
+            msg = position.outputmoves()
+            testfile.write(msg + "********** DRAW - GAME ENDED **********\n")
+            return position.value
+        for move in position.moves:
+            self.listpiece.applymove(move)
+            child = position.enemy_game_position_func(position.listpiece, transpositiontable, position)
+            try:
+                child.value = self.alphabetamax(child, alpha, beta, depthleft - 1)
+            except StopSearchSystemExit:
+                position.listpiece.undomove(move)
+                raise StopSearchSystemExit
+            if child.value <= alpha:
+                position.value = alpha
+                position.updatetranspositiontable(True, False, depthleft, None, False)
+                msg = position.outputmoves()
+                testfile.write(msg + "---------- alpha cut-off -----------" + "\n")
+                position.listpiece.undomove(move)
+                return alpha
+            if child.value < beta:
+                beta = child.value
+            position.children.append(child)
+            position.listpiece.undomove(move)
+        position.value = beta
+        position.updatetranspositiontable(False, False, depthleft, None, False)
+        return beta
+
+    @staticmethod
+    def _moveorderingkey(move):
+        return move.value
+
+    def calcbestmove(self, maxply):
+        for ply in range(1, maxply + 1):
+            self.position.children = []
+            self.position.refreshtranspositiontable()
+            if self.rootcolor:
+                self.value = self.alphabetamax(self.position, -800, +800, ply)
+            else:
+                self.value = self.alphabetamax(self.position, -800, +800, ply)
+            for index in range(0, len(self.position.children)):
+                self.position.moves[index].value = self.position.children[index].value
+            self.position.moves.sort(key=self._moveorderingkey, reverse=True)
+        return self.position.moves[0]
+
+    def getrandomoutmove(self):
+        index = random.randint(0, len(self.position.moves) - 1)
+        strmove = self.position.moves[index].short__str__()
+        return strmove
+
+    def __str__(self):
+        return self.position.__str__()
 
 
 def debug_pos_factory(hashgenerator):

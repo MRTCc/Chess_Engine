@@ -16,9 +16,11 @@ class TranspositionTable:
     def lookup(self, key):
         return self.records[key]
 
-    def getrecordfromkey(self, key, board):
+    def getrecord(self, key, board):
         try:
             record = self.records[key]
+            if record.board != board:
+                record = None
         except KeyError:
             record = None
         return record

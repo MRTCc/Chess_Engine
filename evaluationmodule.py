@@ -472,13 +472,7 @@ class EvaluationFuncLazy(EvaluationFunc):
         doubledpawns = (self.wdoubledpawns - self.bdoubledpawns) * doublepawnvalue
         isolatedpawns = (self.wisolatedpawns - self.bisolatedpawns) * isolatedpawnvalue
         blockedpawns = (self.wblockedpawns - self.bblockedpawns) * blockedpawnvalue
-        whitemalus = 0
-        blackmalus = 0
-        if self.listpiece.whiteking.coordinate in (d1, e1):
-            whitemalus = (-1) * kingvalue * 0.4
-        if self.listpiece.blackking.coordinate in (d8, e8):
-            blackmalus = kingvalue * 0.4
-        self.evaluation += doubledpawns + isolatedpawns + blockedpawns + whitemalus + blackmalus
+        self.evaluation += doubledpawns + isolatedpawns + blockedpawns
         return self.evaluation
 
 
