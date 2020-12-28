@@ -23,11 +23,11 @@ checkmatevalue = 10000
 nposition = 0
 perfposition = 0
 hashingmethod = 'zobrist'
-isactivetraspositiontable = True     # default True
-algorithm = 'alphabeta'                    # default alphabeta
-maxply = 2                        # default 5
+isactivetraspositiontable = False     # default True
+algorithm = 'iterdeep'                    # default alphabeta
+maxply = 4                     # default 5
 transpositiontable = None
-evalfunctype = 0
+evalfunctype = 1
 hashgenerator = None
 rootposition = None
 isrunning = True
@@ -299,15 +299,9 @@ class FenStrParser:
             else:
                 gameposition = AlphaBetaBlackGamePosition(pcsm.listpiece)
         elif self.algorithm == 'iterdeep' and self.transpositiontable is None:
-            if self.enginecolor:
-                gameposition = IterativeDeepeningWhiteGamePosition(pcsm.listpiece)
-            else:
-                gameposition = IterativeDeepeningBlackGamePosition(pcsm.listpiece)
+            gameposition = IterativeDeepeningGamePosition(pcsm.listpiece, self.enginecolor)
         elif self.algorithm == 'iterdeep' and self.transpositiontable is not None:
-            if self.enginecolor:
-                gameposition = IterativeDeepeningWhiteGamePositionTable(self.transpositiontable, pcsm.listpiece)
-            else:
-                gameposition = IterativeDeepeningBlackGamePositionTable(self.transpositiontable, pcsm.listpiece)
+            gameposition = IterativeDeepeningGamePositionTable(self.transpositiontable, pcsm.listpiece, self.enginecolor)
         elif self.algorithm == 'perf':
             if self.enginecolor:
                 gameposition = MinMaxWhitePerfGamePosition(pcsm.listpiece)
@@ -1177,6 +1171,18 @@ class WhiteGamePosition(GamePosition):
         self.ischeckfunc = self.listpiece.iswhitekingincheck
         self.imincheckmatevalue = -checkmatevalue
         self.childrenevaluationfunc = max
+        self.generateallmoves()
+
+    def generateallmoves(self):
+        for move in self.movegeneratorfunc(self.listpiece):
+            self.moves.append(move)
+
+    def outputmoves(self):
+        msg = ""
+        for move in self.listpiece.moves:
+            msg += move.short__str__() + " "
+        msg += str(self.value)
+        return msg
 
     def __str__(self):
         msg = 'Active color: white\n'
@@ -1193,6 +1199,18 @@ class BlackGamePosition(GamePosition):
         self.ischeckfunc = self.listpiece.isblackkingincheck
         self.imincheckmatevalue = checkmatevalue
         self.childrenevaluationfunc = min
+        self.generateallmoves()
+
+    def generateallmoves(self):
+        for move in self.movegeneratorfunc(self.listpiece):
+            self.moves.append(move)
+
+    def outputmoves(self):
+        msg = ""
+        for move in self.listpiece.moves:
+            msg += move.short__str__() + " "
+        msg += str(self.value)
+        return msg
 
     def __str__(self):
         msg = 'Active color: black\n'
@@ -1201,25 +1219,116 @@ class BlackGamePosition(GamePosition):
 
 
 class IterativeDeepeningGamePosition:
-    def __init__(self, listpiece):
+    def __init__(self, listpiece, rootcolor):
         self.listpiece = listpiece
-        self.position = None
+        self.rootcolor = rootcolor
+        if rootcolor:
+            self.position = WhiteGamePosition(listpiece)
+        else:
+            self.position = BlackGamePosition(listpiece)
         self.value = None
+
+    def alphabetamax(self, position, alpha, beta, depthleft):
+        global nposition
+        nposition += 1
+        global isrunning
+        if not isrunning:
+            raise StopSearchSystemExit
+        if depthleft == 0:
+            evaluator = evm.Evaluator(position.listpiece)
+            position.value = evaluator()
+            msg = position.outputmoves()
+            testfile.write(msg + "\n")
+            return position.value
+        if position.imincheckmate():
+            position.value = position.imincheckmatevalue
+            msg = position.outputmoves()
+            testfile.write(msg + "********** CHECKMATE - GAME ENDED **********\n")
+            return position.value
+        if position.isstalemate():
+            position.value = 0
+            msg = position.outputmoves()
+            testfile.write(msg + "********** DRAW - GAME ENDED **********\n")
+            return position.value
+        for move in position.moves:
+            position.listpiece.applymove(move)
+            child = position.enemy_game_position_func(position.listpiece, position)
+            try:
+                child.value = self.alphabetamin(child, alpha, beta, depthleft - 1)
+            except StopSearchSystemExit:
+                position.listpiece.undomove(move)
+                raise StopSearchSystemExit
+            if child.value >= beta:
+                position.value = beta
+                msg = position.outputmoves()
+                testfile.write(msg + "---------- beta cut-off -----------" + "\n")
+                position.listpiece.undomove(move)
+                return beta
+            if child.value > alpha:
+                alpha = child.value
+            position.children.append(child)
+            position.listpiece.undomove(move)
+        position.value = alpha
+        return alpha
+
+    def alphabetamin(self, position, alpha, beta, depthleft):
+        global nposition
+        nposition += 1
+        global isrunning
+        if not isrunning:
+            raise StopSearchSystemExit
+        if depthleft == 0:
+            evaluator = evm.Evaluator(position.listpiece)
+            position.value = evaluator()
+            msg = position.outputmoves()
+            testfile.write(msg + "\n")
+            return position.value
+        if position.imincheckmate():
+            position.value = position.imincheckmatevalue
+            msg = position.outputmoves()
+            testfile.write(msg + "********** CHECKMATE - GAME ENDED **********\n")
+            return position.value
+        if position.isstalemate():
+            position.value = 0
+            msg = position.outputmoves()
+            testfile.write(msg + "********** DRAW - GAME ENDED **********\n")
+            return position.value
+        for move in position.moves:
+            self.listpiece.applymove(move)
+            child = position.enemy_game_position_func(position.listpiece, position)
+            try:
+                child.value = self.alphabetamax(child, alpha, beta, depthleft - 1)
+            except StopSearchSystemExit:
+                position.listpiece.undomove(move)
+                raise StopSearchSystemExit
+            if child.value <= alpha:
+                position.value = alpha
+                msg = position.outputmoves()
+                testfile.write(msg + "---------- alpha cut-off -----------" + "\n")
+                position.listpiece.undomove(move)
+                return alpha
+            if child.value < beta:
+                beta = child.value
+            position.children.append(child)
+            position.listpiece.undomove(move)
+        position.value = beta
+        return beta
+
+    @staticmethod
+    def _moveorderingkey(move):
+        return move.value
 
     def calcbestmove(self, maxply):
         for ply in range(1, maxply + 1):
-            self._getnewposition()
-            self.value = self.position.alphabeta(-800, +800, ply)
-        bestmove = None
-        children = self.position.children
-        for index in range(0, len(children)):
-            if children[index].value == self.value:
-                bestmove = self.position.moves[index]
-                break
-        return bestmove
-
-    def _getnewposition(self):
-        raise Exception("gametreesearching.py : IterativeDeepeningGamePosition --> _getnewposition not implemented!!!")
+            self.position.children = []
+            if self.rootcolor:
+                self.value = self.alphabetamax(self.position, -800, +800, ply)
+            else:
+                self.value = self.alphabetamax(self.position, -800, +800, ply)
+            for index in range(0, len(self.position.children)):
+                self.position.moves[index].value = self.position.children[index].value
+            self.position.moves.sort(key=self._moveorderingkey, reverse=True)
+        return self.position.moves[0]
 
     def getrandomoutmove(self):
         children = self.position.children
@@ -1231,20 +1340,10 @@ class IterativeDeepeningGamePosition:
         return self.position.__str__()
 
 
-class IterativeDeepeningWhiteGamePosition(IterativeDeepeningGamePosition):
-    def __init__(self, listpiece):
-        super().__init__(listpiece)
-
-    def _getnewposition(self):
-        self.position = WhiteGamePosition(self.listpiece)
-
-
-class IterativeDeepeningBlackGamePosition(IterativeDeepeningGamePosition):
-    def __init__(self, listpiece):
-        super().__init__(listpiece)
-
-    def _getnewposition(self):
-        self.position = AlphaBetaBlackGamePosition(self.listpiece)
+class IterativeDeepeningGamePositionTable(IterativeDeepeningGamePosition):
+    def __init__(self, transpositiontable, listpiece, rootcolor):
+        super().__init__(listpiece, rootcolor)
+        self.transpositiontable = transpositiontable
 
 
 def debug_pos_factory(hashgenerator):
