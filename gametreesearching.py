@@ -25,9 +25,9 @@ perfposition = 0
 hashingmethod = 'zobrist'
 isactivetraspositiontable = True     # default True
 algorithm = 'iterdeep'                    # default alphabeta
-maxply = 4                     # default 5
+maxply = 5                     # default 5
 transpositiontable = None
-evalfunctype = 1
+evalfunctype = 0
 hashgenerator = None
 rootposition = None
 isrunning = True
@@ -1176,6 +1176,25 @@ class WhiteGamePosition(GamePosition):
         for move in self.movegeneratorfunc(self.listpiece):
             self.moves.append(move)
 
+    @staticmethod
+    def moveorderingkeybypriority(move):
+        if move.ischeck:
+            move.priority = 7
+        elif move.capturedpiece:
+            if isinstance(move.capturedpiece, (pcsm.Queen, pcsm.Rook, pcsm.Bishop, pcsm.Knight)):
+                move.priority = 6
+            else:
+                move.priority = 5
+        elif move.iskingcastling:
+            move.priority = 4
+        elif move.isqueencastling:
+            move.priority = 3
+        elif move.promotionto:
+            move.priority = 2
+        else:
+            move.priority = 1
+        return move.priority
+
     def outputmoves(self):
         msg = ""
         for move in self.listpiece.moves:
@@ -1226,6 +1245,25 @@ class BlackGamePosition(GamePosition):
     def generateallmoves(self):
         for move in self.movegeneratorfunc(self.listpiece):
             self.moves.append(move)
+
+    @staticmethod
+    def moveorderingkeybypriority(move):
+        if move.ischeck:
+            move.priority = 7
+        elif move.capturedpiece:
+            if isinstance(move.capturedpiece, (pcsm.Queen, pcsm.Rook, pcsm.Bishop, pcsm.Knight)):
+                move.priority = 6
+            else:
+                move.priority = 5
+        elif move.iskingcastling:
+            move.priority = 4
+        elif move.isqueencastling:
+            move.priority = 3
+        elif move.promotionto:
+            move.priority = 2
+        else:
+            move.priority = 1
+        return move.priority
 
     def outputmoves(self):
         msg = ""
@@ -1430,6 +1468,7 @@ class IterativeDeepeningGamePositionTable:
             position.listpiece.applymove(move)
             child = position.enemy_game_position_func(position.listpiece, transpositiontable, position)
             try:
+                child.moves.sort(key=child.moveorderingkeybypriority, reverse=True)
                 child.value = self.alphabetamin(child, alpha, beta, depthleft - 1)
             except StopSearchSystemExit:
                 position.listpiece.undomove(move)
@@ -1485,6 +1524,7 @@ class IterativeDeepeningGamePositionTable:
             self.listpiece.applymove(move)
             child = position.enemy_game_position_func(position.listpiece, transpositiontable, position)
             try:
+                child.moves.sort(key=child.moveorderingkeybypriority, reverse=True)
                 child.value = self.alphabetamax(child, alpha, beta, depthleft - 1)
             except StopSearchSystemExit:
                 position.listpiece.undomove(move)
