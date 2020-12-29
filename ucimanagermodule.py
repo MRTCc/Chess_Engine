@@ -5,7 +5,7 @@ import time
 import gametreesearching as gm
 
 legalucicommands = ("uci", "isready", "setoption", "ucinewgame", "position", "go", "stop", "quit", "showstate",
-                    "showboard", "shownposition")
+                    "showboard", "showstats")
 streaminqueue = queue.Queue()
 sleeptime = 0.3
 outputfilemutex = threading.Lock()
@@ -199,8 +199,14 @@ class UciManager:
                     self._showstate()
                 elif keyword == 'showboard':
                     self.stdprinter(str(gm.rootposition))
-                elif keyword == 'shownposition':
-                    self.stdprinter(str(gm.nposition))
+                elif keyword == 'showstats':
+                    self.stdprinter("Last complete search data:\n\tNumber of visited positions: " + str(gm.nposition) +
+                                    "\n\tNumber of alpha cuts: " + str(gm.nalphacut) +
+                                    "\n\tNumber of beta cuts: " + str(gm.nbetacut) +
+                                    "\n\tNumber of matches with t.t.: " + str(gm.nmatch) +
+                                    "\n\tTotal search time: " + str(gm.totaltime) +
+                                    "\n\tGeneration time: " + str(gm.generationtime) +
+                                    "\n\tEvaluation time: " + str(gm.evaluationtime))
                 else:
                     # gestire eventuali cose andate storte
                     pass

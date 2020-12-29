@@ -1,6 +1,7 @@
 import movemodule as mvm
 import piecesmodule as pcsm
 import random
+import time
 import evaluationmodule as evm
 import transpositionmodule as trsp
 import algebraicnotationmodule as algn
@@ -19,13 +20,23 @@ class StopSearchSystemExit(SystemExit):
     pass
 
 
-checkmatevalue = 10000
+# statistic data
 nposition = 0
 perfposition = 0
+nalphacut = 0
+nbetacut = 0
+nmatch = 0
+totaltime = 0
+generationtime = 0
+evaluationtime = 0
+
+
+# engine settings
+checkmatevalue = 10000
 hashingmethod = 'zobrist'
-isactivetraspositiontable = False     # default True
-algorithm = 'perf'                    # default alphabeta
-maxply = 1                     # default 5
+isactivetraspositiontable = True     # default True
+algorithm = 'iterdeep'                    # default alphabeta
+maxply = 3                    # default 5
 transpositiontable = None
 evalfunctype = 1
 hashgenerator = None
@@ -34,16 +45,26 @@ isrunning = True
 
 
 def initnewgame():
-    global transpositiontable
-    global hashgenerator
+    global nposition, totaltime, generationtime, evaluationtime, perfposition, nalphacut, nbetacut, nmatch
+    global isrunning, transpositiontable, hashgenerator
     evm.functype = evalfunctype
     if isactivetraspositiontable:
         if hashingmethod == 'zobrist':
             hashgenerator = hsa.Zobrist()
         transpositiontable = trsp.transpositiontablefactory(algorithm)
+    nposition = 0
+    perfposition = 0
+    nalphacut = 0
+    nbetacut = 0
+    nmatch = 0
+    totaltime = 0
+    generationtime = 0
+    evaluationtime = 0
 
 
 def initgameposition(tokens):
+    global nposition, totaltime, generationtime, evaluationtime, perfposition, nalphacut, nbetacut, nmatch
+    global isrunning, transpositiontable, hashgenerator
     if transpositiontable:
         transpositiontable.updatetonewposition()
     global isrunning
@@ -77,6 +98,14 @@ def initgameposition(tokens):
                 movestr.append(token)
     fenparser = FenStrParser(algorithm, transpositiontable, hashgenerator)
     rootposition = fenparser(fenstr, movestr)
+    nposition = 0
+    perfposition = 0
+    nalphacut = 0
+    nbetacut = 0
+    nmatch = 0
+    totaltime = 0
+    generationtime = 0
+    evaluationtime = 0
 
 
 class UciMoveSetter:
@@ -418,8 +447,11 @@ class WhiteGamePosition(GamePosition):
         self.generateallmoves()
 
     def generateallmoves(self):
+        global generationtime
+        starttime = time.clock()
         for move in self.movegeneratorfunc(self.listpiece):
             self.moves.append(move)
+        generationtime += time.clock() - starttime
 
     @staticmethod
     def moveorderingkeybypriority(move):
@@ -488,8 +520,11 @@ class BlackGamePosition(GamePosition):
         self.generateallmoves()
 
     def generateallmoves(self):
+        global generationtime
+        starttime = time.clock()
         for move in self.movegeneratorfunc(self.listpiece):
             self.moves.append(move)
+        generationtime += time.clock() - starttime
 
     @staticmethod
     def moveorderingkeybypriority(move):
@@ -647,6 +682,8 @@ class MinimaxGamePosition:
         return move.value
 
     def calcbestmove(self, ply):
+        global totaltime, evaluationtime
+        starttime = time.clock()
         if self.rootcolor:
             self.minimaxformax(self.position, ply)
         else:
@@ -654,6 +691,8 @@ class MinimaxGamePosition:
         self.value = self.position.value
         for index in range(0, len(self.position.children)):
             if self.position.children[index].value == self.value:
+                totaltime = time.clock() - starttime
+                evaluationtime = evm.evaluationtime
                 return self.position.moves[index]
 
     def getrandomoutmove(self):
@@ -731,10 +770,13 @@ class MinimaxPerfGamePosition(MinimaxGamePosition):
         return
 
     def calcbestmove(self, ply):
+        global totaltime
+        starttime = time.clock()
         if self.rootcolor:
             self.minimaxformax(self.position, ply)
         else:
             self.minimaxformin(self.position, ply)
+        totaltime = time.clock() - starttime
         return self.perfposition
 
 
@@ -749,9 +791,8 @@ class AlphabetaGamePosition:
         self.value = None
 
     def alphabetamax(self, position, alpha, beta, depthleft):
-        global nposition
+        global nposition, isrunning, nalphacut, nbetacut
         nposition += 1
-        global isrunning
         if not isrunning:
             raise StopSearchSystemExit
         if depthleft == 0:
@@ -784,6 +825,7 @@ class AlphabetaGamePosition:
                 msg = position.outputmoves()
                 testfile.write(msg + "---------- beta cut-off -----------" + "\n")
                 position.undomove(move)
+                nbetacut += 1
                 return
             if child.value > alpha:
                 alpha = child.value
@@ -793,9 +835,8 @@ class AlphabetaGamePosition:
         return
 
     def alphabetamin(self, position, alpha, beta, depthleft):
-        global nposition
+        global nposition, isrunning, nalphacut, nbetacut
         nposition += 1
-        global isrunning
         if not isrunning:
             raise StopSearchSystemExit
         if depthleft == 0:
@@ -828,6 +869,7 @@ class AlphabetaGamePosition:
                 msg = position.outputmoves()
                 testfile.write(msg + "---------- alpha cut-off -----------" + "\n")
                 position.undomove(move)
+                nalphacut += 1
                 return
             if child.value < beta:
                 beta = child.value
@@ -841,6 +883,8 @@ class AlphabetaGamePosition:
         return move.value
 
     def calcbestmove(self, ply):
+        global totaltime, evaluationtime
+        starttime = time.clock()
         if self.rootcolor:
             self.alphabetamax(self.position, -800, +800, ply)
         else:
@@ -848,6 +892,8 @@ class AlphabetaGamePosition:
         self.value = self.position.value
         for index in range(0, len(self.position.children)):
             if self.position.children[index].value == self.value:
+                totaltime = time.clock() - starttime
+                evaluationtime = evm.evaluationtime
                 return self.position.moves[index]
 
     def getrandomoutmove(self):
@@ -870,9 +916,8 @@ class AlphabetaGamePositionTable:
         self.value = None
 
     def alphabetamax(self, position, alpha, beta, depthleft):
-        global nposition
+        global nposition, isrunning, nalphacut, nbetacut, nmatch
         nposition += 1
-        global isrunning
         if not isrunning:
             raise StopSearchSystemExit
         record = position.getrecord()
@@ -881,6 +926,7 @@ class AlphabetaGamePositionTable:
             position.bestmove = record.bestmove
             msg = position.outputmoves()
             testfile.write(msg + "________ Transposition table match ______________" + "\n")
+            nmatch += 1
             return
         if depthleft == 0:
             evaluator = evm.Evaluator(position.listpiece)
@@ -916,6 +962,7 @@ class AlphabetaGamePositionTable:
                 msg = position.outputmoves()
                 testfile.write(msg + "---------- beta cut-off -----------" + "\n")
                 position.undomove(move)
+                nbetacut += 1
                 return
             if child.value > alpha:
                 alpha = child.value
@@ -926,9 +973,8 @@ class AlphabetaGamePositionTable:
         return
 
     def alphabetamin(self, position, alpha, beta, depthleft):
-        global nposition
+        global nposition, isrunning, nalphacut, nbetacut, nmatch
         nposition += 1
-        global isrunning
         if not isrunning:
             raise StopSearchSystemExit
         record = position.getrecord()
@@ -937,6 +983,7 @@ class AlphabetaGamePositionTable:
             position.bestmove = record.bestmove
             msg = position.outputmoves()
             testfile.write(msg + "________ Transposition table match ______________" + "\n")
+            nmatch += 1
             return
         if depthleft == 0:
             evaluator = evm.Evaluator(position.listpiece)
@@ -972,6 +1019,7 @@ class AlphabetaGamePositionTable:
                 msg = position.outputmoves()
                 testfile.write(msg + "---------- alpha cut-off -----------" + "\n")
                 position.undomove(move)
+                nalphacut += 1
                 return
             if child.value < beta:
                 beta = child.value
@@ -986,6 +1034,8 @@ class AlphabetaGamePositionTable:
         return move.value
 
     def calcbestmove(self, ply):
+        global totaltime, evaluationtime
+        starttime = time.clock()
         if self.rootcolor:
             self.alphabetamax(self.position, -800, +800, ply)
         else:
@@ -993,6 +1043,8 @@ class AlphabetaGamePositionTable:
         self.value = self.position.value
         for index in range(0, len(self.position.children)):
             if self.position.children[index].value == self.value:
+                totaltime = time.clock() - starttime
+                evaluationtime = evm.evaluationtime
                 return self.position.moves[index]
 
     def getrandomoutmove(self):
@@ -1015,9 +1067,8 @@ class IterativeDeepeningGamePosition:
         self.value = None
 
     def alphabetamax(self, position, alpha, beta, depthleft):
-        global nposition
+        global nposition, isrunning, nalphacut, nbetacut
         nposition += 1
-        global isrunning
         if not isrunning:
             raise StopSearchSystemExit
         if depthleft == 0:
@@ -1050,6 +1101,7 @@ class IterativeDeepeningGamePosition:
                 msg = position.outputmoves()
                 testfile.write(msg + "---------- beta cut-off -----------" + "\n")
                 position.undomove(move)
+                nbetacut += 1
                 return
             if child.value > alpha:
                 alpha = child.value
@@ -1059,9 +1111,8 @@ class IterativeDeepeningGamePosition:
         return
 
     def alphabetamin(self, position, alpha, beta, depthleft):
-        global nposition
+        global nposition, isrunning, nalphacut, nbetacut
         nposition += 1
-        global isrunning
         if not isrunning:
             raise StopSearchSystemExit
         if depthleft == 0:
@@ -1094,6 +1145,7 @@ class IterativeDeepeningGamePosition:
                 msg = position.outputmoves()
                 testfile.write(msg + "---------- alpha cut-off -----------" + "\n")
                 position.listpiece.undomove(move)
+                nalphacut += 1
                 return
             if child.value < beta:
                 beta = child.value
@@ -1107,6 +1159,8 @@ class IterativeDeepeningGamePosition:
         return move.value
 
     def calcbestmove(self, maxply):
+        global totaltime, evaluationtime
+        starttime = time.clock()
         for ply in range(1, maxply + 1):
             self.position.children = []
             if self.rootcolor:
@@ -1117,6 +1171,8 @@ class IterativeDeepeningGamePosition:
             for index in range(0, len(self.position.children)):
                 self.position.moves[index].value = self.position.children[index].value
             self.position.moves.sort(key=self._moveorderingkey, reverse=True)
+        totaltime = time.clock() - starttime
+        evaluationtime = evm.evaluationtime
         return self.position.moves[0]
 
     def getrandomoutmove(self):
@@ -1139,9 +1195,8 @@ class IterativeDeepeningGamePositionTable:
         self.value = None
 
     def alphabetamax(self, position, alpha, beta, depthleft):
-        global nposition
+        global nposition, isrunning, nalphacut, nbetacut, nmatch
         nposition += 1
-        global isrunning
         if not isrunning:
             raise StopSearchSystemExit
         record = position.getrecord()
@@ -1150,6 +1205,7 @@ class IterativeDeepeningGamePositionTable:
             position.bestmove = record.bestmove
             msg = position.outputmoves()
             testfile.write(msg + "________ Transposition table match ______________" + "\n")
+            nmatch += 1
             return
         if depthleft == 0:
             evaluator = evm.Evaluator(position.listpiece)
@@ -1185,6 +1241,7 @@ class IterativeDeepeningGamePositionTable:
                 msg = position.outputmoves()
                 testfile.write(msg + "---------- beta cut-off -----------" + "\n")
                 position.undomove(move)
+                nbetacut += 1
                 return
             if child.value > alpha:
                 alpha = child.value
@@ -1195,9 +1252,8 @@ class IterativeDeepeningGamePositionTable:
         return
 
     def alphabetamin(self, position, alpha, beta, depthleft):
-        global nposition
+        global nposition, isrunning, nalphacut, nbetacut, nmatch
         nposition += 1
-        global isrunning
         if not isrunning:
             raise StopSearchSystemExit
         record = position.getrecord()
@@ -1206,6 +1262,7 @@ class IterativeDeepeningGamePositionTable:
             position.bestmove = record.bestmove
             msg = position.outputmoves()
             testfile.write(msg + "________ Transposition table match ______________" + "\n")
+            nmatch += 1
             return
         if depthleft == 0:
             evaluator = evm.Evaluator(position.listpiece)
@@ -1241,6 +1298,7 @@ class IterativeDeepeningGamePositionTable:
                 msg = position.outputmoves()
                 testfile.write(msg + "---------- alpha cut-off -----------" + "\n")
                 position.undomove(move)
+                nalphacut += 1
                 return
             if child.value < beta:
                 beta = child.value
@@ -1255,6 +1313,8 @@ class IterativeDeepeningGamePositionTable:
         return move.value
 
     def calcbestmove(self, maxply):
+        global totaltime,evaluationtime
+        starttime = time.clock()
         for ply in range(1, maxply + 1):
             self.position.children = []
             self.position.refreshtranspositiontable()
@@ -1266,6 +1326,8 @@ class IterativeDeepeningGamePositionTable:
             for index in range(0, len(self.position.children)):
                 self.position.moves[index].value = self.position.children[index].value
             self.position.moves.sort(key=self._moveorderingkey, reverse=True)
+        totaltime = time.clock() - starttime
+        evaluationtime = evm.evaluationtime
         return self.position.moves[0]
 
     def getrandomoutmove(self):

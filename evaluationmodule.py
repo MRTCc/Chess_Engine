@@ -1,3 +1,4 @@
+import time
 import piecesmodule as pcsm
 import algebraicnotationmodule as algn
 from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
@@ -8,6 +9,8 @@ from algebraicnotationmodule import (a8, b8, c8, d8, e8, f8, g8, h8,
                                      a3, b3, c3, d3, e3, f3, g3, h3,
                                      a2, b2, c2, d2, e2, f2, g2, h2,
                                      a1, b1, c1, d1, e1, f1, g1, h1)
+
+evaluationtime = 0
 
 pawnvalue = 1
 rookvalue = 5
@@ -365,6 +368,8 @@ class EvaluationFuncTable(EvaluationFunc):
         return piecevalue + (piecevalue * (percent * 0.01))
 
     def __call__(self):
+        global evaluationtime
+        starttime = time.clock()
         self._setcontrolledcells()
         self.evaluation = 0
         whitevalue = 0
@@ -390,6 +395,7 @@ class EvaluationFuncTable(EvaluationFunc):
         isolatedpawns = (self.wisolatedpawns - self.bisolatedpawns) * isolatedpawnvalue
         blockedpawns = (self.wblockedpawns - self.bblockedpawns) * blockedpawnvalue
         self.evaluation += doubledpawns + isolatedpawns + blockedpawns + self.mobility
+        evaluationtime += time.clock() - starttime
         return self.evaluation
 
     def __str__(self):
@@ -457,6 +463,8 @@ class EvaluationFuncLazy(EvaluationFunc):
         return piecevalue
 
     def __call__(self):
+        global evaluationtime
+        starttime = time.clock()
         self.evaluation = 0
         whitevalue = 0
         blackvalue = 0
@@ -473,6 +481,7 @@ class EvaluationFuncLazy(EvaluationFunc):
         isolatedpawns = (self.wisolatedpawns - self.bisolatedpawns) * isolatedpawnvalue
         blockedpawns = (self.wblockedpawns - self.bblockedpawns) * blockedpawnvalue
         self.evaluation += doubledpawns + isolatedpawns + blockedpawns
+        evaluationtime += time.clock() - starttime
         return self.evaluation
 
 
