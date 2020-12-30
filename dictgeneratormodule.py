@@ -18,16 +18,16 @@ class AllyOccupationException(OccupationException):
     pass
 
 
-occupiedcells = [a1, a2, a8, a7, b2]
+occupiedcells = [a1, a2, a8, a7, b7]
 whiteoccupiedcells = [a1, a2]
-blackoccupiedcells = [a8, a7, b2]
+blackoccupiedcells = [a8, a7, b7]
 whitepawns = [a2]
 blackpawns = [a7]
 promotioncells = [a8, b8, c8, d8, e8, f8, g8, h8, a1, b1, c1, d1, e1, f1, g1, h1]
 whiterooks = []
-blackrooks = []
+blackrooks = [b7]
 whiteknights = []
-blackknights = [b2]
+blackknights = []
 whitebishops = []
 blackbishops = []
 whitequeen = []
@@ -113,6 +113,71 @@ kingstep = {a8: (b8, b7, a7), b8: (c8, c7, b7, a7, a8), c8: (d8, d7, c7, b7, b8)
             a1: (a2, b2, b1), b1: (a2, b2, c2, c1, a1), c1: (b2, c2, d2, d1, b1), d1: (c2, d2, e2, e1, c1),
             e1: (d2, e2, f2, f1, d1), f1: (e2, f2, g2, g1, e1), g1: (f2, g2, h2, h1, f1), h1: (g2, h2, g1), }
 
+rookstep = {a8: ((), (b8, c8, d8, e8, f8, g8, h8), (a7, a6, a5, a4, a3, a2, a1), ()),
+            b8: ((), (c8, d8, e8, f8, g8, h8), (b7, b6, b5, b4, b3, b2, b1), (a8,)),
+            c8: ((), (d8, e8, f8, g8, h8), (c7, c6, c5, c4, c3, c2, c1), (b8, a8)),
+            d8: ((), (e8, f8, g8, h8), (d7, d6, d5, d4, d3, d2, d1), (c8, b8, a8)),
+            e8: ((), (f8, g8, h8), (e7, e6, e5, e4, e3, e2, e1), (d8, c8, b8, a8)),
+            f8: ((), (g8, h8), (f7, f6, f5, f4, f3, f2, f1), (e8, d8, c8, b8, a8)),
+            g8: ((), (h8,), (g7, g6, g5, g4, g3, g2, g1), (f8, e8, d8, c8, b8, a8)),
+            h8: ((), (), (h7, h6, h5, h4, h3, h2, h1), (g8, f8, e8, d8, c8, b8, a8)),
+            a7: ((a8,), (b7, c7, d7, e7, f7, g7, h7), (a6, a5, a4, a3, a2, a1), ()),
+            b7: ((b8,), (c7, d7, e7, f7, g7, h7), (b6, b5, b4, b3, b2, b1), (a7,)),
+            c7: ((c8,), (d7, e7, f7, g7, h7), (c6, c5, c4, c3, c2, c1), (b7, a7)),
+            d7: ((d8,), (e7, f7, g7, h7), (d6, d5, d4, d3, d2, d1), (c7, b7, a7)),
+            e7: ((e8,), (f7, g7, h7), (e6, e5, e4, e3, e2, e1), (d7, c7, b7, a7)),
+            f7: ((f8,), (g7, h7), (f6, f5, f4, f3, f2, f1), (e7, d7, c7, b7, a7)),
+            g7: ((g8,), (h7,), (g6, g5, g4, g3, g2, g1), (f7, e7, d7, c7, b7, a7)),
+            h7: ((h8,), (), (h6, h5, h4, h3, h2, h1), (g7, f7, e7, d7, c7, b7, a7)),
+            a6: ((a7, a8), (b6, c6, d6, e6, f6, g6, h6), (a5, a4, a3, a2, a1), ()),
+            b6: ((b7, b8), (c6, d6, e6, f6, g6, h6), (b5, b4, b3, b2, b1), (a6,)),
+            c6: ((c7, c8), (d6, e6, f6, g6, h6), (c5, c4, c3, c2, c1), (b6, a6)),
+            d6: ((d7, d8), (e6, f6, g6, h6), (d5, d4, d3, d2, d1), (c6, b6, a6)),
+            e6: ((e7, e8), (f6, g6, h6), (e5, e4, e3, e2, e1), (d6, c6, b6, a6)),
+            f6: ((f7, f8), (g6, h6), (f5, f4, f3, f2, f1), (e6, d6, c6, b6, a6)),
+            g6: ((g7, g8), (h6,), (g5, g4, g3, g2, g1), (f6, e6, d6, c6, b6, a6)),
+            h6: ((h7, h8), (), (h5, h4, h3, h2, h1), (g6, f6, e6, d6, c6, b6, a6)),
+            a5: ((a6, a7, a8), (b5, c5, d5, e5, f5, g5, h5), (a4, a3, a2, a1), ()),
+            b5: ((b6, b7, b8), (c5, d5, e5, f5, g5, h5), (b4, b3, b2, b1), (a5,)),
+            c5: ((c6, c7, c8), (d5, e5, f5, g5, h5), (c4, c3, c2, c1), (b5, a5)),
+            d5: ((d6, d7, d8), (e5, f5, g5, h5), (d4, d3, d2, d1), (c5, b5, a5)),
+            e5: ((e6, e7, e8), (f5, g5, h5), (e4, e3, e2, e1), (d5, c5, b5, a5)),
+            f5: ((f6, f7, f8), (g5, h5), (f4, f3, f2, f1), (e5, d5, c5, b5, a5)),
+            g5: ((g6, g7, g8), (h5,), (g4, g3, g2, g1), (f5, e5, d5, c5, b5, a5)),
+            h5: ((h6, h7, h8), (), (h4, h3, h2, h1), (g5, f5, e5, d5, c5, b5, a5)),
+            a4: ((a5, a6, a7, a8), (b4, c4, d4, e4, f4, g4, h4), (a3, a2, a1), ()),
+            b4: ((b5, b6, b7, b8), (c4, d4, e4, f4, g4, h4), (b3, b2, b1), (a4,)),
+            c4: ((c5, c6, c7, c8), (d4, e4, f4, g4, h4), (c3, c2, c1), (b4, a4)),
+            d4: ((d5, d6, d7, d8), (e4, f4, g4, h4), (d3, d2, d1), (c4, b4, a4)),
+            e4: ((e5, e6, e7, e8), (f4, g4, h4), (e3, e2, e1), (d4, c4, b4, a4)),
+            f4: ((f5, f6, f7, f8), (g4, h4), (f3, f2, f1), (e4, d4, c4, b4, a4)),
+            g4: ((g5, g6, g7, g8), (h4,), (g3, g2, g1), (f4, e4, d4, c4, b4, a4)),
+            h4: ((h5, h6, h7, h8), (), (h3, h2, h1), (g4, f4, e4, d4, c4, b4, a4)),
+            a3: ((a4, a5, a6, a7, a8), (b3, c3, d3, e3, f3, g3, h3), (a2, a1), ()),
+            b3: ((b4, b5, b6, b7, b8), (c3, d3, e3, f3, g3, h3), (b2, b1), (a3,)),
+            c3: ((c4, c5, c6, c7, c8), (d3, e3, f3, g3, h3), (c2, c1), (b3, a3)),
+            d3: ((d4, d5, d6, d7, d8), (e3, f3, g3, h3), (d2, d1), (c3, b3, a3)),
+            e3: ((e4, e5, e6, e7, e8), (f3, g3, h3), (e2, e1), (d3, c3, b3, a3)),
+            f3: ((f4, f5, f6, f7, f8), (g3, h3), (f2, f1), (e3, d3, c3, b3, a3)),
+            g3: ((g4, g5, g6, g7, g8), (h3,), (g2, g1), (f3, e3, d3, c3, b3, a3)),
+            h3: ((h4, h5, h6, h7, h8), (), (h2, h1), (g3, f3, e3, d3, c3, b3, a3)),
+            a2: ((a3, a4, a5, a6, a7, a8), (b2, c2, d2, e2, f2, g2, h2), (a1,), ()),
+            b2: ((b3, b4, b5, b6, b7, b8), (c2, d2, e2, f2, g2, h2), (b1,), (a2,)),
+            c2: ((c3, c4, c5, c6, c7, c8), (d2, e2, f2, g2, h2), (c1,), (b2, a2)),
+            d2: ((d3, d4, d5, d6, d7, d8), (e2, f2, g2, h2), (d1,), (c2, b2, a2)),
+            e2: ((e3, e4, e5, e6, e7, e8), (f2, g2, h2), (e1,), (d2, c2, b2, a2)),
+            f2: ((f3, f4, f5, f6, f7, f8), (g2, h2), (f1,), (e2, d2, c2, b2, a2)),
+            g2: ((g3, g4, g5, g6, g7, g8), (h2,), (g1,), (f2, e2, d2, c2, b2, a2)),
+            h2: ((h3, h4, h5, h6, h7, h8), (), (h1,), (g2, f2, e2, d2, c2, b2, a2)),
+            a1: ((a2, a3, a4, a5, a6, a7, a8), (b1, c1, d1, e1, f1, g1, h1), (), ()),
+            b1: ((b2, b3, b4, b5, b6, b7, b8), (c1, d1, e1, f1, g1, h1), (), (a1,)),
+            c1: ((c2, c3, c4, c5, c6, c7, c8), (d1, e1, f1, g1, h1), (), (b1, a1)),
+            d1: ((d2, d3, d4, d5, d6, d7, d8), (e1, f1, g1, h1), (), (c1, b1, a1)),
+            e1: ((e2, e3, e4, e5, e6, e7, e8), (f1, g1, h1), (), (d1, c1, b1, a1)),
+            f1: ((f2, f3, f4, f5, f6, f7, f8), (g1, h1), (), (e1, d1, c1, b1, a1)),
+            g1: ((g2, g3, g4, g5, g6, g7, g8), (h1,), (), (f1, e1, d1, c1, b1, a1)),
+            h1: ((h2, h3, h4, h5, h6, h7, h8), (), (), (g1, f1, e1, d1, c1, b1, a1))}
+
 
 def white_pawn_generator(fromcell):
     try:
@@ -193,21 +258,13 @@ def black_pawn_generator(fromcell):
 
 
 def white_knight_generator(fromcell):
-    try:
-        tocells = knightstep[fromcell]
-    except KeyError:
-        tocells = None
-        print("No entry for knight in ", fromcell)
+    tocells = knightstep[fromcell]
     destination = [tocell for tocell in tocells if tocell not in whiteoccupiedcells]
     return destination
 
 
 def black_knight_generator(fromcell):
-    try:
-        tocells = knightstep[fromcell]
-    except KeyError:
-        tocells = None
-        print("No entry for knight in ", fromcell)
+    tocells = knightstep[fromcell]
     destination = [tocell for tocell in tocells if tocell not in blackoccupiedcells]
     return destination
 
@@ -229,6 +286,32 @@ def black_king_generator(fromcell):
         tocells = None
         print("No entry for king in ", fromcell)
     destination = [tocell for tocell in tocells if tocell not in blackoccupiedcells]
+    return destination
+
+
+def white_rook_generator(fromcell):
+    deltas = rookstep[fromcell]
+    destination = []
+    for delta in deltas:
+        for tocell in delta:
+            if tocell in whiteoccupiedcells:
+                break
+            destination.append(tocell)
+            if tocell in blackoccupiedcells:
+                break
+    return destination
+
+
+def black_rook_generator(fromcell):
+    deltas = rookstep[fromcell]
+    destination = []
+    for delta in deltas:
+        for tocell in delta:
+            if tocell in blackoccupiedcells:
+                break
+            destination.append(tocell)
+            if tocell in whiteoccupiedcells:
+                break
     return destination
 
 
@@ -312,6 +395,14 @@ def black_piece_move_factory(fromcell, tocell, piece):
                     False, False)
 
 
+def king_castling_move_factory(iswhiteturn):
+    return mvm.Move(None, None, None, iswhiteturn, None, True, False, None, False, False)
+
+
+def queen_castling_move_factory(iswhiteturn):
+    return mvm.Move(None, None, None, iswhiteturn, None, False, True, None, False, False)
+
+
 def white_generator_moves():
     # genera mosse dei pedoni
     for fromcell in whitepawns:
@@ -324,6 +415,10 @@ def white_generator_moves():
         for tocell in destinationlist:
             yield white_piece_move_factory(fromcell, tocell, 'wN')
     # genera mosse delle torri
+    for fromcell in whiterooks:
+        destinationlist = white_rook_generator(fromcell)
+        for tocell in destinationlist:
+            yield white_piece_move_factory(fromcell, tocell, 'wR')
     # genera mosse degli alfieri
     # genera mosse della regina
     # genera mosse del re
@@ -331,8 +426,10 @@ def white_generator_moves():
         destinationlist = white_king_generator(fromcell)
         for tocell in destinationlist:
             yield white_piece_move_factory(fromcell, tocell, 'wK')
-    # genera arrocchi possibili
-    pass
+    if 'wk' in whitecastlingrights:
+        yield king_castling_move_factory(True)
+    if 'wq' in whitecastlingrights:
+        yield queen_castling_move_factory(True)
 
 
 def black_generator_moves():
@@ -345,17 +442,23 @@ def black_generator_moves():
     for fromcell in blackknights:
         destinationlist = black_knight_generator(fromcell)
         for tocell in destinationlist:
-            yield black_piece_move_factory(fromcell, tocell, 'wN')
+            yield black_piece_move_factory(fromcell, tocell, 'bN')
     # genera mosse delle torri
+    for fromcell in blackrooks:
+        destinationlist = black_rook_generator(fromcell)
+        for tocell in destinationlist:
+            yield black_piece_move_factory(fromcell, tocell, 'bR')
     # genera mosse degli alfieri
     # genera mosse della regina
     # genera mosse del re
     for fromcell in blackking:
         destinationlist = black_king_generator(fromcell)
         for tocell in destinationlist:
-            yield black_piece_move_factory(fromcell, tocell, 'wK')
-    # genera arrocchi possibili
-    pass
+            yield black_piece_move_factory(fromcell, tocell, 'bK')
+    if 'bk' in blackcastlingrights:
+        yield king_castling_move_factory(False)
+    if 'bq' in blackcastlingrights:
+        yield queen_castling_move_factory(False)
 
 
 if __name__ == '__main__':
@@ -407,5 +510,48 @@ if __name__ == '__main__':
                 line += str(cell) + ", "
         line += ", "
         msg += line
+    print(msg)
+    """
+    """
+    rookstep = {}
+    deltas = ((0, 1), (1, 0), (0, -1), (-1, 0))
+    for fromcell in alg.celllist:
+        destination = []
+        for delta in deltas:
+            subdestination = []
+            for slide in range(1, 8):
+                try:
+                    tocell = fromcell.sumcoordinate(delta[0] * slide, delta[1] * slide)
+                    subdestination.append(tocell)
+                except alg.CoordinateException:
+                    pass
+            destination.append(tuple(subdestination))
+        rookstep[fromcell] = tuple(destination)
+    msg = "{ "
+    isfirstkey = True
+    for key, superlist in rookstep.items():
+        if isfirstkey:
+            line = str(key) + ": ("
+            isfirstkey = False
+        else:
+            line = ", " + str(key) + ": ("
+        isfirstsublist = True
+        for sublist in superlist:
+            if isfirstsublist:
+                line += "("
+                isfirstsublist = False
+            else:
+                line += ", ("
+            isfirstcell = True
+            for cell in sublist:
+                if isfirstcell:
+                    line += str(cell)
+                    isfirstcell = False
+                else:
+                    line += ", " + str(cell)
+            line += ")"
+        line += ')'
+        msg += line
+    msg += "}"
     print(msg)
     """
