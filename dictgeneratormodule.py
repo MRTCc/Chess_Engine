@@ -29,9 +29,9 @@ blackrooks = []
 whiteknights = []
 blackknights = []
 whitebishops = []
-blackbishops = [g8]
+blackbishops = []
 whitequeen = []
-blackqueen = []
+blackqueen = [g8]
 whiteking = [a1]
 blackking = [a8]
 enpassantcells = []
@@ -406,6 +406,18 @@ def black_bishop_generator(fromcell):
     return destination
 
 
+def white_queen_generator(fromcell):
+    destinationrook = white_rook_generator(fromcell)
+    destinationbishop = white_bishop_generator(fromcell)
+    return destinationrook + destinationbishop
+
+
+def black_queen_generator(fromcell):
+    destinationrook = black_rook_generator(fromcell)
+    destinationbishop = black_bishop_generator(fromcell)
+    return destinationrook + destinationbishop
+
+
 def get_black_captured_piece(tocell):
     if tocell in blackpawns:
         return 'bP'
@@ -495,28 +507,26 @@ def queen_castling_move_factory(iswhiteturn):
 
 
 def white_generator_moves():
-    # genera mosse dei pedoni
     for fromcell in whitepawns:
         destinationlist = white_pawn_generator(fromcell)
         for tocell in destinationlist:
             yield white_pawn_move_factory(fromcell, tocell)
-    # genera mosse dei cavalli
     for fromcell in whiteknights:
         destinationlist = white_knight_generator(fromcell)
         for tocell in destinationlist:
             yield white_piece_move_factory(fromcell, tocell, 'wN')
-    # genera mosse delle torri
     for fromcell in whiterooks:
         destinationlist = white_rook_generator(fromcell)
         for tocell in destinationlist:
             yield white_piece_move_factory(fromcell, tocell, 'wR')
-    # genera mosse degli alfieri
     for fromcell in whitebishops:
         destinationlist = white_bishop_generator(fromcell)
         for tocell in destinationlist:
             yield white_piece_move_factory(fromcell, tocell, 'wB')
-    # genera mosse della regina
-    # genera mosse del re
+    for fromcell in whitequeen:
+        destinationlist = white_queen_generator(fromcell)
+        for tocell in destinationlist:
+            yield white_piece_move_factory(fromcell, tocell, 'wQ')
     for fromcell in whiteking:
         destinationlist = white_king_generator(fromcell)
         for tocell in destinationlist:
@@ -528,28 +538,26 @@ def white_generator_moves():
 
 
 def black_generator_moves():
-    # genera mosse dei pedoni
     for fromcell in blackpawns:
         destinationlist = black_pawn_generator(fromcell)
         for tocell in destinationlist:
             yield black_pawn_move_factory(fromcell, tocell)
-    # genera mosse dei cavalli
     for fromcell in blackknights:
         destinationlist = black_knight_generator(fromcell)
         for tocell in destinationlist:
             yield black_piece_move_factory(fromcell, tocell, 'bN')
-    # genera mosse delle torri
     for fromcell in blackrooks:
         destinationlist = black_rook_generator(fromcell)
         for tocell in destinationlist:
             yield black_piece_move_factory(fromcell, tocell, 'bR')
-    # genera mosse degli alfieri
     for fromcell in blackbishops:
         destinationlist = black_bishop_generator(fromcell)
         for tocell in destinationlist:
             yield black_piece_move_factory(fromcell, tocell, 'bB')
-    # genera mosse della regina
-    # genera mosse del re
+    for fromcell in blackqueen:
+        destinationlist = black_queen_generator(fromcell)
+        for tocell in destinationlist:
+            yield black_piece_move_factory(fromcell, tocell, 'wQ')
     for fromcell in blackking:
         destinationlist = black_king_generator(fromcell)
         for tocell in destinationlist:
