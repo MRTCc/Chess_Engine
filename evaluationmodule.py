@@ -153,9 +153,11 @@ functype = 0
 
 def Evaluator(listpiece):
     if functype == 0:
-        return EvaluationFuncTable(listpiece)
+        return EvaluationFuncHardTable(listpiece)
     elif functype == 1:
         return EvaluationFuncLazy(listpiece)
+    elif functype == 2:
+        return EvaluationFuncTable(listpiece)
     else:
         raise Exception("evaluationmodule.py : Evaluator --> invalid functype!!!")
 
@@ -236,7 +238,7 @@ class EvaluationFunc:
         raise Exception("evaluationmodule.py : EvaluationFunc --> __call__ --> not implemented!!!")
 
 
-class EvaluationFuncTable(EvaluationFunc):
+class EvaluationFuncHardTable(EvaluationFunc):
     def __init__(self, listpiece):
         super().__init__(listpiece)
         self.isendgamephase = True
@@ -390,6 +392,161 @@ class EvaluationFuncTable(EvaluationFunc):
             value = self._positionalevaluation(piece)
             self.blackpawns.append(value)
             blackvalue += value
+        self.evaluation = whitevalue - blackvalue
+        doubledpawns = (self.wdoubledpawns - self.bdoubledpawns) * doublepawnvalue
+        isolatedpawns = (self.wisolatedpawns - self.bisolatedpawns) * isolatedpawnvalue
+        blockedpawns = (self.wblockedpawns - self.bblockedpawns) * blockedpawnvalue
+        self.evaluation += doubledpawns + isolatedpawns + blockedpawns + self.mobility
+        evaluationtime += time.clock() - starttime
+        return self.evaluation
+
+    def __str__(self):
+        msg = "Evaluation of position: \n\t"
+        pieces = self.listpiece.whitepieces
+        for index in range(0, len(pieces)):
+            piece = pieces[index]
+            msg += str(piece) + " in " + str(piece.coordinate) + " value: " + str(self.whitepieces[index]) + "\n\t"
+        pieces = self.listpiece.whitepawns
+        for index in range(0, len(pieces)):
+            piece = pieces[index]
+            msg += str(piece) + " in " + str(piece.coordinate) + " value: " + str(self.whitepawns[index]) + "\n\t"
+        pieces = self.listpiece.blackpieces
+        for index in range(0, len(pieces)):
+            piece = pieces[index]
+            msg += str(piece) + " in " + str(piece.coordinate) + " value: " + str(self.blackpieces[index]) + "\n\t"
+        pieces = self.listpiece.blackpawns
+        for index in range(0, len(pieces)):
+            piece = pieces[index]
+            msg += str(piece) + " in " + str(piece.coordinate) + "; value: " + str(self.blackpawns[index]) + "\n\t"
+        msg += "white doubled pawns:" + str(self.wdoubledpawns) + "\n\t"
+        msg += "black doubled pawns:" + str(self.bdoubledpawns) + "\n\t"
+        msg += "white isolated pawns:" + str(self.wisolatedpawns) + "\n\t"
+        msg += "black isolated pawns:" + str(self.bisolatedpawns) + "\n\t"
+        msg += "white blocked pawns:" + str(self.wblockedpawns) + "\n\t"
+        msg += "black blocked pawns:" + str(self.bblockedpawns) + "\n\t"
+        msg += "position value: " + str(self.evaluation)
+        return msg
+
+
+class EvaluationFuncTable(EvaluationFunc):
+    def __init__(self, listpiece):
+        super().__init__(listpiece)
+        self.isendgamephase = True
+        self._setisendgamephase()
+        self.whitepieces = []
+        self.whitepawns = []
+        self.blackpieces = []
+        self.blackpawns = []
+
+    def _setisendgamephase(self):
+        whitepawns = self.listpiece.whitepawns
+        whitepieces = self.listpiece.whitepieces
+        blackpawns = self.listpiece.blackpawns
+        blackpieces = self.listpiece.blackpieces
+        if len(whitepieces) > 3:
+            self.isendgamephase = False
+            return
+        if len(blackpieces) > 3:
+            self.isendgamephase = False
+            return
+        if len(whitepawns) > 4:
+            self.isendgamephase = False
+            return
+        if len(blackpawns) > 4:
+            self.isendgamephase = False
+            return
+        self.isendgamephase = True
+
+    def _setwhiteevaluationparameters(self, piece):
+        if isinstance(piece, pcsm.WhitePawn):
+            evaluationtable = whitepawntable
+            piecevalue = pawnvalue
+        elif isinstance(piece, pcsm.WhiteRook):
+            evaluationtable = whiterooktable
+            piecevalue = rookvalue
+        elif isinstance(piece, pcsm.WhiteKnight):
+            evaluationtable = whiteknighttable
+            piecevalue = knightvalue
+        elif isinstance(piece, pcsm.WhiteBishop):
+            evaluationtable = whitebishoptable
+            piecevalue = bishopvalue
+        elif isinstance(piece, pcsm.WhiteQueen):
+            evaluationtable = whitequeentable
+            piecevalue = queenvalue
+        elif isinstance(piece, pcsm.WhiteKing):
+            if self.isendgamephase:
+                evaluationtable = whitekingendgametable
+            else:
+                evaluationtable = whitekingmiddlegametable
+            piecevalue = kingvalue
+        else:
+            raise ValueError("Not a valid piece!!!")
+        return evaluationtable, piecevalue
+
+    def _setblackevaluationparameters(self, piece):
+        if isinstance(piece, pcsm.BlackPawn):
+            evaluationtable = blackpawntable
+            piecevalue = pawnvalue
+        elif isinstance(piece, pcsm.BlackRook):
+            evaluationtable = blackrooktable
+            piecevalue = rookvalue
+        elif isinstance(piece, pcsm.BlackKnight):
+            evaluationtable = blackknighttable
+            piecevalue = knightvalue
+        elif isinstance(piece, pcsm.BlackBishop):
+            evaluationtable = blackbishoptable
+            piecevalue = bishopvalue
+        elif isinstance(piece, pcsm.BlackQueen):
+            evaluationtable = blackqueentable
+            piecevalue = queenvalue
+        elif isinstance(piece, pcsm.BlackKing):
+            if self.isendgamephase:
+                evaluationtable = blackkingendgametable
+            else:
+                evaluationtable = blackkingmiddlegametable
+            piecevalue = kingvalue
+        else:
+            raise ValueError("Not a valid piece!!!")
+        return evaluationtable, piecevalue
+
+    def _whitepositionalevaluation(self, piece):
+        evaluationtable, piecevalue = self._setwhiteevaluationparameters(piece)
+        percent = evaluationtable[piece.coordinate]
+        return piecevalue + (piecevalue * (percent * 0.01))
+
+    def _blackpositionalevaluation(self, piece):
+        evaluationtable, piecevalue = self._setblackevaluationparameters(piece)
+        percent = evaluationtable[piece.coordinate]
+        return piecevalue + (piecevalue * (percent * 0.01))
+
+    def __call__(self):
+        global evaluationtime
+        starttime = time.clock()
+        self.evaluation = 0
+        whitevalue = 0
+        blackvalue = 0
+        for piece in self.listpiece.whitepieces:
+            value = self._whitepositionalevaluation(piece)
+            self.whitepieces.append(value)
+            whitevalue += value
+        for piece in self.listpiece.whitepawns:
+            value = self._whitepositionalevaluation(piece)
+            self.whitepawns.append(value)
+            whitevalue += value
+        for piece in self.listpiece.blackpieces:
+            value = self._blackpositionalevaluation(piece)
+            self.blackpieces.append(value)
+            blackvalue += value
+        for piece in self.listpiece.blackpawns:
+            value = self._blackpositionalevaluation(piece)
+            self.blackpawns.append(value)
+            blackvalue += value
+        if whitevalue > blackvalue:
+            self.mobility = 5
+        elif whitevalue == blackvalue:
+            self.mobility = 0
+        else:
+            self.mobility = -5
         self.evaluation = whitevalue - blackvalue
         doubledpawns = (self.wdoubledpawns - self.bdoubledpawns) * doublepawnvalue
         isolatedpawns = (self.wisolatedpawns - self.bisolatedpawns) * isolatedpawnvalue

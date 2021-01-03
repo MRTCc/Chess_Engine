@@ -392,7 +392,6 @@ class ListPiece:
             return False
 
     def __str__(self):
-        keys = self.board.keys()
         strlist = [str(self.board[coordinate]) for coordinate in coordinatelist]
         result = ("|%s|%s|%s|%s|%s|%s|%s|%s|\n" +
                   "|%s|%s|%s|%s|%s|%s|%s|%s|\n" +

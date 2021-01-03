@@ -34,11 +34,11 @@ evaluationtime = 0
 # engine settings
 checkmatevalue = 10000
 hashingmethod = 'zobrist'
-isactivetraspositiontable = True     # default True
-algorithm = 'iterdeep'                    # default alphabeta
-maxply = 3                    # default 5
+isactivetraspositiontable = False     # default True
+algorithm = 'minmax'                    # default alphabeta
+maxply = 2                    # default 5
 transpositiontable = None
-evalfunctype = 1
+evalfunctype = 2
 hashgenerator = None
 rootposition = None
 isrunning = True
