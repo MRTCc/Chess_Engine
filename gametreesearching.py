@@ -34,11 +34,11 @@ evaluationtime = 0
 # engine settings
 checkmatevalue = 10000
 hashingmethod = 'zobrist'
-isactivetraspositiontable = False     # default True
-algorithm = 'minmax'                    # default alphabeta
-maxply = 2                    # default 5
+isactivetraspositiontable = True     # default True
+algorithm = 'iterdeep'                    # default alphabeta
+maxply = 4                    # default 5
 transpositiontable = None
-evalfunctype = 2
+evalfunctype = 1
 hashgenerator = None
 rootposition = None
 isrunning = True
@@ -448,10 +448,10 @@ class WhiteGamePosition(GamePosition):
 
     def generateallmoves(self):
         global generationtime
-        starttime = time.clock()
+        starttime = time.perf_counter()
         for move in self.movegeneratorfunc(self.listpiece):
             self.moves.append(move)
-        generationtime += time.clock() - starttime
+        generationtime += time.perf_counter() - starttime
 
     @staticmethod
     def moveorderingkeybypriority(move):
@@ -521,10 +521,10 @@ class BlackGamePosition(GamePosition):
 
     def generateallmoves(self):
         global generationtime
-        starttime = time.clock()
+        starttime = time.perf_counter()
         for move in self.movegeneratorfunc(self.listpiece):
             self.moves.append(move)
-        generationtime += time.clock() - starttime
+        generationtime += time.perf_counter() - starttime
 
     @staticmethod
     def moveorderingkeybypriority(move):
@@ -581,7 +581,18 @@ class BlackGamePositionTable(BlackGamePosition):
         self.transpositiontable.updatetonewposition()
 
 
-class MinimaxGamePosition:
+class AlgorithmPosition:
+    def calcbestmove(self, ply):
+        raise Exception("gametreesearching.py : AlgorithmPosition : calcbestmove --> child must implement!!!")
+
+    def getrandomoutmove(self):
+        raise Exception("gametreesearching.py : AlgorithmPosition : getrandomoutmove --> child must implement!!!")
+
+    def __str__(self):
+        raise Exception("gametreesearching.py : AlgorithmPosition : __str__ --> child must implement!!!")
+
+
+class MinimaxGamePosition(AlgorithmPosition):
     def __init__(self, listpiece, rootcolor):
         self.listpiece = listpiece
         self.rootcolor = rootcolor
@@ -683,7 +694,7 @@ class MinimaxGamePosition:
 
     def calcbestmove(self, ply):
         global totaltime, evaluationtime
-        starttime = time.clock()
+        starttime = time.perf_counter()
         if self.rootcolor:
             self.minimaxformax(self.position, ply)
         else:
@@ -691,7 +702,7 @@ class MinimaxGamePosition:
         self.value = self.position.value
         for index in range(0, len(self.position.children)):
             if self.position.children[index].value == self.value:
-                totaltime = time.clock() - starttime
+                totaltime = time.perf_counter() - starttime
                 evaluationtime = evm.evaluationtime
                 return self.position.moves[index]
 
@@ -771,16 +782,16 @@ class MinimaxPerfGamePosition(MinimaxGamePosition):
 
     def calcbestmove(self, ply):
         global totaltime
-        starttime = time.clock()
+        starttime = time.perf_counter()
         if self.rootcolor:
             self.minimaxformax(self.position, ply)
         else:
             self.minimaxformin(self.position, ply)
-        totaltime = time.clock() - starttime
+        totaltime = time.perf_counter() - starttime
         return self.perfposition
 
 
-class AlphabetaGamePosition:
+class AlphabetaGamePosition(AlgorithmPosition):
     def __init__(self, listpiece, rootcolor):
         self.listpiece = listpiece
         self.rootcolor = rootcolor
@@ -884,7 +895,7 @@ class AlphabetaGamePosition:
 
     def calcbestmove(self, ply):
         global totaltime, evaluationtime
-        starttime = time.clock()
+        starttime = time.perf_counter()
         if self.rootcolor:
             self.alphabetamax(self.position, -800, +800, ply)
         else:
@@ -892,7 +903,7 @@ class AlphabetaGamePosition:
         self.value = self.position.value
         for index in range(0, len(self.position.children)):
             if self.position.children[index].value == self.value:
-                totaltime = time.clock() - starttime
+                totaltime = time.perf_counter() - starttime
                 evaluationtime = evm.evaluationtime
                 return self.position.moves[index]
 
@@ -905,7 +916,7 @@ class AlphabetaGamePosition:
         return self.position.__str__()
 
 
-class AlphabetaGamePositionTable:
+class AlphabetaGamePositionTable(AlgorithmPosition):
     def __init__(self, transpositiontable, listpiece, rootcolor):
         self.listpiece = listpiece
         self.rootcolor = rootcolor
@@ -1035,7 +1046,7 @@ class AlphabetaGamePositionTable:
 
     def calcbestmove(self, ply):
         global totaltime, evaluationtime
-        starttime = time.clock()
+        starttime = time.perf_counter()
         if self.rootcolor:
             self.alphabetamax(self.position, -800, +800, ply)
         else:
@@ -1043,7 +1054,7 @@ class AlphabetaGamePositionTable:
         self.value = self.position.value
         for index in range(0, len(self.position.children)):
             if self.position.children[index].value == self.value:
-                totaltime = time.clock() - starttime
+                totaltime = time.perf_counter() - starttime
                 evaluationtime = evm.evaluationtime
                 return self.position.moves[index]
 
@@ -1056,7 +1067,7 @@ class AlphabetaGamePositionTable:
         return self.position.__str__()
 
 
-class IterativeDeepeningGamePosition:
+class IterativeDeepeningGamePosition(AlgorithmPosition):
     def __init__(self, listpiece, rootcolor):
         self.listpiece = listpiece
         self.rootcolor = rootcolor
@@ -1160,7 +1171,7 @@ class IterativeDeepeningGamePosition:
 
     def calcbestmove(self, maxply):
         global totaltime, evaluationtime
-        starttime = time.clock()
+        starttime = time.perf_counter()
         for ply in range(1, maxply + 1):
             self.position.children = []
             if self.rootcolor:
@@ -1171,7 +1182,7 @@ class IterativeDeepeningGamePosition:
             for index in range(0, len(self.position.children)):
                 self.position.moves[index].value = self.position.children[index].value
             self.position.moves.sort(key=self._moveorderingkey, reverse=True)
-        totaltime = time.clock() - starttime
+        totaltime = time.perf_counter() - starttime
         evaluationtime = evm.evaluationtime
         return self.position.moves[0]
 
@@ -1184,7 +1195,7 @@ class IterativeDeepeningGamePosition:
         return self.position.__str__()
 
 
-class IterativeDeepeningGamePositionTable:
+class IterativeDeepeningGamePositionTable(AlgorithmPosition):
     def __init__(self, transpositiontable, listpiece, rootcolor):
         self.listpiece = listpiece
         self.rootcolor = rootcolor
@@ -1314,7 +1325,7 @@ class IterativeDeepeningGamePositionTable:
 
     def calcbestmove(self, maxply):
         global totaltime,evaluationtime
-        starttime = time.clock()
+        starttime = time.perf_counter()
         for ply in range(1, maxply + 1):
             self.position.children = []
             self.position.refreshtranspositiontable()
@@ -1326,7 +1337,7 @@ class IterativeDeepeningGamePositionTable:
             for index in range(0, len(self.position.children)):
                 self.position.moves[index].value = self.position.children[index].value
             self.position.moves.sort(key=self._moveorderingkey, reverse=True)
-        totaltime = time.clock() - starttime
+        totaltime = time.perf_counter() - starttime
         evaluationtime = evm.evaluationtime
         return self.position.moves[0]
 
@@ -1337,21 +1348,6 @@ class IterativeDeepeningGamePositionTable:
 
     def __str__(self):
         return self.position.__str__()
-
-
-def debug_pos_factory(hashgenerator):
-    wc = mvm.CastlingRights(True, True, False, True, False, False)
-    bc = mvm.CastlingRights(True, True, False, True, False, False)
-    whiteKing = pcsm.WhiteKing(e1, wc)
-    blackKing = pcsm.BlackKing(e8, bc)
-    whitepieces = [whiteKing, pcsm.WhiteRook(a1, whiteKing, blackKing),
-                   pcsm.WhiteKnight(h5, whiteKing, blackKing)]
-    whitepawns = [pcsm.WhitePawn(b7, whiteKing, blackKing)]
-    blackpieces = [blackKing, pcsm.BlackRook(a8, blackKing, whiteKing),
-                   pcsm.BlackKnight(g7, blackKing, whiteKing)]
-    blackpawns = [pcsm.BlackPawn(b2, blackKing, whiteKing)]
-    pcsm.listpiece = pcsm.listpiecefactory(whitepieces, whitepawns, blackpieces, blackpawns, hashgenerator, True)
-    return pcsm.listpiece, whiteKing, blackKing
 
 
 if __name__ == '__main__':

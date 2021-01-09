@@ -371,7 +371,7 @@ class EvaluationFuncHardTable(EvaluationFunc):
 
     def __call__(self):
         global evaluationtime
-        starttime = time.clock()
+        starttime = time.perf_counter()
         self._setcontrolledcells()
         self.evaluation = 0
         whitevalue = 0
@@ -397,7 +397,7 @@ class EvaluationFuncHardTable(EvaluationFunc):
         isolatedpawns = (self.wisolatedpawns - self.bisolatedpawns) * isolatedpawnvalue
         blockedpawns = (self.wblockedpawns - self.bblockedpawns) * blockedpawnvalue
         self.evaluation += doubledpawns + isolatedpawns + blockedpawns + self.mobility
-        evaluationtime += time.clock() - starttime
+        evaluationtime += time.perf_counter() - starttime
         return self.evaluation
 
     def __str__(self):
@@ -521,7 +521,7 @@ class EvaluationFuncTable(EvaluationFunc):
 
     def __call__(self):
         global evaluationtime
-        starttime = time.clock()
+        starttime = time.perf_counter()
         self.evaluation = 0
         whitevalue = 0
         blackvalue = 0
@@ -542,17 +542,17 @@ class EvaluationFuncTable(EvaluationFunc):
             self.blackpawns.append(value)
             blackvalue += value
         if whitevalue > blackvalue:
-            self.mobility = 5
+            self.mobility = 1
         elif whitevalue == blackvalue:
             self.mobility = 0
         else:
-            self.mobility = -5
+            self.mobility = -1
         self.evaluation = whitevalue - blackvalue
         doubledpawns = (self.wdoubledpawns - self.bdoubledpawns) * doublepawnvalue
         isolatedpawns = (self.wisolatedpawns - self.bisolatedpawns) * isolatedpawnvalue
         blockedpawns = (self.wblockedpawns - self.bblockedpawns) * blockedpawnvalue
         self.evaluation += doubledpawns + isolatedpawns + blockedpawns + self.mobility
-        evaluationtime += time.clock() - starttime
+        evaluationtime += time.perf_counter() - starttime
         return self.evaluation
 
     def __str__(self):
@@ -621,7 +621,7 @@ class EvaluationFuncLazy(EvaluationFunc):
 
     def __call__(self):
         global evaluationtime
-        starttime = time.clock()
+        starttime = time.perf_counter()
         self.evaluation = 0
         whitevalue = 0
         blackvalue = 0
@@ -638,7 +638,7 @@ class EvaluationFuncLazy(EvaluationFunc):
         isolatedpawns = (self.wisolatedpawns - self.bisolatedpawns) * isolatedpawnvalue
         blockedpawns = (self.wblockedpawns - self.bblockedpawns) * blockedpawnvalue
         self.evaluation += doubledpawns + isolatedpawns + blockedpawns
-        evaluationtime += time.clock() - starttime
+        evaluationtime += time.perf_counter() - starttime
         return self.evaluation
 
 
