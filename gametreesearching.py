@@ -419,20 +419,12 @@ class GamePosition:
             return True
         return False
 
-    def calcbestmove(self, ply):
-        raise Exception("GamePosition --> calcbestmove : not implemented!!!")
-
     def _outputmoves(self):
         msg = ""
         for move in self.listpiece.moves:
             msg += move.short__str__() + " "
         msg += str(self.value)
         return msg
-
-    def getrandomoutmove(self):
-        index = random.randint(0, len(self.moves) - 1)
-        strmove = self.moves[index].short__str__()
-        return strmove
 
 
 class WhiteGamePosition(GamePosition):
